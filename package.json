@@ -1,0 +1,29 @@
+{
+    "name"            : "frog",
+    "dependencies"    : {
+        "amdefine"        : "*",
+        "body-parser"     : "*",
+        "bunyan"          : "*",
+        "cookie-parser"   : "*",
+        "ejs-locals"      : "*",
+        "express"         : "*",
+        "express-session" : "*",
+        "moment"          : "*",
+        "mongoose"        : "*",
+        "numeral"         : "*",
+        "request"         : "*",
+        "restify"         : "*",
+        "serve-favicon"   : "*",
+        "sha1"            : "*",
+        "superagent"      : "*",
+        "underscore"      : "*",
+        "yargs"           : "*"
+    },
+    "devDependencies" : {
+        "chai"                    : "*",
+        "grunt"                   : "*",
+        "grunt-contrib-requirejs" : "*",
+        "mocha"                   : "*"
+    },
+    "version"         : "0.1.0"
+}

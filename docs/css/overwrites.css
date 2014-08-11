@@ -1,0 +1,125 @@
+* {
+    box-sizing: border-box;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+a {
+    color: #428bca !important;
+    text-transform: none !important;
+}
+
+a:hover {
+    color: #2a6496 !important;
+    text-transform: none !important;
+}
+
+a.level-1 {
+    color: #333 !important;
+    font-family : 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+    font-size: 12px !important;
+    margin-top: 12px !important;
+}
+
+a.level-2 {
+    font-family : 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+    font-size: 12px !important;
+}
+
+a.level-1.active {
+    font-family : 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+    color: #e5e5e5 !important;
+}
+
+a.level-2.active {
+    font-family : 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+    color: #e5e5e5 !important;
+}
+
+p {
+    text-align: justify !important;
+}
+
+p code {
+    border: solid 1px #D7EAFA;
+}
+
+h1, h2, h3 {
+    color: #333 !important;
+    font-family : 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+    font-size: 20px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
+}
+
+h1 {
+    font-size: 24px !important;
+}
+
+h2 {
+    font-size: 18px !important;
+}
+
+.content h4 {
+    color: #000;
+    padding-top: 12px;
+    padding-bottom: 4px;
+}
+
+.header {
+    background-color: #f8f8f8;
+    border-bottom: solid 1px #e7e7e7;
+    height: 50px;
+}
+
+.menu a.active, .menu a.active:visited, .menu a.active:hover {
+    color: #333 !important;
+    font-weight: 500 !important;
+}
+
+.menu a.active:after {
+    background-color: #e5e5e5 !important;
+}
+
+.frog-logo {
+    margin: -14px 0 0 -14px;
+    display: block;
+    float: left;
+    padding: 0 26px 0 0;
+}
+
+.frog-menu {
+    display: block;
+    float: left;
+}
+
+.frog-menu ul li {
+    border-left: none;
+}
+
+.frog-menu ul li a {
+    color: #777777;
+    font-size: 13px;
+}
+
+@media (min-width: 768px) {
+
+    .content-root {
+        padding-left: 320px;
+    }
+
+    .menubar {
+        width: 320px;
+    }
+
+}
+
+@media (min-width: 1180px) {
+
+    body:not(.no-literate) .content-root {
+        background-color: #f3f6fb;
+        -webkit-box-shadow: inset 870px 0 #fff, inset 871px 0 #dfe2e7, inset 880px 0 5px -10px rgba(0, 0, 0, 0.1);
+        box-shadow: inset 870px 0 #fff, inset 871px 0 #dfe2e7, inset 880px 0 5px -10px rgba(0, 0, 0, 0.1);
+    }
+
+}

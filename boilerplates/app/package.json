@@ -1,0 +1,11 @@
+{
+    "name"            : "frog-app",
+    "dependencies"    : {
+        "amdefine" : "*",
+        "frog"     : "*"
+    },
+    "devDependencies" : {
+        "nodemon" : "*"
+    },
+    "version"         : "0.1.0"
+}
