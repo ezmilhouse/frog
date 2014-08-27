@@ -135,7 +135,7 @@ define([
             for (var i = 0; i < modules.length; i++) {
 
                 // save in order
-                arr.push(modules[i].module);
+                arr[i] = modules[i].module;
 
                 // save with key
                 obj[modules[i].name] = modules[i].module;
@@ -252,7 +252,7 @@ define([
 
                     // skip
                     // if no dependencies
-                    if (typeof data.dependencies === 'undefined' || !_.isString(data.dependencies)) {
+                    if (typeof data === 'undefined' || typeof data.dependencies === 'undefined' || !_.isString(data.dependencies)) {
                         return cb();
                     }
 
@@ -358,7 +358,7 @@ define([
             for (var i = 0; i < paths.length; i++) {
 
                 // save module path as name
-                bypaths.push(paths[i]);
+                bypaths[i] = paths[i];
 
                 // closure
                 (function (paths, i) {
@@ -378,10 +378,10 @@ define([
                         var parts = bypaths[i].split('/');
 
                         // save modules order
-                        ordered.push({
+                        ordered[i] = {
                             name   : parts[parts.length - 1],
                             module : module
-                        });
+                        };
 
                         // exit
                         c += 1;

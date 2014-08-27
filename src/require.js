@@ -7,7 +7,7 @@ define([
     './singleton'
 ],function (singleton) {
 
-    // --- @PRIVATE
+    // PRIVATE
 
     /**
      * @method _readymodules(modules, modulesOrder[,fn])
@@ -70,11 +70,11 @@ define([
         // ex: js/views/view.header -> viewHeader
         for (var i = 0; i < paths.length; i++) {
 
-            // save module path as name
-            modulesNames.push(paths[i]);
-
             // closure
             (function (paths, i) {
+
+                // save module path as name
+                modulesNames[i] = paths[i];
 
                 if (server) {
 
@@ -86,10 +86,10 @@ define([
 
                     // everythings synchronous on the server-side,
                     // just push required modules
-                    modulesOrder.push({
+                    modulesOrder[i] = {
                         name   : modulesNames[i],
                         module : require(path)
-                    });
+                    };
 
                     // exit
                     c += 1;
@@ -108,10 +108,10 @@ define([
                         // modules[str] = module;
 
                         // save modules order
-                        modulesOrder.push({
+                        modulesOrder[i] = {
                             name   : modulesNames[i],
                             module : module
-                        });
+                        };
 
                         // exit
                         c += 1;

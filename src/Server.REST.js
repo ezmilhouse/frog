@@ -48,10 +48,13 @@ define([
                 },
                 name        : 'frog',
                 object      : '_frog',
+                paths       : {
+                    resources : 'js/resources',
+                    schemas   : 'js/schemas'
+                },
                 pkg         : null,
                 port        : null,
-                resources   : 'js/resources',
-                schemas     : 'js/schemas',
+                resources   : {},
                 server      : null,
                 services    : 'js/services',
                 shell       : '/frog.shell',
@@ -242,12 +245,11 @@ define([
                 return next();
             }
 
-            // load list of clients
-            self.$.app.emit('resource:/api:/clients/:id?', {}, res, 'index', function (err, data, status, code, message) {
+            // fetch clients
+            self.$.resources['resource:clients'].index({}, function(err, data, status, code, message) {
 
                 // [-] exit
                 if (err) {
-                    console.log(0);
                     self.send(req, res, true, null, 400, '00020');
                     return next(false);
                 }
@@ -356,8 +358,11 @@ define([
                 client  : null,
                 cookie  : null,
                 session : null,
-                time    : [new Date().getTime()]
+                time    : []
             };
+
+            // log
+            req = util.log.time.resources(this, req, 'HTTP in');
 
             // exit
             next();
@@ -501,8 +506,8 @@ define([
             message = message || null;
             code = code || '00000';
 
-            // add time
-            req[this.$.object].time.push(new Date().getTime());
+            // log
+            req = util.log.time.resources(this, req, 'HTTP out');
 
             // reset payload
             var payload;
@@ -644,7 +649,7 @@ define([
                 }
 
                 // allow x-domain access
-                res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, ' + headers.clientkey + ', ' + headers.session);
+                res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, ' + headers.key + ', ' + headers.session);
                 res.header('Access-Control-Allow-Methods', 'HEAD, GET, POST, PUT, DELETE, OPTIONS');
                 res.header('Access-Control-Allow-Origin', '*');
 

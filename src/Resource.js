@@ -5,9 +5,10 @@ if (typeof define !== 'function') {
 define([
     'underscore',
     './Base',
+    'moment',
     './singleton',
     './util'
-], function (_, Base, singleton, util) {
+], function (_, Base, moment, singleton, util) {
 
     return Base.extend({
 
@@ -61,6 +62,7 @@ define([
                 callback   : util.noop,
                 context    : '',
                 id         : 'id0',
+                key        : null,
                 middleware : [],
                 Model      : null,
                 mongo      : {
@@ -68,6 +70,7 @@ define([
                     Model      : null,
                     schema     : null
                 },
+                name       : null,
                 namespace  : null,
                 payloads   : {
                     'default' : {}
@@ -112,6 +115,7 @@ define([
             this._setApp();
             this._setMongo();
             this._setNamespace();
+            this._setReference();
             this._setRoutes();
 
             return this;
@@ -130,6 +134,9 @@ define([
             // get headers
             var headers = this.$.server.get('headers');
 
+            // get headers key name
+            var headersKeyName = headers.key.toLowerCase();
+
             // [-] exit
             // check for aka-ClientKey, return 401 if not found
             if (typeof req.headers[headers.key.toLowerCase()] === 'undefined') {
@@ -144,15 +151,22 @@ define([
             // check for valid client key, return 401 if not found, save
             // client info on request object if found
             var client = _.find(clients, function (obj) {
-                return (obj.key === req.headers[headers.key.toLowerCase()]);
+                return (obj.key === req.headers[headersKeyName]);
             });
 
+            // if no regular client was found, doublecheck
+            // if incoming might be a preset one
             if (!client) {
+
+                // no key, no dev fallback, no access
                 fn(true, null, 401, '00014');
                 return false;
+
             } else {
+
                 // save client
                 req[this.$.server.get('object')].client = client;
+
             }
 
             // extract http method, force upper case
@@ -280,7 +294,7 @@ define([
         _setMongo : function () {
 
             // skip
-            if (this.$.type !== 'mongo') {
+            if (this.$.type !== 'mongo' || this.$.schema === null) {
                 return this;
             }
 
@@ -307,7 +321,9 @@ define([
 
             // set based on context and route
             // ex: resource:/api/:users/:id?
-            this.$.namespace = 'resource:' + this.$.context + ':' + this.$.route;
+            this.$.namespace = (this.$.name === null)
+                ? 'resource:' + this.$.context + ':' + this.$.route
+                : 'resource:' + this.$.name;
 
             // make chainable
             return this;
@@ -343,12 +359,14 @@ define([
         },
 
         /**
-         * @method _setOffsetFromPage(req)
+         * @method _setOffsetFromPage(req, limit, offset)
          * Extracts page token, set page integer, convert it into offste, return offset.
-         * @params {obj} req
+         * @params {required}{obj} req
+         * @params {required}{int} limit
+         * @params {required}{int} offset
          * @return {int}
          */
-        _setOffsetFromPage : function (req, limit) {
+        _setOffsetFromPage : function (req, limit, offset) {
 
             var page;
 
@@ -365,9 +383,6 @@ define([
                 page = parseInt(req.query.page);
 
             }
-
-            // reset offset
-            var offset = this.$.defaults.offset;
 
             // update offset if page is set
             if (page !== 0 && page !== null) {
@@ -479,6 +494,28 @@ define([
         },
 
         /**
+         * @method _setReference()
+         * Sets reference to this resource on the global
+         * server object.
+         * @return {*}
+         */
+        _setReference : function () {
+
+            // extract resources
+            var resources = this.$.server.get('resources') || {};
+
+            // extract namespace
+            var namespace = this.$.namespace;
+
+            // set reference
+            resources[namespace] = this;
+
+            // make chainable
+            return this;
+
+        },
+
+        /**
          * @method _setRoutes
          * Sets resource routes based on set route and
          * endpoint settings.
@@ -522,21 +559,23 @@ define([
                 };
 
                 // check if service or native CRUD
-                var service = query.split(':');
+                var action = query.split(':');
+
+                console.log(namespace, action);
 
                 // invoke service action
-                if (service.length > 1) {
+                if (action.length > 1) {
 
                     // set action
                     if (req && !_.isEmpty(req)) {
                         // TODO: in case of internal event submission, req might be undefined
                         // TODO: or null, maybe change the way resource actions are called
                         // TODO: internally
-                        req[self.$.server.get('object')].action = service[1];
+                        req[self.$.server.get('object')].action = action[1];
                     }
 
                     // invoke action
-                    return self.$.services[service[1]].call(self, req, fn, override);
+                    return self.$.services[action[1]].call(self, req, fn, override);
 
                 }
 
@@ -545,11 +584,11 @@ define([
                 // TODO: or null, maybe change the way resource actions are called
                 // TODO: internally
                 if (req && !_.isEmpty(req)) {
-                    req[self.$.server.get('object')].action = service[0];
+                    req[self.$.server.get('object')].action = action[0];
                 }
 
                 // invoke native CRUD action
-                self[service[0]](req, fn, override);
+                self[action[0]](req, fn, override);
 
             });
 
@@ -586,21 +625,48 @@ define([
 
             // POST - service
             app.post({
-                name : 'Resource - POST (create/service) - ' + route + '/:' + this.$.id,
-                path : route + '/:' + this.$.id
+                name : 'Resource - POST (service) - ' + route + '/(.*)',
+                path : route + '/(.*)'
             }, middleware, function (req, res, next) {
 
+                // extract service
+                var service = req.query.service || null;
+
+                // skip!
+                // if no service
+                if (!service) {
+                    return server.send(req, res, true, null, 404, '00010');
+                }
+
+                console.log(service)
+
                 // service
-                app.emit(namespace, req, res, 'service:' + req.params[self.$.id]);
+                app.emit(namespace, req, res, 'service:' + req.query.service.toLowerCase());
 
                 // no further routing
                 return next(false);
 
             });
 
+            // POST - service
+            /*
+             app.post({
+             name : 'Resource - POST (create/service) - ' + route + '/:' + this.$.id + '/(.*)',
+             path : route + '/:' + this.$.id + '/(.*)'
+             }, middleware, function (req, res, next) {
+
+             // service
+             app.emit(namespace, req, res, 'service:' + req.params[self.$.id] + ':' + req.url.split()[1]);
+
+             // no further routing
+             return next(false);
+
+             });
+             */
+
             // POST - create
             app.post({
-                name : 'Resource - POST (service) - ' + route,
+                name : 'Resource - POST (create) - ' + route,
                 path : route
             }, middleware, function (req, res, next) {
 
@@ -646,8 +712,9 @@ define([
                 path : route + '/:' + this.$.id
             }, middleware, function (req, res, next) {
 
-                // update
-                app.emit(namespace, req, res, 'options');
+                // options
+                // app.emit(namespace, req, res, 'options');
+                server.send(req, res, null, null, 202);
 
                 // no further routing
                 return next(false);
@@ -660,8 +727,9 @@ define([
                 path : route
             }, middleware, function (req, res, next) {
 
-                // update
-                app.emit(namespace, req, res, 'options');
+                // options
+                // app.emit(namespace, req, res, 'options');
+                server.send(req, res, null, null, 202);
 
                 // no further routing
                 return next(false);
@@ -719,7 +787,7 @@ define([
             // limit value, overwrites existing offset,
             // falls back to default offset, (check
             // resource configuration for default value)
-            offset = this._setOffsetFromPage(req, limit);
+            offset = this._setOffsetFromPage(req, limit, offset);
 
             // set sorting
             // sets default sorting object to mongo to know
@@ -740,11 +808,10 @@ define([
             // verbs plus custom)
             var query = this._setQuery(req, 'index');
 
-            // QUERY
+            // log
+            req = util.log.time.resources(this.$.server, req, 'MONGO query');
 
-            // add time
-            req[this.$.server.get('object')].time.push(new Date().getTime());
-
+            // query
             this.$.mongo.Model
                 .find(query, payload, {
                     limit : limit,
@@ -765,8 +832,8 @@ define([
                         return fn(true, null, 404, '00002');
                     }
 
-                    // add time
-                    req[self.$.server.get('object')].time.push(new Date().getTime());
+                    // log
+                    req = util.log.time.resources(self.$.server, req, 'MONGO done');
 
                     // [+] exit
                     return fn(null, docs, 200);
@@ -812,11 +879,10 @@ define([
             // verbs plus custom)
             var query = this._setQueryFromBody(req, 'create');
 
-            // QUERY
+            // log
+            req = util.log.time.resources(this.$.server, req, 'MONGO query');
 
-            // add time
-            req[this.$.server.get('object')].time.push(new Date().getTime());
-
+            // query
             this.$.mongo.Model
                 .find(query, function (err, docs) {
 
@@ -841,8 +907,8 @@ define([
                         // set date
                         // add `modified` and `created` data
                         _.extend(req.body, {
-                            _created  : util.timestamp(),
-                            _modified : util.timestamp()
+                            _created : util.timestamp(),
+                            _updated : util.timestamp()
                         });
 
                         // [+] create
@@ -858,7 +924,7 @@ define([
                         // set date
                         // add `modified`
                         _.extend(req.body, {
-                            _modified : util.timestamp()
+                            _updated : util.timestamp()
                         });
 
                         // [+] update
@@ -874,14 +940,14 @@ define([
                     // save created/updated document to database
                     docs[0].save(function (err, doc) {
 
+                        // log
+                        req = util.log.time.resources(self.$.server, req, 'MONGO done');
+
                         // [-] exit
                         // if database error occured
                         if (err) {
                             return fn(true, null, 400, '00001');
                         }
-
-                        // add time
-                        req[self.$.server.get('object')].time.push(new Date().getTime());
 
                         // [+] exit
                         // created (201) or updated (204)
@@ -935,11 +1001,10 @@ define([
             // verbs plus custom)
             var query = this._setQuery(req, 'retrieve');
 
-            // QUERY
+            // log
+            req = util.log.time.resources(this.$.server, req, 'MONGO query');
 
-            // add time
-            req[this.$.server.get('object')].time.push(new Date().getTime());
-
+            // query
             this.$.mongo.Model
                 .findOne(query, payload)
                 .lean()
@@ -957,8 +1022,8 @@ define([
                         return fn(true, null, 404, '00002');
                     }
 
-                    // add time
-                    req[self.$.server.get('object')].time.push(new Date().getTime());
+                    // log
+                    req = util.log.time.resources(self.$.server, req, 'MONGO done');
 
                     // [+] exit
                     return fn(null, doc, 200);
@@ -1007,14 +1072,13 @@ define([
             // set date
             // add `modified` data
             _.extend(req.body, {
-                _modified : util.timestamp()
+                _updated : util.timestamp()
             });
 
-            // QUERY
+            // log
+            req = util.log.time.resources(this.$.server, req, 'MONGO query');
 
-            // add time
-            req[this.$.server.get('object')].time.push(new Date().getTime());
-
+            // query
             this.$.mongo.Model
                 .find(query, function (err, docs) {
 
@@ -1043,8 +1107,8 @@ define([
                             return fn(true, null, 400, '00001');
                         }
 
-                        // add time
-                        req[self.$.server.get('object')].time.push(new Date().getTime());
+                        // log
+                        req = util.log.time.resources(self.$.server, req, 'MONGO done');
 
                         // [+] exit
                         return fn(null, null, 204);
@@ -1086,11 +1150,10 @@ define([
             // verbs plus custom)
             var query = this._setQuery(req, 'delete');
 
-            // QUERY
+            // log
+            req = util.log.time.resources(this.$.server, req, 'MONGO query');
 
-            // add time
-            req[this.$.server.get('object')].time.push(new Date().getTime());
-
+            // query
             this.$.mongo.Model
                 .find(query, function (err, docs) {
 
@@ -1115,8 +1178,8 @@ define([
                             return fn(true, null, 400, '00001');
                         }
 
-                        // add time
-                        req[self.$.server.get('object')].time.push(new Date().getTime());
+                        // log
+                        req = util.log.time.resources(self.$.server, req, 'MONGO done');
 
                         // [+] exit
                         return fn(null, null, 204);

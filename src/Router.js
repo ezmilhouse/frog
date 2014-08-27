@@ -145,18 +145,26 @@ define([
                 // dispatch on hashchange event
                 $(window).hashchange(function () {
 
-                    // extract path
-                    var host = location.host;
-
-                    // extract path based on base value
-                    var path = location.href.split(host)[1];
-                    path = path.split('#')[1];
-                    path = (self.$.base === null) ? '#' + path : self.$.base + '#' + path;
-
-                    // save location
+                    // save location first
                     self.$.location = location;
 
-                    // dispatch
+                    // extract hash
+                    var hash = location.hash !== '' ? location.hash : null;
+
+                    // extract uri
+                    var path = location.pathname;
+
+                    // add hash to path
+                    if (hash) {
+                        path += hash;
+                    }
+
+                    // prepend context if set
+                    if (this.$.context) {
+                        path = this.$.context + path;
+                    }
+
+                    // dispatch url
                     self._dispatch(path);
 
                 });

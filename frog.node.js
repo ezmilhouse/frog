@@ -7,8 +7,7 @@ switch (typeof define !== 'function') {
             Api         : require('./src/Api'),
             app         : require('./src/app'),
             Base        : require('./src/Base'),
-            singleton   : require('./src/singleton'),
-            Collection  : require('./src/Model.Collection'),
+            Collection  : require('./src/Collection'),
             Component   : require('./src/Component'),
             Events      : require('./src/Events'),
             events      : require('./src/events'),
@@ -16,11 +15,13 @@ switch (typeof define !== 'function') {
             Handler     : {
                 Form : require('./src/Handler.Form')
             },
+            I18n        : require('./src/I18n'),
             Model       : require('./src/Model'),
             require     : require('./src/require'),
             Resource    : require('./src/Resource'),
             Router      : require('./src/Router'),
             Schema      : require('./src/Schema'),
+            singleton   : require('./src/singleton'),
             Server      : {
                 HTTP  : require('./src/Server.HTTP'),
                 REST  : require('./src/Server.REST')
@@ -42,23 +43,24 @@ switch (typeof define !== 'function') {
 
                 path + 'src/Api',
                 path + 'src/Base',
-                path + 'src/singleton',
+                path + 'src/Collection',
                 path + 'src/Component',
                 path + 'src/Events',
                 path + 'src/Events.Singleton',
                 path + 'src/Flow',
                 path + 'src/Handler.Form',
+                path + 'src/I18n',
                 path + 'src/log',
                 path + 'src/Model',
-                path + 'src/Model.Collection',
                 path + 'src/require',
                 path + 'src/Router',
+                path + 'src/singleton',
                 path + 'src/util',
                 path + 'src/validations',
                 path + 'src/View',
                 path + 'src/xhr'
 
-        ], function (Api, Base, singleton, Component, Events, events, Flow, HandlerForm, log, Model, ModelCollection, require, Router, util, validations, View, xhr) {
+        ], function (Api, Base, Collection, Component, Events, events, Flow, HandlerForm, I18n, log, Model, require, Router, singleton, util, validations, View, xhr) {
 
             var frog = {
 
@@ -66,8 +68,7 @@ switch (typeof define !== 'function') {
 
                 API         : Api,
                 Base        : Base,
-                singleton   : singleton,
-                Collection  : ModelCollection,
+                Collection  : Collection,
                 Component   : Component,
                 Events      : Events,
                 events      : events,
@@ -75,9 +76,11 @@ switch (typeof define !== 'function') {
                 Handler     : {
                     Form : HandlerForm
                 },
+                I18n        : I18n,
                 Model       : Model,
                 require     : require,
                 Router      : Router,
+                singleton   : singleton,
                 util        : util,
                 validations : validations,
                 View        : View,

@@ -23,17 +23,17 @@ define([
             this.$ = {
                 action      : true,
                 css         : {
-                    field             : 'frog-field',
-                    fieldError        : 'frog-field-error',
-                    fieldErrorMessage : 'frog-field-error-message',
-                    fieldSuccess      : 'frog-field-success',
-                    form              : 'frog-form',
-                    formBusy          : 'frog-form-busy',
-                    formCancel        : 'frog-form-cancel',
-                    formError         : 'frog-form-error',
-                    formErrorMessage  : 'frog-form-error-message',
-                    formNative        : 'frog-form-native',
-                    formSubmit        : 'frog-form-submit'
+                    field             : 'field',
+                    fieldError        : 'field-error',
+                    fieldErrorMessage : 'field-error-message',
+                    fieldSuccess      : 'field-success',
+                    form              : 'form',
+                    formBusy          : 'form-busy',
+                    formCancel        : 'form-cancel',
+                    formError         : 'form-error',
+                    formErrorMessage  : 'form-error-message',
+                    formNative        : 'form-native',
+                    formSubmit        : 'form-submit'
                 },
                 data        : {},
                 el          : null,
@@ -43,9 +43,10 @@ define([
                 globals     : {},
                 method      : 'POST',
                 namespace   : null,
+                prefix      : 'frog-',
                 rules       : {},
                 selector    : 'form',
-                state       : 'idle', // error, ok
+                state       : 'loaded', // idle, error, ok
                 text        : {},
                 valid       : true,
                 validations : validations,
@@ -56,10 +57,9 @@ define([
                 _.extend(this.$, options);
             }
 
-            // get form
+            // prepare
+            this._setPrefix();
             this._getForm();
-
-            // get fields
             this._getFields();
 
             return this;
@@ -139,7 +139,7 @@ define([
 
             // loop through all elements that have a name
             // attribute
-            $('[name]').each(function () {
+            $('[name]', this.$.el).each(function () {
 
                 // extract element
                 var el = $(this);
@@ -183,6 +183,19 @@ define([
 
         },
 
+        _setPrefix : function () {
+
+            // loop through all form classes, set
+            // perfixes
+            for (var key in this.$.css) {
+                this.$.css[key] = this.$.prefix + this.$.css[key];
+            }
+
+            // make chainable
+            return this;
+
+        },
+
         /**
          * @method _setErrorMessage(field)
          * Extracts error messages form's text object based on
@@ -220,12 +233,12 @@ define([
             // in message string if rule was array
             var str;
             if (_.isArray(rule)) {
-                str = this.$.text.errors[rule[0]];
+                str = this.$.text[rule[0]];
                 for (var i = 1; i < rule.length; i++) {
                     str = str.replace('[' + i + ']', rule[i]);
                 }
             } else {
-                str = this.$.text.errors[rule];
+                str = this.$.text[rule];
             }
 
             return str;
@@ -251,10 +264,7 @@ define([
              * @params {required}{obj} evt
              * @params {required}{str} field
              */
-            var _validation = function (evt, field) {
-
-                // prevent native
-                evt.preventDefault();
+            var _validation = function (field) {
 
                 // validate form field
                 self.validate(field);
@@ -272,13 +282,22 @@ define([
                 default :
                     switch (type) {
                         case 'checkbox' || 'radio' :
-                            $(document).on('mousedown', ns + '[name=' + field + ']', function (evt) {
-                                _validation(evt, field);
+                            $(document).on('click', ns + '[name=' + field + ']', function (evt) {
+
+                                // trigger validation
+                                _validation(field);
+
                             });
                             break;
                         default :
                             $(document).on('blur', ns + '[name=' + field + ']', function (evt) {
-                                _validation(evt, field);
+
+                                // prevent native
+                                evt.preventDefault();
+
+                                // trigger validation
+                                _validation(field);
+
                             });
                             break;
                     }
@@ -422,7 +441,7 @@ define([
             if (!this.$.valid) {
 
                 // inject text
-                $('.' + cl.formErrorMessage, this.$.el).html(this.$.text.errors.form);
+                $('.' + cl.formErrorMessage, this.$.el).html(this.$.text.form);
 
                 // show error message
                 $(ns).addClass(cl.formError);
@@ -456,7 +475,7 @@ define([
 
             // skip
             // if already busy
-            if (this.$.state === 'busy') {
+            if (this.$.state !== 'idle') {
                 return false;
             }
 
@@ -563,25 +582,24 @@ define([
         data : function (obj) {
 
             // normalize
-            obj = obj || {};
+            obj = obj || null;
+
+            // skip
+            // if getter
+            if (!obj) {
+                return this.$.globals;
+            }
 
             // extend, save
             _.extend(this.$.globals, {
-                form : this.$,
-                text : this.$.text
+                form : this.$
             });
 
-            // check if data key already exists
-            if (typeof this.$.globals.data === 'undefined') {
-                // create key
-                this.$.globals.data = obj;
-            } else {
-                // extend data
-                _.extend(this.$.globals.data, obj);
-            }
+            // extend data
+            _.extend(this.$.globals, obj);
 
-            // exit
-            return this.$.globals;
+            // make chainable
+            return this;
 
         },
 
@@ -653,6 +671,44 @@ define([
         },
 
         /**
+         * @method listen()
+         * Initiates form, field listeners.
+         * @return {*}
+         */
+        init : function () {
+
+            // get form
+            var form = this._getForm();
+
+            // get fields
+            var fields = this._getFields();
+
+            // set namespace
+            var ns = this.$.selector + ' ';
+
+            // get classes
+            var cl = this.$.css;
+
+            // set listeners
+            for (var key in fields) {
+                this._setFieldListeners(key, fields[key].tag, fields[key].type);
+            }
+
+            // set form listeners
+            this._setFormListener();
+
+            // now ready
+            this.$.state = 'idle';
+
+            // enable submit button
+            $(ns + '.' + cl.formSubmit + ' button').removeAttr('disabled');
+
+            // make chainable
+            return this;
+
+        },
+
+        /**
          * @method render(obj, fn)
          * Creates form instance, renders bound view using
          * incoming object (as global in view), callback
@@ -665,18 +721,21 @@ define([
             // normalize
             switch (arguments.length) {
                 case 0 :
-                    obj = {};
+                    obj = null;
                     fn = util.noop;
                     break;
                 case 1 :
-                    if (_._isFunction(obj)) {
+                    if (_.isFunction(obj)) {
                         fn = obj;
-                        obj = {};
+                        obj = null;
+                    } else {
+                        obj = obj || null;
+                        fn = util.noop;
                     }
                     break;
                 default :
                     fn = fn || util.noop;
-                    obj = obj || {};
+                    obj = obj || null;
                     break;
             }
 
@@ -685,24 +744,15 @@ define([
 
             // extend globals with incoming object
             // retrieves globals
-            var globals = this.data(obj);
+            if (obj) {
+                this.data(obj);
+            }
 
             // render form template
-            this.$.view.render(globals, function () {
+            this.$.view.render(this.$.globals, function () {
 
-                // get form
-                var form = self._getForm();
-
-                // get fields
-                var fields = self._getFields();
-
-                // set listeners
-                for (var key in fields) {
-                    self._setFieldListeners(key, fields[key].tag, fields[key].type);
-                }
-
-                // set form listeners
-                self._setFormListener();
+                // initiate listeners
+                self.listen();
 
                 // exit
                 fn();
@@ -742,6 +792,44 @@ define([
 
             // done select
             el.prop('selectedIndex', 0);
+
+            // make chainable
+            return this;
+
+        },
+
+        /**
+         * @method send(fn)
+         * Replaces native form submission if set.
+         * @params {required}{fun} fn
+         * @return {*}
+         */
+        send : function (fn) {
+
+            // set callback
+            this.$.action = fn;
+
+            // make chainable
+            return this;
+
+        },
+
+        /**
+         * @method success([field])
+         * Sets specific field's or whole form's to `ok`, overwrites
+         * existing state, does not validate, sets state wih brute
+         * force
+         * @params {optional}{str} field
+         * @return {*}
+         */
+        success : function (field) {
+
+            // normalize
+            field = field || null;
+
+
+            // ...
+
 
             // make chainable
             return this;
@@ -809,44 +897,6 @@ define([
                 }
 
             }
-
-            // make chainable
-            return this;
-
-        },
-
-        /**
-         * @method send(fn)
-         * Replaces native form submission if set.
-         * @params {required}{fun} fn
-         * @return {*}
-         */
-        send : function (fn) {
-
-            // set callback
-            this.$.action = fn;
-
-            // make chainable
-            return this;
-
-        },
-
-        /**
-         * @method success([field])
-         * Sets specific field's or whole form's to `ok`, overwrites
-         * existing state, does not validate, sets state wih brute
-         * force
-         * @params {optional}{str} field
-         * @return {*}
-         */
-        success : function (field) {
-
-            // normalize
-            field = field || null;
-
-
-            // ...
-
 
             // make chainable
             return this;
@@ -961,7 +1011,7 @@ define([
             var fieldValue = this.fetch(field)[field];
 
             // get field rules
-            var fieldRules = this.$.rules[field];
+            var fieldRules = this.$.rules[field] || [];
 
             // loop through all rules, invoke
             // validations

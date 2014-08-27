@@ -4,6 +4,7 @@
         "amdefine"        : "*",
         "body-parser"     : "*",
         "bunyan"          : "*",
+        "connect-slashes" : "*",
         "cookie-parser"   : "*",
         "ejs-locals"      : "*",
         "express"         : "*",

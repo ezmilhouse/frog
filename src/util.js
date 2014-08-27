@@ -35,29 +35,34 @@ define([
              */
             timeDiff : function (arr) {
 
+                // set decimals
+                var decimals = 4;
+
                 // reset differences
                 var diff = [];
 
                 // alsways start with zero
-                diff.push(0);
+                //diff.push('0.00s');
 
                 // loop through all breaks calculate
                 // difference to next one
                 for (var i = 0; i < arr.length; i++) {
-                    if (arr[i + 1]) {
-                        diff.push(arr[i + 1] - arr[i] + 'ms');
+                    if (i - 1 >= 0) {
+                        diff.push(((arr[i].time - arr[i - 1].time) / 1000).toFixed(decimals) + 's - ' + arr[i].note);
+                    } else {
+                        diff.push('0.0000s - ' + arr[i].note);
                     }
                 }
 
                 // calc total time
-                var total = arr[arr.length - 1] - arr[0];
+                var total = arr[arr.length - 1].time - arr[0].time;
 
                 // prepare response
                 var obj = {
-                    breaks : arr,
-                    diff   : diff,
-                    text   : 'Done in ' + total + ' ms.',
-                    total  : total
+                    logs  : arr,
+                    total : (total / 1000).toFixed(decimals),
+                    diff  : diff,
+                    text  : 'Done in ' + (total / 1000).toFixed(decimals) + ' seconds.'
 
                 };
 
@@ -467,7 +472,43 @@ define([
                         console.log(str);
                     }
                 }
+            },
+            time  : {
+
+                /**
+                 * @method _setLogTime(req)
+                 * Adds timelog to request object.
+                 * @params {required}{obj} req
+                 * @return {obj}
+                 */
+                resources : function (server, req, note) {
+
+                    // extract request object key
+                    var key = server.get('object');
+
+                    // create, if does not exist yet
+                    if (typeof req[key] === 'undefined') {
+                        req[key] = {};
+                    }
+
+                    // create, if does not exist yet
+                    if (typeof req[key].time === 'undefined') {
+                        req[key].time = [];
+                    }
+
+                    // add time
+                    req[key].time.push({
+                        time : new Date().getTime(),
+                        note : note
+                    });
+
+                    // exit
+                    return req;
+
+                }
+
             }
+
         },
 
         /**
@@ -505,6 +546,10 @@ define([
                 '00003' : 'Request body not found.',
 
                 '00004' : 'Request body is missing required keys.',
+
+                '00021' : 'Request querystring not found.',
+
+                '00022' : 'Request querystring is missing required keys.',
 
                 // ROUTES
 

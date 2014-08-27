@@ -8,7 +8,7 @@ define([
     './Inherit',
     './util',
     'underscore',
-    'request'
+    './xhr'
 ], function (Inherit, util, _, request) {
 
     return Class.extend({

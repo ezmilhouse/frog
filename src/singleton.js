@@ -16,7 +16,8 @@ define(function () {
         components : {},
         config     : null,
         resources  : null,
-        server     : null
+        server     : null,
+        text       : {}
     };
 
     return singleton;

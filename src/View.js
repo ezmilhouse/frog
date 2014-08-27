@@ -11,7 +11,7 @@ define([
 
     return Base.extend({
 
-        // --- @PRIVATE
+        // PRIVATE
 
         /**
          * ctor, View
@@ -23,9 +23,7 @@ define([
             this.$ = {
                 api      : null,
                 compiled : null,
-                globals  : {
-                    util : util
-                },
+                data     : {},
                 markup   : null,
                 mode     : 'html',
                 file     : null,
@@ -67,10 +65,17 @@ define([
 
             var self = this;
 
+            // normalize
+            // add extension if necessary
+            var file = this.$.file.split('.');
+            if (file[file.length - 1] !== this.$.mode) {
+                this.$.file = file + '.' + this.$.mode;
+            }
+
             // buid path to markup file
             // force ejs extension to avoid
             // 500er errors
-            var path = 'text!' + this.get('file') + '.html';
+            var path = 'text!' + this.$.file;
 
             // load markup
             try {
@@ -115,7 +120,7 @@ define([
         _render : function () {
 
             // render template from compiled
-            this.$.rendered = this.$.compiled(this.$.globals);
+            this.$.rendered = this.$.compiled(this.$.data);
 
             // using standard jquery injection methods
             switch (this.$.mode) {
@@ -135,15 +140,15 @@ define([
 
         },
 
-        // --- @PUBLIC
+        // PUBLIC
 
         /**
-         * @method globals(obj)
-         * extends view's globals object
+         * @method data(obj)
+         * extends view's data object
          * @params {obj} obj
          * @return {*}
          */
-        globals : function (obj) {
+        data : function (obj) {
 
             // normalize
             obj = obj || null;
@@ -154,21 +159,14 @@ define([
                 return this;
             }
 
-            // get current globals
-            var globals = this.get('globals');
+            // get current data
+            var data = this.get('data');
 
-            // extend current globals with incoming
-            _.extend(globals, obj);
+            // extend current data with incoming
+            _.extend(data, obj);
 
-            // extend with API env content if set
-            if (this.$.api) {
-                _.extend(globals, {
-                    env : this.$.api.env() || null
-                });
-            }
-
-            // save updated globals object
-            this.set('globals', globals);
+            // save updated data object
+            this.set('data', data);
 
             // exit
             return this;
@@ -208,8 +206,8 @@ define([
 
             // ---
 
-            // update globals
-            this.globals(obj);
+            // update data
+            this.data(obj);
 
             // ---
 

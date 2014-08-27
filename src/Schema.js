@@ -23,8 +23,8 @@ define([
             this.$ = {
                 collection : null,
                 document   : {
-                    _created  : { type : Date },
-                    _modified : { type : Date }
+                    _created  : { type : Date, index : true },
+                    _modified : { type : Date, index : true }
                 },
                 mongo      : {
                     Model  : null,
@@ -119,7 +119,8 @@ define([
                     // is configurable.
                     versionKey : '_version'
 
-                }
+                },
+                uniques    : []
             };
 
             if (options) {
@@ -137,6 +138,7 @@ define([
             // prepare
             this._setMongoCollection();
             this._setMongoSchema();
+            this._setMongoUniques();
             this._setMongoModel();
 
             return this;
@@ -170,6 +172,12 @@ define([
          */
         _setMongoSchema : function () {
 
+            // add keys to document
+            _.extend(this.$.document, {
+                _created  : { type : Date, index : true },
+                _modified : { type : Date, index : true }
+            });
+
             // create mongo schema
             this.$.mongo.schema = new mongoose.Schema(this.$.document, this.$.options);
 
@@ -188,6 +196,55 @@ define([
 
             // create mongo Model
             this.$.mongo.Model = mongoose.model(this.$.collection, this.$.mongo.schema);
+
+            // make chainable
+            return this;
+
+        },
+
+        /**
+         * @method _setMongoUniques()
+         * Creates mongo unique indexes on set schema based on
+         * this.$.uniques array.
+         * @return {*}
+         */
+        _setMongoUniques : function () {
+
+            // get uniques
+            var arr = this.$.uniques;
+
+            // skip
+            // if no uniques
+            if (arr.length === 0) {
+                return this;
+            }
+
+            // get mongo schema
+            var schema = this.$.mongo.schema;
+
+            // reset field object
+            var obj;
+
+            // loop through arr of unique index
+            // definitions (means: arrays of
+            // field names)
+            for (var i = 0; i < arr.length; i++) {
+                if (arr[i].length > 0) {
+
+                    // kill reference
+                    obj = util.deepcopy({});
+
+                    // loop through fields, build mongo target
+                    // object
+                    for (var j = 0; j < arr[i].length; j++) {
+                        obj[arr[i][j]] = 1;
+                    }
+
+                    // set indexes on schema
+                    schema.index(obj, { unique : true });
+
+                }
+            }
 
             // make chainable
             return this;

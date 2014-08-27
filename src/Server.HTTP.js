@@ -7,6 +7,7 @@ define([
     './app',
     './Base',
     'cluster',
+    'connect-slashes',
     'cookie-parser',
     'ejs-locals',
     'express',
@@ -17,7 +18,7 @@ define([
     'os',
     './singleton',
     './util'
-], function (_, app, Base, cluster, cookieParser, engine, express, session, favicon, Flow, moment, os, singleton, util) {
+], function (_, app, Base, cluster, slashes, cookieParser, engine, express, session, favicon, Flow, moment, os, singleton, util) {
 
     return Base.extend({
 
@@ -47,6 +48,7 @@ define([
                 server      : null,
                 sessions    : null,
                 shell       : '/frog.shell',
+                text        : {},
                 views       : '/server/html'
             };
 
@@ -61,6 +63,7 @@ define([
             this._setEnvironment();
             this._setPort();
             this._setCluster();
+            this._setText();
             this._getCPUs();
 
             // make chainable
@@ -191,6 +194,20 @@ define([
         },
 
         /**
+         * @method _setText()
+         * Sets text, save it to singleton.
+         */
+        _setText : function() {
+
+            // save to singleton
+            singleton.text = require(this.$.dir + this.$.text);
+
+            // make chainable
+            return this;
+
+        },
+
+        /**
          * @method _log()
          * Stdouts server process information after new processes have
          * been started
@@ -303,6 +320,9 @@ define([
             // save whether or not use local config file
             app.set('local', this.$.local);
 
+            // save public folder
+            app.set('public', this.$.dir + this.$.public);
+
             // handle views, rendering
             app.engine('html', engine);
 
@@ -311,6 +331,9 @@ define([
 
             // set view directory
             app.set('views', this.$.dir + this.$.views);
+
+            // sets routing trailing slash rule
+            app.set('strict routing', false);
 
             // handle cookies
             app.use(cookieParser());
@@ -323,6 +346,9 @@ define([
 
             // handle static files
             app.use(express.static(this.$.dir + this.$.public));
+
+            // force trailing slash
+            app.use(slashes());
 
             // save express app
             singleton.app = this.$.app = app;
