@@ -13,6 +13,26 @@ define([
     var validations = {
 
         /**
+         * @method ifRange(mixed, arr)
+         * Is optional, if set validates against isRange().
+         * Otherwise returns true.
+         * @params {required}{str} mixed
+         * @params {required}{arr} arr
+         * @return {bol}
+         * @sample
+         *
+         *      // use as string
+         *      form.rules([['ifRange', 0, 10]]);
+         *
+         */
+        ifRange : function(mixed, arr) {
+            if (mixed && mixed !== '') {
+                return validations.isRange(mixed, arr);
+            }
+            return true;
+        },
+
+        /**
          * @method isCreditCard(mixed)
          * Validates against credit card format.
          * @params {required}{str} mixed
@@ -69,16 +89,14 @@ define([
          *      form.rules(['isEmail']);
          *
          */
-        isEmail : function (mixed, arr) {
+        isEmail : function (mixed) {
 
             // set regex
             // http://stackoverflow.com/questions/46155/validate-email-address-in-javascript
             var rex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
             // get results
-            var res = rex.test(mixed);
-
-            return res;
+            return rex.test(mixed);
 
         },
 
@@ -236,8 +254,11 @@ define([
          *
          */
         isRange : function (mixed, arr) {
+
+            console.log(mixed, arr);
+
             mixed = parseInt(mixed);
-            return mixed >= arr[1] && mixed <= arr[2];
+            return mixed >= parseInt(arr[1]) && mixed <= parseInt(arr[2]);
         },
 
         /**
@@ -273,6 +294,29 @@ define([
         },
 
         /**
+         * @method isOptional(mixed)
+         * Validates against emptyness, only if not empty :-).
+         * Basically here for consistency reasons.
+         * @params {required}{str} mixed
+         * @return {bol}
+         * @sample
+         *
+         *      // use as string
+         *      form.rules(['isOptional']);
+         *
+         */
+        isOptional : function (mixed) {
+
+            // skip if no input
+            if (mixed === '') {
+                return true;
+            }
+
+            return $.trim(mixed).length >= 1;
+
+        },
+
+        /**
          * @method isRequired(mixed)
          * Validates against emptyness.
          * @params {required}{str} mixed
@@ -283,7 +327,7 @@ define([
          *      form.rules(['isRequired']);
          *
          */
-        isRequired : function (mixed, arr) {
+        isRequired : function (mixed) {
             return $.trim(mixed).length > 0;
         }
 

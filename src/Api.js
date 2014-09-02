@@ -98,14 +98,14 @@ define([
             arguments[0] = this._setUrl(arguments[0]);
 
             // set xhr
-            xhr = xhr.del.apply(xhr, arguments);
+            var req = xhr.del.apply(xhr, arguments);
 
             // set xhr headers
             if (this.$.headers) {
-                xhr.set(this.$.headers);
+                req.set(this.$.headers);
             }
 
-            return xhr;
+            return req;
 
         },
 
@@ -148,14 +148,14 @@ define([
             arguments[0] = this._setUrl(arguments[0]);
 
             // set xhr
-            xhr = xhr.post.apply(xhr, arguments);
+            var req = xhr.post.apply(xhr, arguments);
 
             // set xhr headers
             if (this.$.headers) {
-                xhr.set(this.$.headers);
+                req.set(this.$.headers);
             }
 
-            return xhr;
+            return req;
 
         },
 
@@ -173,14 +173,14 @@ define([
             arguments[0] = this._setUrl(arguments[0]);
 
             // set xhr
-            xhr = xhr.put.apply(xhr, arguments);
+            var req = xhr.put.apply(xhr, arguments);
 
             // set xhr headers
             if (this.$.headers) {
-                xhr.set(this.$.headers);
+                req.set(this.$.headers);
             }
 
-            return xhr;
+            return req;
 
         }
 

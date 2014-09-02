@@ -21,8 +21,8 @@ define([
         _ctor : function (options) {
 
             this.$ = {
-                action      : true,
-                css         : {
+                action            : true,
+                css               : {
                     field             : 'field',
                     fieldError        : 'field-error',
                     fieldErrorMessage : 'field-error-message',
@@ -35,22 +35,28 @@ define([
                     formNative        : 'form-native',
                     formSubmit        : 'form-submit'
                 },
-                data        : {},
-                el          : null,
-                endpoint    : '/',
-                errors      : null,
-                fields      : {},
-                globals     : {},
-                method      : 'POST',
-                namespace   : null,
-                prefix      : 'frog-',
-                rules       : {},
-                selector    : 'form',
-                state       : 'loaded', // idle, error, ok
-                text        : {},
-                valid       : true,
-                validations : validations,
-                view        : null
+                data              : {},
+                el                : null,
+                endpoint          : '/',
+                errors            : null,
+                fields            : {},
+                globals           : {},
+                listeners_fields  : false,
+                listeners_forms   : false,
+                markup            : {
+                    error_field : '',
+                    error_form  : ''
+                },
+                method            : 'POST',
+                namespace         : null,
+                prefix            : 'frog-',
+                rules             : {},
+                selector          : 'form',
+                state             : 'loaded', // idle, error, ok
+                text              : {},
+                valid             : true,
+                validations       : validations,
+                view              : null
             };
 
             if (options) {
@@ -59,8 +65,6 @@ define([
 
             // prepare
             this._setPrefix();
-            this._getForm();
-            this._getFields();
 
             return this;
 
@@ -118,6 +122,9 @@ define([
             // add el
             this.$.el = $(this.$.selector);
 
+            // add errors container to form
+            this.$.el.prepend(this.$.markup.error_form);
+
             // return form
             return this.$.el;
 
@@ -137,9 +144,15 @@ define([
             // reset fields object
             this.$.fields = {};
 
+            // set namespace
+            var ns = this.$.selector + ' ';
+
+            // get classes
+            var cl = this.$.css;
+
             // loop through all elements that have a name
             // attribute
-            $('[name]', this.$.el).each(function () {
+            $(ns + '.' + cl.field + ' [name]').each(function () {
 
                 // extract element
                 var el = $(this);
@@ -147,14 +160,22 @@ define([
                 // extract name
                 var name = el.attr('name');
 
-                // add field object
-                self.$.fields[name] = {
-                    el    : el,
-                    name  : name,
-                    valid : null,
-                    tag   : el.prop('tagName').toLowerCase(),
-                    type  : (el.attr('type')) ? el.attr('type') : null,
-                    value : null
+                // avoid empty elements
+                if (name && name !== '') {
+
+                    // add field object
+                    self.$.fields[name] = {
+                        el    : el,
+                        name  : name,
+                        valid : null,
+                        tag   : el.prop('tagName').toLowerCase(),
+                        type  : (el.attr('type')) ? el.attr('type') : null,
+                        value : null
+                    };
+
+                    // inject error containers per field
+                    el.closest(ns + '.' + cl.field).append(self.$.markup.error_field);
+
                 }
 
             });
@@ -172,17 +193,21 @@ define([
         _getResults : function () {
 
             // build results object
-            var results = {
+            return {
                 body   : this.$.data,
                 fields : this.$.fields,
                 errors : this.$.errors,
                 valid  : this.$.valid
             };
 
-            return results;
-
         },
 
+        /**
+         * @method _setPrefix()
+         * Sets CSS class prefix to be used with relevant
+         * classes.
+         * @return {*}
+         */
         _setPrefix : function () {
 
             // loop through all form classes, set
@@ -250,13 +275,25 @@ define([
          * Sets DOM event listeners for field elements (based on
          * tag and if input - based on input type).
          */
-        _setFieldListeners : function (field, tag, type) {
+        _setFieldListeners : function () {
 
             // preserve scope
             var self = this;
 
+            // get form
+            var form = this._getForm();
+
+            // get fields
+            var fields = this._getFields();
+
             // set namespace
             var ns = this.$.selector + ' ';
+
+            // set class
+            var cl = this.$.css;
+
+            // get text
+            var text = this.$.text;
 
             /**
              * @method _validation(evt, fields, el)
@@ -271,38 +308,63 @@ define([
 
             };
 
-            // different listeners based on tags and
-            // (if input) based on types
-            switch (tag) {
-                case 'select' :
-                    $(document).on('change', ns + '[name=' + field + ']', function (evt) {
-                        _validation(evt, field);
-                    });
-                    break;
-                default :
-                    switch (type) {
-                        case 'checkbox' || 'radio' :
-                            $(document).on('click', ns + '[name=' + field + ']', function (evt) {
+            /**
+             * @method _listeners()
+             * Sets change, blur events on form elements.
+             * @params {required}{str} field
+             * @params {required}{str} tag
+             * @params {required}{str} field
+             */
+            var _listeners = function(field, tag, type) {
 
-                                // trigger validation
-                                _validation(field);
+                // different listeners based on tags and
+                // (if input) based on types
+                switch (tag) {
 
-                            });
-                            break;
-                        default :
-                            $(document).on('blur', ns + '[name=' + field + ']', function (evt) {
+                    case 'select' :
+                        $(document).on('change', ns + '[name=' + field + ']', function (evt) {
+                            _validation(field);
+                        });
+                        break;
 
-                                // prevent native
-                                evt.preventDefault();
+                    default :
 
-                                // trigger validation
-                                _validation(field);
+                        switch (type) {
 
-                            });
-                            break;
-                    }
-                    break;
+                            case 'range' :
+                                $(document).on('input', ns + '[name=' + field + ']', function (evt) {
+                                    _validation(field);
+                                });
+                                break;
+
+                            case 'checkbox' || 'radio' :
+                                $(document).on('click', ns + '[name=' + field + ']', function (evt) {
+                                    _validation(field);
+                                });
+                                break;
+
+                            default :
+                                $(document).on('blur', ns + '[name=' + field + ']', function (evt) {
+                                    evt.preventDefault();
+                                    _validation(field);
+                                });
+                                break;
+
+                        }
+
+                        break;
+
+                }
+
+            };
+
+            // set listeners
+            for (var key in fields) {
+                _listeners(key, fields[key].tag, fields[key].type);
             }
+
+            // make chainable
+            return this;
 
         },
 
@@ -332,7 +394,6 @@ define([
                 self.done();
 
             });
-
 
             // submit form, on click
             $(document).on('click', ns + '.' + cl.formSubmit + ' a', function (evt) {
@@ -370,6 +431,24 @@ define([
                 }
 
             });
+
+        },
+
+        /**
+         * @method _setMarkup()
+         * Sets markup for error messages on form and field level.
+         * @returns {*}
+         */
+        _setMarkup : function() {
+
+            // add markup for errors in form and field
+            _.extend(this.$.markup, {
+                error_field : '<div class="fm-field-error-message"></div><div class="fm-field-error-flag">' + this.$.text.defaultError + '</div><div class="fm-field-success-flag">' + this.$.text.defaultSuccess + '</div>',
+                error_form  : '<div class="fm-form-error-message">' + this.$.text.formError + '</div>'
+            });
+
+            // make chainable
+            return this;
 
         },
 
@@ -513,9 +592,6 @@ define([
                 if (self.$.action && _.isFunction(self.$.action)) {
                     return self.$.action.call(self, null, results);
                 }
-
-                // no callback set, action option is false
-                return;
 
             });
 
@@ -677,22 +753,17 @@ define([
          */
         init : function () {
 
-            // get form
-            var form = this._getForm();
-
-            // get fields
-            var fields = this._getFields();
-
             // set namespace
             var ns = this.$.selector + ' ';
 
             // get classes
             var cl = this.$.css;
 
-            // set listeners
-            for (var key in fields) {
-                this._setFieldListeners(key, fields[key].tag, fields[key].type);
-            }
+            // set error markup
+            this._setMarkup();
+
+            // set field listeners
+            this._setFieldListeners();
 
             // set form listeners
             this._setFormListener();
@@ -752,7 +823,7 @@ define([
             this.$.view.render(this.$.globals, function () {
 
                 // initiate listeners
-                self.listen();
+                self.init();
 
                 // exit
                 fn();
@@ -773,16 +844,17 @@ define([
             // normalize
             field = field || null;
 
-            // force re-rendering form template
-            // to reset it, necessary to avoid
-            // checkbox, radio button or select
-            // hassle
-            if (!field) {
-                return this.$.view.render(this.data());
-            }
+            // not busy
+            this.done();
 
-            // extract element
-            var el = $(this.$.selector + ' [name=' + field + ']');
+            // reset el
+            var el;
+
+            if (!field) {
+                el = $(this.$.selector + ' [name]');
+            } else {
+                el = $(this.$.selector + ' [name=' + field + ']');
+            }
 
             // done text, textarea
             el.val('');
@@ -1030,15 +1102,27 @@ define([
                 // parameters
                 if (_.isArray(rule)) {
 
-                    // extract rule mthod name
-                    ruleMethodName = rule[0];
+                    // incoming might be a function as well,
+                    // otherwise check validations collection
+                    // methods
+                    if (_.isFunction(rule[0])) {
 
-                    // first index is method
-                    ruleMethod = self.$.validations[ruleMethodName];
+                        // first index is method
+                        ruleMethod = rule[0];
+
+                    } else {
+
+                        // extract rule mthod name
+                        ruleMethodName = rule[0];
+
+                        // first index is method
+                        ruleMethod = self.$.validations[ruleMethodName];
+
+                    }
 
                     // add field to rule array
                     if (rule[rule.length - 1] !== field) {
-                        rule.push('field');
+                        rule.push(field);
                     }
 
                     // invoke validation method
@@ -1046,11 +1130,23 @@ define([
 
                 } else {
 
-                    // extract rule mthod name
-                    ruleMethodName = rule;
+                    // incoming might be a function as well,
+                    // otherwise check validations collection
+                    // methods
+                    if (_.isFunction(rule)) {
 
-                    // string is method
-                    ruleMethod = self.$.validations[ruleMethodName];
+                        // set method
+                        ruleMethod = rule;
+
+                    } else {
+
+                        // extract rule mthod name
+                        ruleMethodName = rule;
+
+                        // string is method
+                        ruleMethod = self.$.validations[ruleMethodName];
+
+                    }
 
                     // invoke validation method
                     ruleResult = ruleMethod.call(self, fieldValue, [field]);

@@ -561,8 +561,6 @@ define([
                 // check if service or native CRUD
                 var action = query.split(':');
 
-                console.log(namespace, action);
-
                 // invoke service action
                 if (action.length > 1) {
 
@@ -608,7 +606,6 @@ define([
 
             });
 
-
             // GET - index
             app.get({
                 name : 'Resource - GET (index) - ' + route,
@@ -623,52 +620,19 @@ define([
 
             });
 
-            // POST - service
+            // POST - create/service
             app.post({
-                name : 'Resource - POST (service) - ' + route + '/(.*)',
-                path : route + '/(.*)'
+                name : 'Resource - POST (create/service) - ' + route,
+                path : route
             }, middleware, function (req, res, next) {
 
                 // extract service
                 var service = req.query.service || null;
 
-                // skip!
-                // if no service
-                if (!service) {
-                    return server.send(req, res, true, null, 404, '00010');
-                }
-
-                console.log(service)
-
                 // service
-                app.emit(namespace, req, res, 'service:' + req.query.service.toLowerCase());
-
-                // no further routing
-                return next(false);
-
-            });
-
-            // POST - service
-            /*
-             app.post({
-             name : 'Resource - POST (create/service) - ' + route + '/:' + this.$.id + '/(.*)',
-             path : route + '/:' + this.$.id + '/(.*)'
-             }, middleware, function (req, res, next) {
-
-             // service
-             app.emit(namespace, req, res, 'service:' + req.params[self.$.id] + ':' + req.url.split()[1]);
-
-             // no further routing
-             return next(false);
-
-             });
-             */
-
-            // POST - create
-            app.post({
-                name : 'Resource - POST (create) - ' + route,
-                path : route
-            }, middleware, function (req, res, next) {
+                if (service) {
+                    return app.emit(namespace, req, res, 'service:' + req.query.service.toLowerCase());
+                }
 
                 // create
                 app.emit(namespace, req, res, 'create');

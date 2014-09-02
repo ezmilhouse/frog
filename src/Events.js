@@ -304,8 +304,6 @@ define([
             // if handler is function
             if (_.isFunction(handler)) {
 
-                console.log(handler, eventParams, arguments);
-
                 if (eventParams.length === 0) {
                     handler.call(this);
                 } else {
