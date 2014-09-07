@@ -4,10 +4,11 @@ if (typeof define !== 'function') {
 
 define([
     './Base',
+    './date',
     './Flow',
     './util',
     './validations'
-], function (Base, flow, util, validations) {
+], function (Base, date, flow, util, validations) {
 
     return Base.extend({
 
@@ -40,7 +41,10 @@ define([
                 endpoint          : '/',
                 errors            : null,
                 fields            : {},
-                globals           : {},
+                globals           : {
+                    date : date,
+                    util : util
+                },
                 listeners_fields  : false,
                 listeners_forms   : false,
                 markup            : {
@@ -233,6 +237,8 @@ define([
             // extract errors
             var errors = this.$.errors[field];
 
+            trc(errors);
+
             // extract specific last error
             var error = errors[errors.length - 1];
 
@@ -264,6 +270,11 @@ define([
                 }
             } else {
                 str = this.$.text[rule];
+            }
+
+            // fallback
+            if (!str) {
+                str = this.$.text[error];
             }
 
             return str;
@@ -470,6 +481,7 @@ define([
 
             // extract element
             var el = $(ns + '[name=' + field + ']');
+            console.log(ns + '[name=' + field + ']');
 
             // extract form fields parent div
             var parent = el.parent('.' + cl.field);
@@ -490,8 +502,15 @@ define([
             // set valid or invalid state on field
             if (errors) {
 
+                console.log('err', field, parent, cl.fieldError);
+
+                console.log('len', parent.length);
+
                 // add error class
                 parent.addClass(cl.fieldError);
+                parent.addClass('foo');
+
+                console.log(cl.fieldError, cl.fieldSuccess);
 
                 // remove success class
                 parent.removeClass(cl.fieldSuccess);
@@ -499,10 +518,14 @@ define([
                 // prepare error message
                 var str = this._setErrorMessage(name);
 
+                console.log(str, name);
+
                 // set error text
                 $('.' + cl.fieldErrorMessage, parent).html(str);
 
             } else {
+
+                console.log('suc', field, parent, cl.fieldError);
 
                 // remove error class
                 parent.removeClass(cl.fieldError);
@@ -649,6 +672,20 @@ define([
         },
 
         /**
+         * @method idle()
+         * Releases form from busy state.
+         * @return {*}
+         */
+        idle : function() {
+
+            this._busy(false);
+
+            // make chainable
+            return this;
+
+        },
+
+        /**
          * @method data([obj])
          * Builds/extends form handlers $.globals object, used
          * as global in handler's view.
@@ -686,14 +723,45 @@ define([
          * @params {optional}{str} field
          * @return {*}
          */
-        error : function (field) {
+        error : function (field, rule) {
 
             // normalize
             field = field || null;
 
+            // get field errors
+            var errors = this.$.errors || {};
 
-            // ...
+            // create key from field name if it
+            // does not exist yet
+            if (typeof errors[field] === 'undefined') {
+                errors[field] = [];
+            }
 
+            // push error, if not set yet
+            if (errors[field].indexOf(rule) === -1) {
+                errors[field].push(rule);
+            }
+
+            // reset errors, if no more entries
+            if (_.isEmpty(errors)) {
+                errors = null;
+            }
+
+            console.log('errors', errors);
+
+            // save
+            this.$.errors = errors;
+
+            // set form state
+            this.$.valid = !(typeof this.$.errors !== 'undefined' && !_.isEmpty(this.$.errors));
+
+            // create results object
+            var results = this._getResults();
+
+            console.log('results', results);
+
+            // update state classes
+            this._setStateClasses(field, results);
 
             // make chainable
             return this;

@@ -5,10 +5,10 @@ if (typeof define !== 'function') {
 define([
     'underscore',
     './Base',
-    'moment',
+    './date',
     './singleton',
     './util'
-], function (_, Base, moment, singleton, util) {
+], function (_, Base, date, singleton, util) {
 
     return Base.extend({
 
@@ -831,11 +831,9 @@ define([
                 return;
             }
 
-            // [-] exit
-            // if incoming request has no body
-            if (typeof req.body === 'undefined' || _.isEmpty(req.body)) {
-                return fn(true, null, 400, '00003');
-            }
+            // normalize
+            // allow empty body object
+            req.body = req.body || {};
 
             // set query
             // queries are pre-defined in resource's config,
@@ -869,10 +867,10 @@ define([
                     if (!docs.length) {
 
                         // set date
-                        // add `modified` and `created` data
+                        // add `updated` and `created` data
                         _.extend(req.body, {
-                            _created : util.timestamp(),
-                            _updated : util.timestamp()
+                            _created : date.getUTCLocal(),
+                            _updated : date.getUTCLocal()
                         });
 
                         // [+] create
@@ -886,9 +884,9 @@ define([
                     } else {
 
                         // set date
-                        // add `modified`
+                        // add `updated`
                         _.extend(req.body, {
-                            _updated : util.timestamp()
+                            _updated : date.getUTCLocal()
                         });
 
                         // [+] update
@@ -1023,7 +1021,7 @@ define([
 
             // [-] exit
             // if incoming request has no body
-            if (typeof req.body === 'undefined' || _.isEmpty(req.body)) {
+            if (typeof req.body === 'undefined') {
                 return fn(true, null, 400, '00003');
             }
 
@@ -1034,9 +1032,9 @@ define([
             var query = this._setQuery(req, 'update');
 
             // set date
-            // add `modified` data
+            // add `updated` data
             _.extend(req.body, {
-                _updated : util.timestamp()
+                _updated : date.getUTCLocal()
             });
 
             // log

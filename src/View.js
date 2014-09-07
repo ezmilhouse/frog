@@ -4,10 +4,11 @@ if (typeof define !== 'function') {
 
 define([
     './Base',
+    './date',
     './Flow',
     './util',
     'ejs'
-], function (Base, flow, util, ejs) {
+], function (Base, date, flow, util, ejs) {
 
     return Base.extend({
 
@@ -23,7 +24,10 @@ define([
             this.$ = {
                 api      : null,
                 compiled : null,
-                data     : {},
+                data     : {
+                    date : date,
+                    util : util
+                },
                 markup   : null,
                 mode     : 'html',
                 file     : null,

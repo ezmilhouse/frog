@@ -17,7 +17,7 @@ define(function () {
 
     };
 
-    window.logtrace = function () {
+    window.trc = window.logtrace = function () {
 
         if (this.console) {
             console.log('>>>');

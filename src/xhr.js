@@ -23,13 +23,19 @@ define([
         return this.run(function (response) {
 
             // skip
-            // handle error
-            if (response.error || response.status >= 400) {
-                return fn(true, response.error, response.status, response);
+            // handle xhr error
+            if (response.error) {
+                return fn(true, response.error, response.status, 'XHR_ERROR', response);
+            }
+
+            // skip
+            // handle response error
+            if (response.body && response.body.status >= 400) {
+                return fn(true, response.body, response.body.status, response.body.code, response);
             }
 
             // handle success
-            return fn(null, response.body, response.status, response);
+            return fn(null, response.body, response.body.status, response.body.code, response);
 
         });
 

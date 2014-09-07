@@ -9,6 +9,7 @@ switch (typeof define !== 'function') {
             Base        : require('./src/Base'),
             Collection  : require('./src/Collection'),
             Component   : require('./src/Component'),
+            date        : require('./src/date'),
             Events      : require('./src/Events'),
             events      : require('./src/events'),
             Flow        : require('./src/Flow'),
@@ -45,6 +46,7 @@ switch (typeof define !== 'function') {
                 path + 'src/Base',
                 path + 'src/Collection',
                 path + 'src/Component',
+                path + 'src/date',
                 path + 'src/Events',
                 path + 'src/Events.Singleton',
                 path + 'src/Flow',
@@ -60,7 +62,7 @@ switch (typeof define !== 'function') {
                 path + 'src/View',
                 path + 'src/xhr'
 
-        ], function (Api, Base, Collection, Component, Events, events, Flow, HandlerForm, I18n, log, Model, require, Router, singleton, util, validations, View, xhr) {
+        ], function (Api, Base, Collection, Component, date, Events, events, Flow, HandlerForm, I18n, log, Model, require, Router, singleton, util, validations, View, xhr) {
 
             var frog = {
 
@@ -70,6 +72,7 @@ switch (typeof define !== 'function') {
                 Base        : Base,
                 Collection  : Collection,
                 Component   : Component,
+                date        : date,
                 Events      : Events,
                 events      : events,
                 Flow        : Flow,

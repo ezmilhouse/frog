@@ -4,6 +4,7 @@ define([
     'support/frog/src/Base',
     'support/frog/src/Collection',
     'support/frog/src/Component',
+    'support/frog/src/date',
     'support/frog/src/Events',
     'support/frog/src/Events.Singleton',
     'support/frog/src/Flow',
@@ -19,7 +20,7 @@ define([
     'support/frog/src/View',
     'support/frog/src/xhr'
 
-], function (Api, Base, Collection, Component, Events, events, Flow, HandlerForm, I18n, log, Model, require, Router, singleton, util, validations, View, xhr) {
+], function (Api, Base, Collection, Component, date, Events, events, Flow, HandlerForm, I18n, log, Model, require, Router, singleton, util, validations, View, xhr) {
 
     var frog = {
 
@@ -27,6 +28,7 @@ define([
         Base        : Base,
         Collection  : Collection,
         Component   : Component,
+        date        : date,
         Events      : Events,
         events      : events,
         Flow        : Flow,

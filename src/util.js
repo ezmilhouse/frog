@@ -1,5 +1,6 @@
 if (typeof define !== 'function') {
     var _ = require('underscore');
+    var crypto = require('crypto');
     var define = require('amdefine')(module);
     var moment = require('moment');
     var numeral = require('numeral');
@@ -11,6 +12,96 @@ define([
 ], function (moment, numeral) {
 
     var util = {
+
+        hash : {
+
+            sha1 : function(str) {
+                return crypto.createHash('sha1').update(str).digest('hex');
+            }
+
+        },
+
+        /**
+         * @object date
+         * Everything date related.
+         */
+        date : {
+
+            formats : {
+                utc       : 'MM-DD-YYYY HH:mm:ss ZZ',
+                utcutc    : 'ddd MMM DD YYYY HH:mm:ss.sss ZZ',
+                utc_parse : 'ddd MMM DD YYYY HH:mm:ss.sss ZZ',
+                iso       : 'YYYY-MM-DDTHH:mm:ss.sss'
+            },
+
+            /**
+             * @method date.setLocal(str[,type])
+             * Takes UTC timestring, creates moment object,
+             * converts into local time, returns formatted
+             * date string.
+             * @params {required}{str} time
+             * @params {optional}{str} type
+             * @return {str}
+             */
+            local : function (time, type) {
+
+                // normalize
+                type = type || 'de';
+                type = util.date.types[type];
+
+                // return local date string
+                return moment(time).local().format(type);
+
+            },
+
+            /**
+             * @method date.getUTC()
+             * Creates current date string in UTC format.
+             * @returns {*}
+             */
+            utc : function () {
+                return moment.utc().format(util.date.formats.utc);
+            },
+
+            /**
+             * @method date.getUTCLocal()
+             * Creates current local date in UTC format,
+             * @return {str}
+             */
+            utcLocal : function (time, format) {
+
+                // use incoming time (or not), creates time
+                // UTC string like:
+                // Fri Sep 05 2014 15:53:09 GMT+0200
+                if (time) {
+                    return moment.utc(time, format).local().format(util.date.formats.utc);
+                }
+
+                return moment.utc().local().format(util.date.formats.utc);
+
+            },
+
+            /**
+             * @object date.types
+             * List of date formatting strings,
+             * based on language keys
+             */
+            types : {
+                de     : 'DD.MM.YYYY - HH:mm:ss',
+                de_day : 'DD.MM.YYYY'
+            }
+
+        },
+
+        /**
+         * @object moment
+         * Proxy to moment library.
+         */
+        moment : moment,
+
+
+        // EVERYTHING BELOW THIS LINE SHOULD BE CONSIDERED
+        // DEPRECATED, UP FOR RE-EVALUATION
 
         /**
          * @constants KEYCODE_n

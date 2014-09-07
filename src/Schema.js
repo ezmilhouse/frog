@@ -23,8 +23,8 @@ define([
             this.$ = {
                 collection : null,
                 document   : {
-                    _created  : { type : Date, index : true },
-                    _modified : { type : Date, index : true }
+                    _created : { type : String, index : true },
+                    _updated : { type : String, index : true }
                 },
                 mongo      : {
                     Model  : null,
@@ -174,8 +174,8 @@ define([
 
             // add keys to document
             _.extend(this.$.document, {
-                _created  : { type : Date, index : true },
-                _modified : { type : Date, index : true }
+                _created : { type : String, index : true },
+                _updated : { type : String, index : true }
             });
 
             // create mongo schema
