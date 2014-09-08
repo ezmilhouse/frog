@@ -848,6 +848,30 @@ define([
         },
 
         /**
+         * @method redirect([url])
+         * Redirects user to given url, tries this.$.redirect
+         * first, can be overwritten by incoming url, doesn't
+         * do anything at all, if no url.
+         * @params {optional}{str} url
+         * @return {*}
+         */
+        redirect : function(url) {
+
+            // extract return url
+            url = url || this.$.redirect || null;
+
+            // skip
+            // if no url
+            if (!url) {
+                return this;
+            }
+
+            // redirect
+            return window.location.href = url;
+
+        },
+
+        /**
          * @method render(obj, fn)
          * Creates form instance, renders bound view using
          * incoming object (as global in view), callback

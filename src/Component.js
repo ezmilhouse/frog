@@ -30,6 +30,7 @@ define([
                 },
                 config   : null,
                 el       : null,
+                meta     : null,
                 id       : null,
                 file     : null,
                 selector : null,
