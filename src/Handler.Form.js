@@ -164,6 +164,9 @@ define([
                 // extract name
                 var name = el.attr('name');
 
+                // extract type
+                var type = (el.attr('type')) ? el.attr('type') : null;
+
                 // avoid empty elements
                 if (name && name !== '') {
 
@@ -173,12 +176,17 @@ define([
                         name  : name,
                         valid : null,
                         tag   : el.prop('tagName').toLowerCase(),
-                        type  : (el.attr('type')) ? el.attr('type') : null,
+                        type  : type,
                         value : null
                     };
 
-                    // inject error containers per field
-                    el.closest(ns + '.' + cl.field).append(self.$.markup.error_field);
+                    // no error fields for checkboxes and radio buttons
+                    if (type !== 'checkbox' && type !== 'radio') {
+
+                        // inject error containers per field
+                        el.closest(ns + '.' + cl.field).append(self.$.markup.error_field);
+
+                    }
 
                 }
 
@@ -236,8 +244,6 @@ define([
 
             // extract errors
             var errors = this.$.errors[field];
-
-            trc(errors);
 
             // extract specific last error
             var error = errors[errors.length - 1];
@@ -481,7 +487,6 @@ define([
 
             // extract element
             var el = $(ns + '[name=' + field + ']');
-            console.log(ns + '[name=' + field + ']');
 
             // extract form fields parent div
             var parent = el.parent('.' + cl.field);
@@ -502,15 +507,8 @@ define([
             // set valid or invalid state on field
             if (errors) {
 
-                console.log('err', field, parent, cl.fieldError);
-
-                console.log('len', parent.length);
-
                 // add error class
                 parent.addClass(cl.fieldError);
-                parent.addClass('foo');
-
-                console.log(cl.fieldError, cl.fieldSuccess);
 
                 // remove success class
                 parent.removeClass(cl.fieldSuccess);
@@ -518,14 +516,10 @@ define([
                 // prepare error message
                 var str = this._setErrorMessage(name);
 
-                console.log(str, name);
-
                 // set error text
                 $('.' + cl.fieldErrorMessage, parent).html(str);
 
             } else {
-
-                console.log('suc', field, parent, cl.fieldError);
 
                 // remove error class
                 parent.removeClass(cl.fieldError);
@@ -747,8 +741,6 @@ define([
                 errors = null;
             }
 
-            console.log('errors', errors);
-
             // save
             this.$.errors = errors;
 
@@ -757,8 +749,6 @@ define([
 
             // create results object
             var results = this._getResults();
-
-            console.log('results', results);
 
             // update state classes
             this._setStateClasses(field, results);

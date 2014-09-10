@@ -21,7 +21,7 @@ define([
          * @return {bol}
          * @sample
          *
-         *      // use as string
+         *      // use as array
          *      form.rules([['ifRange', 0, 10]]);
          *
          */
@@ -30,6 +30,23 @@ define([
                 return validations.isRange(mixed, arr);
             }
             return true;
+        },
+
+        /**
+         * @method isChecked(mixed, arr)
+         * Checks form element against being checked or not,
+         * input[type=checkbox], input[type=radio].
+         * @params {required}{str} mixed
+         * @params {required}{arr} arr
+         * @return {bol}
+         * @sample
+         *
+         *      // use as string
+         *      form.rules(['isChecked']);
+         *
+         */
+        isChecked : function(mixed, arr) {
+            return $('[name=' + arr[arr.length - 1] + ']').is(':checked');
         },
 
         /**

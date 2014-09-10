@@ -717,6 +717,11 @@ define([
 
             var self = this;
 
+            // force action
+            if (!override) {
+                req[this.$.server.get('object')].action = 'index';
+            }
+
             // [+/-] exit
             // check access
             if (!override && !this._checkAccess(req, fn)) {
@@ -818,6 +823,11 @@ define([
         create : function (req, fn, override) {
 
             var self = this;
+
+            // force action
+            if (!override) {
+                req[this.$.server.get('object')].action = 'create';
+            }
 
             // [+/-] exit
             // check access
@@ -938,6 +948,11 @@ define([
 
             var self = this;
 
+            // force action
+            if (!override) {
+                req[this.$.server.get('object')].action = 'retrieve';
+            }
+
             // [+/-] exit
             // check access
             if (!override && !this._checkAccess(req, fn)) {
@@ -1006,6 +1021,11 @@ define([
         update : function (req, fn, override) {
 
             var self = this;
+
+            // force action
+            if (!override) {
+                req[this.$.server.get('object')].action = 'update';
+            }
 
             // [+/-] exit
             // check access
@@ -1094,6 +1114,11 @@ define([
 
             var self = this;
 
+            // force action
+            if (!override) {
+                req[this.$.server.get('object')].action = 'delete';
+            }
+
             // [+/-] exit
             // check access
             if (!override && !this._checkAccess(req, fn)) {
@@ -1160,13 +1185,18 @@ define([
          */
         methods : function (name, cb) {
 
+            var self = this;
+
             // normalize
             name = name.toLowerCase();
 
-            var self = this;
-
             // set method
             this[name] = function (req, fn, override) {
+
+                // force action
+                if (!override) {
+                    req[this.$.server.get('object')].action = name;
+                }
 
                 // [+/-] exit
                 // check access
@@ -1196,10 +1226,10 @@ define([
          */
         service : function (name, cb) {
 
+            var self = this;
+
             // normalize
             name = name.toLowerCase();
-
-            var self = this;
 
             // set services container
             this.$.services = this.$.services || {};
@@ -1215,6 +1245,11 @@ define([
 
             // set method
             this.$.services[name] = function (req, fn, override) {
+
+                // force action
+                if (!override) {
+                    req[this.$.server.get('object')].action = name;
+                }
 
                 // [+/-] exit
                 // check access

@@ -22,6 +22,7 @@ define([
         _ctor : function (options) {
 
             this.$ = {
+                context  : null,
                 endpoint : '/api',
                 headers  : {
                     'Content-Type' : 'application/json'
@@ -74,6 +75,11 @@ define([
             // add endpoint
             if (this.$.endpoint) {
                 str += this.$.endpoint;
+            }
+
+            // add context
+            if (this.$.context) {
+                str += this.$.context;
             }
 
             // add url

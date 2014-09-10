@@ -229,7 +229,9 @@ define([
          * @params {obj} res
          * @params {fun} next
          */
-        _middlewareClients : function (self, req, res, next) {
+        _middlewareClients : function (req, res, next) {
+
+            var self = this;
 
             // skip
             // if clients already loaded
@@ -281,7 +283,9 @@ define([
          * @params {obj} res
          * @params {fun} next
          */
-        _middlewareCookie : function (self, req, res, next) {
+        _middlewareCookie : function (req, res, next) {
+
+            var self = this;
 
             // reset session
             var session;
@@ -350,7 +354,9 @@ define([
          * @params {obj} res
          * @params {obj} next
          */
-        _middlewareRequestObject : function (self, req, res, next) {
+        _middlewareRequestObject : function (req, res, next) {
+
+            var self = this;
 
             // create _ request object
             req[self.$.object] = {
@@ -733,19 +739,19 @@ define([
 
             // resets request object on request
             app.use(function (req, res, next) {
-                self._middlewareRequestObject(self, req, res, next);
+                self._middlewareRequestObject.call(self, req, res, next);
             });
 
             // checks whether or not cookie is set
             // saves session/cookie on request object if
             // available, otherwise resets session/cookie
             app.use(function (req, res, next) {
-                self._middlewareCookie(self, req, res, next);
+                self._middlewareCookie.call(self, req, res, next);
             });
 
             // fetches client list from db, saves in cache
             app.use(function (req, res, next) {
-                self._middlewareClients(self, req, res, next);
+                self._middlewareClients.call(self, req, res, next);
             });
 
             // SERVER: EVENTS
