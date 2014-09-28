@@ -1,0 +1,25 @@
+{
+    "name"            : "frog-app",
+    "dependencies"    : {
+        "amdefine"        : "*",
+        "connect-slashes" : "*",
+        "cookie-parser"   : "*",
+        "email-templates" : "*",
+        "express-less"    : "*",
+        "express-session" : "*",
+        "express"         : "*",
+        "frog"            : "*",
+        "moment"          : "*",
+        "nodemailer"      : "*",
+        "numeral"         : "*",
+        "restify"         : "*",
+        "serve-favicon"   : "*",
+        "superagent"      : "*",
+        "underscore"      : "*"
+    },
+    "devDependencies" : {
+        "node-inspector" : "*",
+        "nodemon"        : "*"
+    },
+    "version"         : "0.1.0"
+}

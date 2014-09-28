@@ -1,32 +1,10 @@
 {
-    "name"            : "frog",
-    "dependencies"    : {
-        "amdefine"        : "*",
-        "body-parser"     : "*",
-        "bunyan"          : "*",
-        "connect-slashes" : "*",
-        "cookie-parser"   : "*",
-        "email-templates" : "*",
-        "ejs-locals"      : "*",
-        "express"         : "*",
-        "express-session" : "*",
-        "moment"          : "*",
-        "mongoose"        : "*",
-        "nodemailer"      : "*",
-        "numeral"         : "*",
-        "request"         : "*",
-        "restify"         : "*",
-        "serve-favicon"   : "*",
-        "sha1"            : "*",
-        "superagent"      : "*",
-        "underscore"      : "*",
-        "yargs"           : "*"
+    "name": "frog",
+    "devDependencies": {
+        "chai": "*",
+        "grunt": "*",
+        "grunt-contrib-requirejs": "*",
+        "mocha": "*"
     },
-    "devDependencies" : {
-        "chai"                    : "*",
-        "grunt"                   : "*",
-        "grunt-contrib-requirejs" : "*",
-        "mocha"                   : "*"
-    },
-    "version"         : "0.1.0"
+    "version": "0.1.9"
 }

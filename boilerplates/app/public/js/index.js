@@ -5,7 +5,8 @@ define([
 ], function (frog, api, config) {
 
     frog.require([
-        'js/misc/misc.bootstrap'
+        'js/controllers/controller.dom',
+        'js/controllers/controller.router'
     ]);
 
 });

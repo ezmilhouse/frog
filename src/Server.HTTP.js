@@ -11,6 +11,7 @@ define([
     'cookie-parser',
     'ejs-locals',
     'express',
+    'express-less',
     'express-session',
     'serve-favicon',
     './Flow',
@@ -18,7 +19,7 @@ define([
     'os',
     './singleton',
     './util'
-], function (_, app, Base, cluster, slashes, cookieParser, engine, express, session, favicon, Flow, moment, os, singleton, util) {
+], function (_, app, Base, cluster, slashes, cookieParser, engine, express, less, session, favicon, Flow, moment, os, singleton, util) {
 
     return Base.extend({
 
@@ -31,8 +32,6 @@ define([
          */
         _ctor : function (options, local) {
 
-            // TODO: add version (, pkg)
-
             this.$ = {
                 app         : null,
                 application : null,
@@ -43,12 +42,14 @@ define([
                 env         : 'development',
                 favicon     : null,
                 local       : true,
+                name        : null,
                 port        : null,
                 public      : '/public',
                 server      : null,
                 sessions    : null,
                 shell       : '/frog.shell',
                 text        : {},
+                version     : null,
                 views       : '/server/html'
             };
 
@@ -61,6 +62,7 @@ define([
             this._setLocal();
             this._setOptions(local);
             this._setEnvironment();
+            this._setPackage();
             this._setPort();
             this._setCluster();
             this._setText();
@@ -207,6 +209,28 @@ define([
 
         },
 
+
+        /**
+         * @method _setPackage()
+         * Sets version and application name.
+         * @return {*}
+         */
+        _setPackage : function() {
+
+            // open package.json
+            var package = require(this.$.dir + '/package.json');
+
+            // save name
+            this.$.name = package.name;
+
+            // save version
+            this.$.version = package.version;
+
+            // make chainable
+            return this;
+
+        },
+
         /**
          * @method _log()
          * Stdouts server process information after new processes have
@@ -323,6 +347,9 @@ define([
             // save public folder
             app.set('public', this.$.dir + this.$.public);
 
+            // save version
+            app.set('version', this.$.version);
+
             // handle views, rendering
             app.engine('html', engine);
 
@@ -346,6 +373,13 @@ define([
 
             // handle static files
             app.use(express.static(this.$.dir + this.$.public));
+
+            // enables less compiling on the fly
+            // should only be used in development
+            // environment
+            if (this.$.env === 'development') {
+                app.use('/less-css', less(this.$.dir + this.$.public + '/less'));
+            }
 
             // force trailing slash
             app.use(slashes());

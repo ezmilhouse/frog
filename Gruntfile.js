@@ -36,6 +36,7 @@ module.exports = function (grunt) {
     // define requirejs paths
     var paths = {
         ejs        : 'empty:',
+        frog       : 'frog',
         hashchange : 'empty:',
         request    : 'empty:',
         numeral    : 'empty:',
@@ -43,6 +44,7 @@ module.exports = function (grunt) {
     };
 
     // local path (to match live path /support/frog)
+    // /support/frog/src/Api.js'
     var baseUrl = '.';
 
     // conf plugins
