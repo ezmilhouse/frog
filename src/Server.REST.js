@@ -15,12 +15,12 @@ define([
 
     return Base.extend({
 
-        // PRIVATE
-
         /**
-         * ctor, Server.REST
-         * @params {obj} options
-         * @return {obj}
+         * @method _ctor([obj])
+         * Constructor of Handler.Object class.
+         *
+         * @params {optional}{obj} options
+         * @return {*}
          */
         _ctor : function (options, local) {
 
@@ -86,6 +86,7 @@ define([
         /**
          * @method _getCPUs()
          * Gets number of CPUs.
+         *
          * @return {*}
          */
         _getCPUs : function () {
@@ -103,6 +104,7 @@ define([
          * @method _setCluster()
          * Enable/Disable node processes to be clustered,
          * based on number of CPUs available.
+         *
          * @returns {*}
          */
         _setCluster : function () {
@@ -118,6 +120,7 @@ define([
         /**
          * @method _setEnvironemnt()
          * Sets environment, defaults to `development`.
+         *
          * @return {*}
          */
         _setEnvironment : function () {
@@ -134,6 +137,7 @@ define([
          * @method _setLocal()
          * Sets local flag, is `true` config object is extended
          * by config.local object.
+         *
          * @return {*}
          */
         _setLocal : function () {
@@ -150,6 +154,7 @@ define([
          * @method _setOptions(local)
          * Extends production options with local ones in case
          * $.local is set.
+         *
          * @params {required}{obj} local
          * @return {*}
          */
@@ -176,8 +181,9 @@ define([
 
         /**
          * @method _setPort()
-         * Sets port to run server on. Shell option beats configuration,
-         * falls back to 2000.
+         * Sets port to run server on. Shell option beats
+         * configuration, falls back to 2000.
+         *
          * @return {*}
          */
         _setPort : function () {
@@ -193,6 +199,7 @@ define([
         /**
          * @method _setShell()
          * Sets incoming shell options.
+         *
          * @return {*}
          */
         _setShell : function () {
@@ -208,6 +215,7 @@ define([
         /**
          * @method _steVersion()
          * Extracts application version from package.json.
+         *
          * @return {*}
          */
         _setVersion : function () {
@@ -225,9 +233,14 @@ define([
          * @method akaClientList(req, res, next)
          * Fetches clients list from database, caches list, (skipped
          * if already cached).
-         * @params {obj} req
-         * @params {obj} res
-         * @params {fun} next
+         *
+         * TODO: I don't like this approach at all, why can clients
+         * TODO: not be live? Why do we need this caching of clients
+         * TODO: as global varibale?
+         *
+         * @params {required}{obj} req
+         * @params {required}{obj} res
+         * @params {required}{fun} next
          */
         _middlewareClients : function (req, res, next) {
 
@@ -248,7 +261,7 @@ define([
             }
 
             // fetch clients
-            self.$.resources['resource:clients'].index({}, function(err, data, status, code, message) {
+            self.$.resources['resource:clients'].get('queries.index').call(self.$.resources['resource:clients'], {}, function(err, data, status, code) {
 
                 // [-] exit
                 if (err) {
@@ -258,7 +271,6 @@ define([
 
                 // [-] exit
                 if (!data || _.isEmpty(data)) {
-                    console.log(0);
                     self.send(req, res, true, null, 400, '00020');
                     return next(false);
                 }
@@ -279,9 +291,10 @@ define([
          * extracts cookie (and session id) and saves them on the req
          * object. If cookie is not set, (maybe) existing cookie/session
          * on req object is reset.
-         * @params {obj} req
-         * @params {obj} res
-         * @params {fun} next
+         *
+         * @params {required}{obj} req
+         * @params {required}{obj} res
+         * @params {required}{fun} next
          */
         _middlewareCookie : function (req, res, next) {
 
@@ -350,9 +363,10 @@ define([
         /**
          * @method _middlewareRequestObject(req, res, next)
          * Creates/resets _ object on incoming request object.
-         * @params {obj} req
-         * @params {obj} res
-         * @params {obj} next
+         *
+         * @params {required}{obj} req
+         * @params {required}{obj} res
+         * @params {required}{obj} next
          */
         _middlewareRequestObject : function (req, res, next) {
 
@@ -376,21 +390,26 @@ define([
         },
 
         /**
-         * @method _middlewareValidSession(req, res, next)
+         * @method _middlewareValidSession(ctx, req, res, next)
          * Restricts access to resource by checking for valid aka
          * session, exits with 401 if not set. If (re)set, session
          * was set by _middlewareCookie() middleware.
-         * @params {obj} req
-         * @params {obj} res
-         * @params {fun} next
+         *
+         * TODO: Why are we using the context (scope) in that
+         * TODO: weird way (as a parameter)?
+         *
+         * @params {required}{obj} ctx
+         * @params {required}{obj} req
+         * @params {required}{obj} res
+         * @params {required}{fun} next
          */
-        _middlewareValidSession : function (self, req, res, next) {
+        _middlewareValidSession : function (ctx, req, res, next) {
 
             // [-] exit
             // check for valid session
             // exit if not found
-            if (!req[self.$.object].session) {
-                self.send(req, res, true, null, 401, '00021');
+            if (!req[ctx.$.object].session) {
+                ctx.send(req, res, true, null, 401, '00021');
                 return next(false);
             }
 
@@ -403,6 +422,7 @@ define([
          * @method _log()
          * Stdouts server process information after new processes have
          * been started
+         *
          * @returns {*}
          */
         _log : function () {
@@ -419,6 +439,7 @@ define([
          * @method _run()
          * Starts restify server instance by invoking .listen()
          * with given port.
+         *
          * @return {*}
          */
         _run : function () {
@@ -453,6 +474,7 @@ define([
          * @mtehod _try()
          * If cluster option is set to true, tries to invoke
          * multiple server processes based on number of CPUs.
+         *
          * @return {*}
          */
         _try : function () {
@@ -494,23 +516,22 @@ define([
         // PUBLIC
 
         /**
-         * @method send(req, res, err, data, status, code, message)
+         * @method send(req, res, err, data[,status][,code])
          * Builds response payload, sends response object in success
          * and error cases back to client.
-         * @param {obj} req
-         * @param {obj} res
-         * @param {bol} err
-         * @param {obj} data
-         * @param {int} status
-         * @param {str} code
-         * @param {str} message
+
+         * @params {required}{obj} req
+         * @params {required}{obj} res
+         * @params {required}{bol} err
+         * @params {required}{obj|arr|str} data
+         * @params {optional}{int} status
+         * @params {optional}{str} code
          */
-        send : function (req, res, err, data, status, code, message) {
+        send : function (req, res, err, data, status, code) {
 
             // normalize
             status = status || 200;
-            message = message || null;
-            code = code || '00000';
+            code = code || util.codes[status] || 200;
 
             // log
             req = util.log.time.resources(this, req, 'HTTP out');
@@ -520,20 +541,12 @@ define([
 
             if (err) {
 
-                // get explicit error message based
-                // on incoming error, fallback to
-                // `Unknown Error` if not found.
-                if (message === null) {
-                    message = util.messages['4xx'][code];
-                }
-
                 // build payload
                 payload = {
                     code    : code,
                     debug   : this.$.debug,
                     data    : data || null, // JSON.parse(JSON.stringify(data), true) || null,
                     error   : true,
-                    message : message,
                     status  : status,
                     success : false
                 };
@@ -547,7 +560,6 @@ define([
 
                 // error
                 // always HTTP status 200
-                // console.log(res);
                 res.send(200, payload);
 
                 // log
@@ -555,20 +567,12 @@ define([
 
             } else {
 
-                // get explicit success message based
-                // on incoming code, fallback to `Ok`
-                // if not found.
-                if (message === null) {
-                    message = util.messages['2xx'][code];
-                }
-
                 // build payload
                 payload = {
                     code    : code,
                     data    : data || null, // JSON.parse(JSON.stringify(data), true) || null,
                     debug   : this.$.debug,
                     error   : false,
-                    message : message,
                     status  : status,
                     success : true
                 };
@@ -607,6 +611,7 @@ define([
          * Creates new restify instance sets configurations, ect.
          * Does not start the server, incoming option object will
          * extend this.$
+         *
          * @params {required}{obj} options
          * @return {*}
          */
@@ -770,8 +775,10 @@ define([
         },
 
         /**
-         * @method start()
+         * @method start(options)
          * Starts setup server and application.
+         *
+         * @params {optional}{obj} options
          * @return {*}
          */
         start : function (options) {

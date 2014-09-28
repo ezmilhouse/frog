@@ -284,8 +284,6 @@ define([
 
             var self = this;
 
-            console.log(options, fn);
-
             // normalize
             switch (arguments.length) {
                 case 0 :
@@ -321,8 +319,6 @@ define([
             if (!item) {
                 return fn(true, null, 404);
             }
-
-            console.log(options);
 
             // skip
             // if saving is not wanted

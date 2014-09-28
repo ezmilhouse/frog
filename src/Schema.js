@@ -74,8 +74,14 @@ define([
                         minimize   : false,
                         transform  : function (doc, ret, options) {
 
-                            // ret.id = ret._id;
-                            // delete ret._id;
+                            // copy _id value
+                            ret.id = ret._id;
+
+                            // remove _id key
+                            delete ret._id;
+
+                            // remove __v key
+                            delete ret.__v;
 
                         },
                         virtuals   : true
@@ -103,8 +109,14 @@ define([
                         // before returning
                         transform  : function (doc, ret, options) {
 
-                            // ret.id = ret._id;
-                            // delete ret._id;
+                            // copy _id value
+                            ret.id = ret._id;
+
+                            // remove _id key
+                            delete ret._id;
+
+                            // remove __v key
+                            delete ret.__v;
 
                         },
 
@@ -171,6 +183,23 @@ define([
          * @return {*}
          */
         _setMongoSchema : function () {
+
+            /*
+            // duplicate the _id field, map to id
+            mongoose.Schema.virtual('id').get(function(){
+                return this._id.toHexString();
+            });
+
+            // ensure virtual fields are serialised
+            mongoose.Schema.set('toJSON', {
+                virtuals: true
+            });
+
+            // ensure virtual fields are serialised
+            mongoose.Schema.set('toObject', {
+                virtuals: true
+            });
+            */
 
             // add keys to document
             _.extend(this.$.document, {

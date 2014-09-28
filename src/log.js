@@ -10,9 +10,7 @@ define(function () {
     window.log = function () {
 
         if (this.console) {
-            console.log('>>>');
             console.log.apply(this.console, arguments);
-            console.log('<<<');
         }
 
     };
@@ -20,10 +18,8 @@ define(function () {
     window.trc = window.logtrace = function () {
 
         if (this.console) {
-            console.log('>>>');
             console.log.apply(this.console, arguments);
             console.log(Error().stack.replace('Error', '---').replace('at Error (native)', 'Stack'));
-            console.log('<<<');
         }
 
     };

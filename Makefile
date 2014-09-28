@@ -73,7 +73,6 @@ build-init:
 
 test:
 	@mocha -u tdd -R spec $(f)
-	# ok
 
 test-init:
 	@echo 'initializing tests ...'
@@ -81,4 +80,3 @@ test-init:
 	@echo 'initializing tests ... ok!'
 	# run tests
 	@make test
-	# ok

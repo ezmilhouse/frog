@@ -12,12 +12,12 @@ define([
 
     return Base.extend({
 
-        // PRIVATE
-
         /**
-         * ctor, Resource
-         * @params {obj} options
-         * @return {obj}
+         * @method _ctor([obj])
+         * Constructor of Resource class.
+         *
+         * @params {optional}{obj} options
+         * @return {*}
          */
         _ctor : function (options) {
 
@@ -30,8 +30,8 @@ define([
                         'DELETE',
                         'OPTIONS'
                     ],
-                    methods : {
-                        index      : {
+                    queries : {
+                        'index'    : {
                             allowedClientGroups : 100,
                             allowedClientKeys   : [],
                             deniedClientKeys    : []
@@ -73,23 +73,9 @@ define([
                 name       : null,
                 namespace  : null,
                 payloads   : {
-                    'default' : {}
+                    max : {}
                 },
-                queries    : {
-                    index    : {},
-                    create   : {
-                        _id : 'id0'
-                    },
-                    retrieve : {
-                        _id : 'id0'
-                    },
-                    update   : {
-                        _id : 'id0'
-                    },
-                    delete   : {
-                        _id : 'id0'
-                    }
-                },
+                queries    : {},
                 route      : '',
                 schema     : null,
                 server     : null,
@@ -99,8 +85,7 @@ define([
                 defaults   : {
                     limit   : 100,
                     offset  : 0,
-                    page    : null,
-                    payload : 'default',
+                    page    : 1,
                     sort    : {
                         '_created' : -1
                     }
@@ -113,34 +98,38 @@ define([
 
             // prepare
             this._setApp();
+            this._setQueries();
             this._setMongo();
             this._setNamespace();
             this._setReference();
-            this._setRoutes();
+            this._setListeners();
+            this._setEmitters();
 
             return this;
 
         },
 
+        // PRIVATE
+
         /**
-         * @method checkAccess(req)
-         * Checks whether or not incoming http method is allowed
-         * on this resource.
-         * @params {obj} req
-         * @return {*}
+         * @method _checkClient(headers)
+         * Checks headers arr for containing the pre-defined
+         * client-key header key.
+         *
+         * @params {required}{arr} headers
+         * @return {bol}
          */
-        _checkAccess : function (req, fn) {
+        _checkClient : function (headers) {
 
             // get headers
-            var headers = this.$.server.get('headers');
+            var headersAllowed = this.$.server.get('headers');
 
             // get headers key name
-            var headersKeyName = headers.key.toLowerCase();
+            var headersKey = headersAllowed.key.toLowerCase();
 
             // [-] exit
             // check for aka-ClientKey, return 401 if not found
-            if (typeof req.headers[headers.key.toLowerCase()] === 'undefined') {
-                fn(true, null, 401, '00011');
+            if (typeof headers[headersKey] === 'undefined') {
                 return false;
             }
 
@@ -151,7 +140,7 @@ define([
             // check for valid client key, return 401 if not found, save
             // client info on request object if found
             var client = _.find(clients, function (obj) {
-                return (obj.key === req.headers[headersKeyName]);
+                return (obj.key === headers[headersKey]);
             });
 
             // if no regular client was found, doublecheck
@@ -159,25 +148,34 @@ define([
             if (!client) {
 
                 // no key, no dev fallback, no access
-                fn(true, null, 401, '00014');
                 return false;
 
             } else {
 
                 // save client
-                req[this.$.server.get('object')].client = client;
+                return client;
 
             }
 
-            // extract http method, force upper case
-            var method = req.method.toUpperCase();
+        },
+
+        /**
+         * @method _checkMethod(method)
+         * Checks method and if method is allowed on this
+         * resource.
+         *
+         * @params {required}{str} method
+         * @return {bol}
+         */
+        _checkMethod : function (method) {
+
+            method = method.toUpperCase();
 
             // [-] exit
             // check if incoming http method matches
             // one of the allowed methods, if not send
             // error
             if (this.$.access.http.indexOf(method) === -1) {
-                fn(true, null, 401, '00016');
                 return false;
             }
 
@@ -187,28 +185,29 @@ define([
         },
 
         /**
-         * @method checkAccessRules(req)
+         * @method checkRules(name, client)
          * Checks pre-defined access rules against request on this
          * resource (might be CRUD, add. queries or services).
-         * @params {obj} req
-         * @return {*}
+         *
+         * @params {required}{str} name
+         * @params {required}{obj} client
+         * @return {bol}
          */
-        _checkAccessRules : function (req, fn) {
+        _checkRules : function (name, client) {
 
-            // get action
-            var action = req[this.$.server.get('object')].action;
+            // [-] skip
+            // if client is unknown
+            if (!client) {
+                return false;
+            }
 
             // get rules
-            var rules = this.$.access.methods[action];
-
-            // get client
-            var client = req[this.$.server.get('object')].client;
+            var rules = this.$.access.queries[name];
 
             // [1] check client group
             // check if incoming client group matches (or is lower (better))
             // pre-defined client group
             if (parseInt(client.group) > rules.allowedClientGroups) {
-                fn(true, null, 401, '00017');
                 return false;
             }
 
@@ -221,7 +220,6 @@ define([
                     return (obj === client.key);
                 });
                 if (!rule) {
-                    fn(true, null, 401, '00018');
                     return false;
                 }
             }
@@ -231,7 +229,6 @@ define([
             // set at all)
             if (rules.deniedClientKeys.length > 0) {
                 if (_.find(rules.deniedClientKeys, client.key)) {
-                    fn(true, null, 401, '00019');
                     return false;
                 }
             }
@@ -242,9 +239,378 @@ define([
         },
 
         /**
+         * @method _queryIndex(options[,fn])
+         * Invokes database query, returns index (list) of documents.
+         *
+         * @params {required}{obj} options
+         *    @key {optional}{int} limit
+         *    @key {optional}{int} offset
+         *    @key {optional}{bol} brute
+         *    @key {optional}{int} page
+         *    @key {optional}{str} payload
+         *    @key {optional}{obj} query
+         * @params {optional}{fun} fn
+         */
+        _queryIndex : function (options, fn) {
+
+            var self = this;
+
+            // normalize
+            fn = fn || util.noop;
+
+            // get defaults
+            var defaults = this.$.defaults;
+
+            // set limit
+            // limit represents the maximum number of documents retrieved
+            // from database, set to a maximum number by default (check
+            // resource configuration for default value)
+            var limit = (typeof options.limit === 'undefined')
+                ? defaults.limit
+                : parseInt(options.limit);
+
+            // set offset
+            // offset represents the starting point of the database cursor
+            // which it uses to fetch  documents form database, (check
+            // resource configuration for default value)
+            var offset = (typeof options.offset === 'undefined')
+                ? defaults.offset
+                : parseInt(options.offset);
+
+            // set offset from page
+            // page represents starting point of database cursor, but needs
+            // to be converted into offset value first, overwrites existing
+            // offset, falls back to already set offset, (check resource
+            // configuration for default value)
+            offset = (typeof options.page === 'undefined')
+                ? offset
+                : (parseInt(options.page) - 1) * limit;
+
+            // set sorting
+            // sets default sorting object for mongo to know in which order
+            // to return documents, (check resource configuration for default
+            // value)
+            var sort = (typeof options.sort === 'undefined')
+                ? defaults.sort
+                : options.sort;
+
+            // set query
+            // queries are pre-defined in resource's config, query is fetched by
+            // query name (default CRUD verbs plus custom)
+            var query = (typeof options.query === 'undefined')
+                ? {}
+                : options.query;
+
+            // database query
+            this.$.mongo.Model
+                .find(query, {}, {
+                    limit : limit,
+                    skip  : offset,
+                    sort  : sort
+                })
+                .exec(function (err, docs) {
+
+                    // [-] exit
+                    // if database error occured
+                    if (err) {
+                        return fn(true, null, 400, 'ERROR_DB_QUERY');
+                    }
+
+                    // [-] exit
+                    // if database did not return document(s)
+                    if (!docs || !docs.length) {
+                        return fn(true, null, 404, 'ERROR_DB_QUERY_NO_RESULTS');
+                    }
+
+                    // normalize
+                    // prepare docs, plain js objects
+                    var arr = [];
+                    for (var i = docs.length; i--;) {
+                        arr.push(docs[i].toObject());
+                    }
+
+                    // [+] exit
+                    return fn(null, arr, 200);
+
+                });
+
+        },
+
+        /**
+         * @method _queryCreate(options[,fn])
+         * Invokes database create of new document, returns document.
+         *
+         * @params {required}{obj} options
+         *    @key {required}{obj} body
+         *    @key {optional}{bol} brute
+         *    @key {optional}{str} payload
+         *    @key {optional}{obj} query
+         * @params {optional}{fun} fn
+         */
+        _queryCreate : function (options, fn) {
+
+            var self = this;
+
+            // normalize
+            fn = fn || util.noop;
+
+            // get defaults
+            var defaults = this.$.defaults;
+
+            // set body
+            // body object is mandatory to create new database document
+            if (typeof options.body === 'undefined') {
+
+                // [-] exit
+                return fn(true, null, 400, 'ERROR_DB_QUERY_BODY_DOES_NOT_EXIST_FOR_CREATE');
+
+            } else {
+
+                // extend body object with timestamps
+                _.extend(options.body, {
+                    _created : date.getUTCLocal(),
+                    _updated : date.getUTCLocal()
+                });
+
+            }
+
+            // create document
+            var doc = new self.$.mongo.Model(options.body);
+
+            // database create
+            doc.save(function (err, doc) {
+
+                // [-] exit
+                // if database error occured
+                if (err) {
+                    return fn(true, null, 400, 'ERROR_DB_QUERY');
+                }
+
+                // [-] exit
+                // if database did not return document(s)
+                if (!doc) {
+                    return fn(true, null, 404, 'ERROR_DB_QUERY_NO_RESULTS');
+                }
+
+                // normalize
+                doc = doc.toObject();
+
+                // [+] exit
+                return fn(null, doc, 201);
+
+            });
+
+        },
+
+        /**
+         * @method _queryRetrieve(options[,fn])
+         * Invokes database query, returns single document.
+         *
+         * @params {required}{obj} options
+         *    @key {required}{str} id
+         *    @key {optional}{bol} brute
+         *    @key {optional}{str} payload
+         *    @key {optional}{obj} query
+         * @params {optional}{fun} fn
+         */
+        _queryRetrieve : function (options, fn) {
+
+            var self = this;
+
+            // normalize
+            fn = fn || util.noop;
+
+            // get defaults
+            var defaults = this.$.defaults;
+
+            // set id
+            var id = (typeof options.id === 'undefined')
+                ? null
+                : options.id;
+
+            // set query
+            // queries are pre-defined in resource's config, query is fetched by
+            // query name (default CRUD verbs plus custom), id is mandatory in
+            // case query is default one
+            var query;
+            if (typeof options.query === 'undefined') {
+                if (!id) {
+                    return fn(true, null, 400, 'ERROR_DB_QUERY_ID_NOT_SET');
+                }
+                query = {
+                    '_id' : id
+                };
+            } else {
+                query = options.query;
+            }
+
+            // database query
+            this.$.mongo.Model
+                .findOne(query, {})
+                .exec(function (err, doc) {
+
+                    // [-] exit
+                    // if database error occured
+                    if (err) {
+                        return fn(true, null, 400, 'ERROR_DB_QUERY');
+                    }
+
+                    // [-] exit
+                    // if database did not return document(s)
+                    if (!doc) {
+                        return fn(true, null, 404, 'ERROR_DB_QUERY_NO_RESULTS');
+                    }
+
+                    // normalize
+                    doc = doc.toObject();
+
+                    // [+] exit
+                    return fn(null, doc, 200);
+
+                });
+
+        },
+
+        /**
+         * @method _queryUpdate(options[,fn])
+         * Invokes database update, returns single document.
+         *
+         * @params {required}{obj} options
+         *    @key {required}{str} id
+         *    @key {required}{obj} body
+         *    @key {optional}{bol} brute
+         *    @key {optional}{str} payload
+         *    @key {optional}{obj} query
+         * @params {optional}{fun} fn
+         */
+        _queryUpdate : function (options, fn) {
+
+            var self = this;
+
+            // normalize
+            fn = fn || util.noop;
+
+            // get defaults
+            var defaults = this.$.defaults;
+
+            // set id
+            var id = (typeof options.id === 'undefined')
+                ? null
+                : options.id;
+
+            // set query
+            // queries are pre-defined in resource's config, query is fetched by
+            // query name (default CRUD verbs plus custom), id is mandatory in
+            // case query is default one
+            var query;
+            if (typeof options.query === 'undefined') {
+                if (!id) {
+                    return fn(true, null, 400, 'ERROR_DB_QUERY_ID_NOT_SET');
+                }
+                query = {
+                    '_id' : id
+                };
+            } else {
+                query = options.query;
+            }
+
+            // set body
+            // body object is mandatory to create new database document
+            if (typeof options.body === 'undefined') {
+
+                // [-] exit
+                return fn(true, null, 400, 'ERROR_DB_QUERY_BODY_DOES_NOT_EXIST_FOR_UPDATE');
+
+            } else {
+
+                // extend body object with timestamps
+                _.extend(options.body, {
+                    _updated : date.getUTCLocal()
+                });
+
+            }
+
+            // database update
+            this.$.mongo.Model
+                .update(query, options.body, function (err, numAffected) {
+
+                    // [-] exit
+                    // if database error occured
+                    if (err) {
+                        return fn(true, null, 400, 'ERROR_DB_QUERY');
+                    }
+
+                    // [+] exit
+                    return fn(null, null, 204);
+
+                });
+
+        },
+
+        /**
+         * @method _queryDelete(options[,fn])
+         * Invokes database delete.
+         *
+         * @params {required}{obj} options
+         *    @key {required}{str} id
+         *    @key {optional}{bol} brute
+         *    @key {optional}{str} payload
+         *    @key {optional}{obj} query
+         * @params {optional}{fun} fn
+         */
+        _queryDelete : function (options, fn) {
+
+            var self = this;
+
+            // normalize
+            fn = fn || util.noop;
+
+            // get defaults
+            var defaults = this.$.defaults;
+
+            // set id
+            var id = (typeof options.id === 'undefined')
+                ? null
+                : options.id;
+
+            // set query
+            // queries are pre-defined in resource's config, query is fetched by
+            // query name (default CRUD verbs plus custom), id is mandatory in
+            // case query is default one
+            var query;
+            if (typeof options.query === 'undefined') {
+                if (!id) {
+                    return fn(true, null, 400, 'ERROR_DB_QUERY_ID_NOT_SET');
+                }
+                query = {
+                    '_id' : id
+                };
+            } else {
+                query = options.query;
+            }
+
+            // database remove
+            this.$.mongo.Model
+                .remove(query, function (err) {
+
+                    // [-] exit
+                    // if database error occured
+                    if (err) {
+                        return fn(true, null, 400, 'ERROR_DB_QUERY');
+                    }
+
+                    // [+] exit
+                    return fn(null, null, 204);
+
+                });
+
+        },
+
+        /**
          * @method _setApp
          * Extracts restify application from server
          * instance.
+         *
          * @return {*}
          */
         _setApp : function () {
@@ -258,30 +624,300 @@ define([
         },
 
         /**
-         * @method _setLimit(req)
-         * Extracts limit token, set limit integer.
-         * @params {obj} req
-         * @return {int}
+         * @method _setEmitters
+         * Sets resource routes based on set route and
+         * endpoint settings, emits query events (when
+         * routes match).
+         *
+         * @return {*}
          */
-        _setLimit : function (req) {
+        _setEmitters : function () {
 
-            var limit;
+            var self = this;
 
-            // check if req.query.limit is set,
-            // fallback or normalize
-            if (typeof req.query === 'undefined' || typeof req.query.limit === 'undefined') {
+            // get server instance
+            var server = this.$.server;
 
-                // not set, fallback to default
-                limit = this.$.defaults.limit;
+            // get express app instance
+            var app = this.$.app;
 
-            } else {
+            // get route context
+            var context = this.$.context;
 
-                // set, normalize
-                limit = parseInt(req.query.limit);
+            // get route (prepend context if set)
+            var route = (context !== '')
+                ? context + this.$.route
+                : this.$.route;
 
-            }
+            // get middleware (add empty one if none is set)
+            var middleware = (this.$.middleware.length > 0)
+                ? this.$.middleware
+                : [];
 
-            return limit;
+            // get namespace
+            var namespace = this.$.namespace;
+
+            // EMITTERS
+
+            // GET
+            // retrieve
+            app.get({
+                name : 'Resource - GET (retrieve) - ' + route + '/:' + this.$.id,
+                path : route + '/:' + this.$.id
+            }, middleware, function (req, res, next) {
+
+                // retrieve
+                app.emit(namespace, {
+                    override : false,
+                    name     : 'retrieve',
+                    req      : req,
+                    res      : res
+                });
+
+                // no further routing
+                return next(false);
+
+            });
+
+            // GET
+            // index
+            app.get({
+                name : 'Resource - GET (index) - ' + route,
+                path : route
+            }, middleware, function (req, res, next) {
+
+                // index
+                app.emit(namespace, {
+                    override : false,
+                    name     : 'index',
+                    req      : req,
+                    res      : res
+                });
+
+                // no further routing
+                return next(false);
+
+            });
+
+            // POST
+            // create/service
+            app.post({
+                name : 'Resource - POST (create/service) - ' + route,
+                path : route
+            }, middleware, function (req, res, next) {
+
+                // extract query (based on whether or not service
+                // param is set or not)
+                var name = (typeof req.query.service === 'undefined')
+                    ? 'create'
+                    : req.query.service.toLowerCase();
+
+                // index
+                app.emit(namespace, {
+                    override : false,
+                    name     : name,
+                    req      : req,
+                    res      : res
+                });
+
+                // no further routing
+                return next(false);
+
+            });
+
+            // PUT
+            // update
+            app.put({
+                name : 'Resource - PUT (update) - ' + route + '/:' + this.$.id,
+                path : route + '/:' + this.$.id
+            }, middleware, function (req, res, next) {
+
+                // update
+                app.emit(namespace, {
+                    override : false,
+                    name     : 'update',
+                    req      : req,
+                    res      : res
+                });
+
+                // no further routing
+                return next(false);
+
+            });
+
+            // DELETE
+            // delete
+            app.del({
+                name : 'Resource - DELETE (delete) - ' + route + '/:' + this.$.id,
+                path : route + '/:' + this.$.id
+            }, middleware, function (req, res, next) {
+
+                // delete
+                app.emit(namespace, {
+                    override : false,
+                    name     : 'delete',
+                    req      : req,
+                    res      : res
+                });
+
+                // no further routing
+                return next(false);
+
+            });
+
+            // OPTIONS
+            // options (pre-flight)
+            app.opts({
+                name : 'Resource - OPTIONS (options) - ' + route + '/:' + this.$.id,
+                path : route + '/:' + this.$.id
+            }, middleware, function (req, res, next) {
+
+                // options
+                // answer preflight fast
+                server.send(req, res, null, null, 202);
+
+                // no further routing
+                return next(false);
+
+            });
+
+            // OPTIONS
+            // options (pre-fight)
+            app.opts({
+                name : 'Resource - OPTIONS (options) - ' + route,
+                path : route
+            }, middleware, function (req, res, next) {
+
+                // options
+                // answer preflight fast
+                server.send(req, res, null, null, 202);
+
+                // no further routing
+                return next(false);
+
+            });
+
+            // make chainable
+            return this;
+
+        },
+
+        /**
+         * @method _setListeners
+         * Set listener that delegates request to resource's
+         * CRUD verb method.
+         *
+         * @return {*}
+         */
+        _setListeners : function () {
+
+            var self = this;
+
+            // get server instance
+            var server = this.$.server;
+
+            // get express app instance
+            var app = this.$.app;
+
+            // get namespace
+            var namespace = this.$.namespace;
+
+            // get queries
+            var queries = this.$.queries;
+
+            /**
+             * @listen
+             * Prepare options object, invokes query.
+             * @params {required}{obj} options
+             *    @key {optional}{bol} brute
+             *    @key {required}{str} query
+             *    @key {optional}{obj} req
+             *    @key {optional}{obj} res
+             * @params {optional}{fun} fn
+             */
+            app.on(namespace, function (options, fn) {
+
+                var req = options.req || null;
+                var res = options.res || null;
+
+                // normalize
+                // use incoming callback, or Server.REST .send()
+                // method to return query results
+                fn = fn || function (err, data, status, code) {
+
+                    // no way to send back results
+                    // request, response object missing
+                    if (!req || !res) {
+                        return util.noop();
+                    }
+
+                    // send results back to client
+                    // using existing request, response object
+                    server.send(req, res, err, data, status, code);
+
+                };
+
+                // [-] exit
+                // no query name set
+                if (typeof options.name === 'undefined') {
+                    return fn(true, null, 400, 'ERROR_RESOURCE_QUERY_NOT_SET');
+                }
+
+                // normalize
+                var name = options.name.toLowerCase();
+                var override = options.override || false;
+
+                // [-] exit
+                if (typeof queries[name] === 'undefined') {
+                    return fn(true, null, 404, 'ERROR_RESOURCE_QUERY_NOT_FOUND');
+                }
+
+                // create options object to be used in resource
+                // query, brute (set to true/false controls whether
+                // or not query will ask for access rights first)
+                _.extend(options, {
+                    name : name
+                });
+
+                // add query object, add request body iof available
+                if (req) {
+
+                    _.extend(options, {
+                        id          : req.params[self.$.id] || null,
+                        body        : req.body,
+                        querystring : req.query
+                    });
+
+                    // [-] exit
+                    // check client access
+                    var client = self._checkClient(req.headers);
+                    if (!override && !client) {
+                        return fn(true, null, 401, 'ERROR_ACCESS_CLIENT_NOT_ALLOWED');
+                    }
+
+                    // [-] exit
+                    // check method access
+                    var method = self._checkMethod(req.method);
+                    if (!override && !method) {
+                        return fn(true, null, 401, 'ERROR_ACCESS_METHOD_NOT_ALLOWED');
+                    }
+
+                    // [-] exit
+                    // check access rules
+                    var rules = self._checkRules(name, client);
+                    if (!override && !rules) {
+                        return fn(true, null, 401, 'ERROR_ACCESS_DENIED_BY_RULE');
+                    }
+
+                }
+
+                // invoke query
+                queries[name].call(self, options, fn);
+
+            });
+
+            // make chainable
+            return this;
 
         },
 
@@ -289,6 +925,7 @@ define([
          * @method _setMongo()
          * If of type mongo fetch mongo schema, Model
          * form schema instance
+         *
          * @return {*}
          */
         _setMongo : function () {
@@ -331,165 +968,25 @@ define([
         },
 
         /**
-         * @method _setOffset(req)
-         * Extracts offset token, set offset integer.
-         * @params {obj} req
-         * @return {int}
+         * @method _setQueries()
+         * Adds default queries to resource's $.queries object.
+         *
+         * @return {*}
          */
-        _setOffset : function (req) {
+        _setQueries : function () {
 
-            var offset;
+            // add default methods to collection
+            // of resource methods
+            _.extend(this.$.queries, {
+                index    : this._queryIndex,
+                create   : this._queryCreate,
+                retrieve : this._queryRetrieve,
+                update   : this._queryUpdate,
+                delete   : this._queryDelete
+            });
 
-            // check if req.query.offset is set,
-            // fallback or normalize
-            if (typeof req.query === 'undefined' || typeof req.query.offset === 'undefined') {
-
-                // not set, fallback to default
-                offset = this.$.defaults.offset;
-
-            } else {
-
-                // set, normalize
-                offset = parseInt(req.query.offset);
-
-            }
-
-            return offset;
-
-        },
-
-        /**
-         * @method _setOffsetFromPage(req, limit, offset)
-         * Extracts page token, set page integer, convert it into offste, return offset.
-         * @params {required}{obj} req
-         * @params {required}{int} limit
-         * @params {required}{int} offset
-         * @return {int}
-         */
-        _setOffsetFromPage : function (req, limit, offset) {
-
-            var page;
-
-            // check if req.query.page is set,
-            // fallback or normalize
-            if (typeof req.query === 'undefined' || typeof req.query.page === 'undefined') {
-
-                // not set, fallback to null
-                page = null;
-
-            } else {
-
-                // set, normalize
-                page = parseInt(req.query.page);
-
-            }
-
-            // update offset if page is set
-            if (page !== 0 && page !== null) {
-                offset = (page - 1) * limit;
-            }
-
-            return offset;
-
-        },
-
-        /**
-         * @method _setPayload(req)
-         * Extracts payload token, set payload object.
-         * @params {obj} req
-         * @return {obj}
-         */
-        _setPayload : function (req) {
-
-            var payload;
-
-            // check if req.query.payload is set,
-            // fallback or normalize
-            if (typeof req.query === 'undefined' || typeof req.query.payload === 'undefined') {
-
-                // not set, fallback to default
-                payload = this.$.defaults.payload;
-
-            }
-
-            // set, normalize
-            payload = this.$.payloads[payload];
-
-            return payload;
-
-        },
-
-        /**
-         * @method _setQuery(req)
-         * Extracts values from req object, builds queries from blueprints.
-         * @params {obj} req
-         * @params {str} str
-         * @return {obj}
-         */
-        _setQuery : function (req, str) {
-
-            // reset query
-            var query;
-
-            // custom queries always come alongside
-            // index uri, exitsing querystrin param
-            // `query` is mandatory
-            if (str === 'index' && typeof req.query !== 'undefined' && typeof req.query.query !== 'undefined') {
-
-                // custom query
-                query = util.deepcopy(this.$.queries[req.query.query]);
-
-                // loop through query keys, replace all keys with values
-                // from querystring (if querystring keys exist)
-                for (var key in query) {
-                    if (typeof req.query[key] !== 'undefined') {
-                        query[key] = req.query[key];
-                    }
-                }
-
-            } else {
-
-                // regular query
-                query = util.deepcopy(this.$.queries[str]);
-
-                // loop through query keys, replace all keys starting with
-                // `id` with values from req object
-                for (var key in query) {
-                    if (query[key].substr(0, 2) === 'id') {
-                        query[key] = req.params[query[key]];
-                    }
-                }
-
-            }
-
-            return query;
-
-        },
-
-        /**
-         * @method _setQueryFromBody(req)
-         * Extracts values from req.body object, builds queries from blueprints.
-         * @params {obj} req
-         * @return {obj}
-         */
-        _setQueryFromBody : function (req, str) {
-
-            // set query
-            var query = util.deepcopy(this.$.queries[str]);
-
-            // temporarily save req.body to utilize
-            // get() with dot notation
-            var res = new Base();
-            res.$.tmp = util.deepcopy(req.body);
-
-            // loop through all keys, replace
-            // placeholders with data coming from
-            // requets body
-            for (var key in query) {
-                query[key] = res.get('tmp.' + key);
-            }
-
-            return query;
+            // make chainable
+            return this;
 
         },
 
@@ -497,6 +994,7 @@ define([
          * @method _setReference()
          * Sets reference to this resource on the global
          * server object.
+         *
          * @return {*}
          */
         _setReference : function () {
@@ -515,760 +1013,59 @@ define([
 
         },
 
-        /**
-         * @method _setRoutes
-         * Sets resource routes based on set route and
-         * endpoint settings.
-         * @private
-         */
-        _setRoutes : function () {
-
-            // preserve scope
-            var self = this;
-
-            var server = this.$.server;
-
-            // extract app
-            var app = this.$.app;
-
-            // extract context
-            var context = this.$.context;
-
-            // extract route
-            var route = (context !== '')
-                ? context + this.$.route
-                : this.$.route;
-
-            // extract middleware, normalize
-            var middleware = this.$.middleware;
-            if (middleware.length === 0) {
-                middleware.push(function (req, res, next) {
-                    return next();
-                });
-            }
-
-            // extract namespace
-            var namespace = this.$.namespace;
-
-            // LISTENER
-            app.on(namespace, function (req, res, query, fn, override) {
-
-                // normalize callback
-                fn = fn || function (err, data, status, code, message) {
-                    server.send(req, res, err, data, status, code, message);
-                };
-
-                // check if service or native CRUD
-                var action = query.split(':');
-
-                // invoke service action
-                if (action.length > 1) {
-
-                    // set action
-                    if (req && !_.isEmpty(req)) {
-                        // TODO: in case of internal event submission, req might be undefined
-                        // TODO: or null, maybe change the way resource actions are called
-                        // TODO: internally
-                        req[self.$.server.get('object')].action = action[1];
-                    }
-
-                    // invoke action
-                    return self.$.services[action[1]].call(self, req, fn, override);
-
-                }
-
-                // set action
-                // TODO: in case of internal event submission, req might be undefined
-                // TODO: or null, maybe change the way resource actions are called
-                // TODO: internally
-                if (req && !_.isEmpty(req)) {
-                    req[self.$.server.get('object')].action = action[0];
-                }
-
-                // invoke native CRUD action
-                self[action[0]](req, fn, override);
-
-            });
-
-            // EMITTERS
-
-            // GET - retrieve
-            app.get({
-                name : 'Resource - GET (retrieve) - ' + route + '/:' + this.$.id,
-                path : route + '/:' + this.$.id
-            }, middleware, function (req, res, next) {
-
-                // retrieve
-                app.emit(namespace, req, res, 'retrieve');
-
-                // no further routing
-                return next(false);
-
-            });
-
-            // GET - index
-            app.get({
-                name : 'Resource - GET (index) - ' + route,
-                path : route
-            }, middleware, function (req, res, next) {
-
-                // index
-                app.emit(namespace, req, res, 'index');
-
-                // no further routing
-                return next(false);
-
-            });
-
-            // POST - create/service
-            app.post({
-                name : 'Resource - POST (create/service) - ' + route,
-                path : route
-            }, middleware, function (req, res, next) {
-
-                // extract service
-                var service = req.query.service || null;
-
-                // service
-                if (service) {
-                    return app.emit(namespace, req, res, 'service:' + req.query.service.toLowerCase());
-                }
-
-                // create
-                app.emit(namespace, req, res, 'create');
-
-                // no further routing
-                return next(false);
-
-            });
-
-            // PUT - update
-            app.put({
-                name : 'Resource - PUT (update) - ' + route + '/:' + this.$.id,
-                path : route + '/:' + this.$.id
-            }, middleware, function (req, res, next) {
-
-                // update
-                app.emit(namespace, req, res, 'update');
-
-                // no further routing
-                return next(false);
-
-            });
-
-            // DELETE - delete
-            app.del({
-                name : 'Resource - DELETE (delete) - ' + route + '/:' + this.$.id,
-                path : route + '/:' + this.$.id
-            }, middleware, function (req, res, next) {
-
-                // update
-                app.emit(namespace, req, res, 'delete');
-
-                // no further routing
-                return next(false);
-
-            });
-
-            // OPTIONS - options
-            app.opts({
-                name : 'Resource - OPTIONS (options) - ' + route + '/:' + this.$.id,
-                path : route + '/:' + this.$.id
-            }, middleware, function (req, res, next) {
-
-                // options
-                // app.emit(namespace, req, res, 'options');
-                server.send(req, res, null, null, 202);
-
-                // no further routing
-                return next(false);
-
-            });
-
-            // OPTIONS - options
-            app.opts({
-                name : 'Resource - OPTIONS (options) - ' + route,
-                path : route
-            }, middleware, function (req, res, next) {
-
-                // options
-                // app.emit(namespace, req, res, 'options');
-                server.send(req, res, null, null, 202);
-
-                // no further routing
-                return next(false);
-
-            });
-
-        },
-
         // PUBLIC
 
         /**
-         * @method index(req, fn[, override])
-         * Fetches list, invokes callback, override flag
-         * allows overriding access control (used by
-         * internal calls).
-         * @params {obj} req
-         * @params {fun} fn
-         * @params {bol} override
+         * @method add(name, fn)
+         * Adds query to resource instance, invoked in instance
+         * context.
+         *
+         * @params {required}{str} name
+         * @params {required}{fun} fn
+         * @return {*}
          */
-        index : function (req, fn, override) {
+        add : function (name, fn) {
 
             var self = this;
-
-            // force action
-            if (!override) {
-                req[this.$.server.get('object')].action = 'index';
-            }
-
-            // [+/-] exit
-            // check access
-            if (!override && !this._checkAccess(req, fn)) {
-                return;
-            }
-
-            // [+/-] exit
-            // check access rules
-            if (!override && !this._checkAccessRules(req, fn)) {
-                return;
-            }
-
-            // set limit
-            // limit represents the maximum number of
-            // documents retrieved from database, set
-            // to a maximum number by default (check
-            // resource configuration for default value)
-            var limit = this._setLimit(req);
-
-            // set offset
-            // if incoming offset= querystring parameter
-            // offset represents the starting point of
-            // the database cursor which it uses to fetch
-            // documents form database, (check resource
-            // configuration for default value)
-            var offset = this._setOffset(req);
-
-            // set offset from page
-            // if incoming page= querystring parameter
-            // defines offset, we need to calculate
-            // offset from incoming page number and
-            // limit value, overwrites existing offset,
-            // falls back to default offset, (check
-            // resource configuration for default value)
-            offset = this._setOffsetFromPage(req, limit, offset);
-
-            // set sorting
-            // sets default sorting object to mongo to know
-            // in which order to return documents, (check
-            // resource configuration for default value)
-            var sort = this.$.defaults.sort;
-
-            // set payload
-            // sets specific payload to return based on
-            // incoming querystring parameter payload=,
-            // (check resource configuration for default
-            // value)
-            var payload = this._setPayload(req);
-
-            // set query
-            // queries are pre-defined in resource's config,
-            // query is fetched by query name (default CRUD
-            // verbs plus custom)
-            var query = this._setQuery(req, 'index');
-
-            // log
-            req = util.log.time.resources(this.$.server, req, 'MONGO query');
-
-            // query
-            this.$.mongo.Model
-                .find(query, payload, {
-                    limit : limit,
-                    skip  : offset,
-                    sort  : sort
-                })
-                .exec(function (err, docs) {
-
-                    // [-] exit
-                    // if database error occured
-                    if (err) {
-                        return fn(true, null, 400, '00001');
-                    }
-
-                    // [-] exit
-                    // if database did not return document(s)
-                    if (!docs || !docs.length) {
-                        return fn(true, null, 404, '00002');
-                    }
-
-                    // log
-                    req = util.log.time.resources(self.$.server, req, 'MONGO done');
-
-                    // [+] exit
-                    return fn(null, docs, 200);
-
-                });
-
-        },
-
-        /**
-         * @method create(req, fn[, override])
-         * Creates document, invokes callback, override
-         * flag allows overriding access control (used by
-         * internal calls).
-         * @params {obj} req
-         * @params {fun} fn
-         * @params {bol} override
-         */
-        create : function (req, fn, override) {
-
-            var self = this;
-
-            // force action
-            if (!override) {
-                req[this.$.server.get('object')].action = 'create';
-            }
-
-            // [+/-] exit
-            // check access
-            if (!override && !this._checkAccess(req, fn)) {
-                return;
-            }
-
-            // [+/-] exit
-            // check access rules
-            if (!override && !this._checkAccessRules(req, fn)) {
-                return;
-            }
 
             // normalize
-            // allow empty body object
-            req.body = req.body || {};
+            name = name.toLowerCase();
+            fn = fn || util.noop;
 
-            // set query
-            // queries are pre-defined in resource's config,
-            // query is fetched by query name (default CRUD
-            // verbs plus custom)
-            var query = this._setQueryFromBody(req, 'create');
+            // set method
+            this.$.queries[name] = fn;
 
-            // log
-            req = util.log.time.resources(this.$.server, req, 'MONGO query');
-
-            // query
-            this.$.mongo.Model
-                .find(query, function (err, docs) {
-
-                    // normalize
-                    // so save/update are possible
-                    docs = (!docs === true)
-                        ? []
-                        : docs;
-
-                    // [-] exit
-                    // if database error occured
-                    if (err) {
-                        return fn(true, null, 400, '00001');
-                    }
-
-                    // reset status
-                    var status;
-
-                    // create if not found yet, otherwise update
-                    if (!docs.length) {
-
-                        // set date
-                        // add `updated` and `created` data
-                        _.extend(req.body, {
-                            _created : date.getUTCLocal(),
-                            _updated : date.getUTCLocal()
-                        });
-
-                        // [+] create
-                        // create new instance, update with data
-                        // from request body object
-                        docs[0] = new self.$.mongo.Model(req.body);
-
-                        // set status
-                        status = 201;
-
-                    } else {
-
-                        // set date
-                        // add `updated`
-                        _.extend(req.body, {
-                            _updated : date.getUTCLocal()
-                        });
-
-                        // [+] update
-                        // extend document with incoming data from
-                        // request body
-                        _.extend(docs[0], req.body);
-
-                        // set status
-                        status = 204;
-
-                    }
-
-                    // save created/updated document to database
-                    docs[0].save(function (err, doc) {
-
-                        // log
-                        req = util.log.time.resources(self.$.server, req, 'MONGO done');
-
-                        // [-] exit
-                        // if database error occured
-                        if (err) {
-                            return fn(true, null, 400, '00001');
-                        }
-
-                        // [+] exit
-                        // created (201) or updated (204)
-                        if (status === 201) {
-                            return fn(null, doc, 201);
-                        } else {
-                            return fn(null, null, 204);
-                        }
-
-                    });
-
-                });
+            // make chainable
+            return this;
 
         },
 
         /**
-         * @method retrieve(req, fn[, override])
-         * Finds single document, invokes callback, override
-         * flag allows overriding access control (used by
-         * internal calls).
-         * @params {obj} req
-         * @params {fun} fn
-         * @params {bol} override
+         * @method use(name, options, fn)
+         * Finds query by name, invokes query using incoming params.
+         *
+         * @params {required}{str} name
+         * @params {required}{obj} options
+         * @params {optional}{fun} fn
          */
-        retrieve : function (req, fn, override) {
+        use     : function (name, options, fn) {
 
-            var self = this;
-
-            // force action
-            if (!override) {
-                req[this.$.server.get('object')].action = 'retrieve';
-            }
-
-            // [+/-] exit
-            // check access
-            if (!override && !this._checkAccess(req, fn)) {
-                return;
-            }
-
-            // [+/-] exit
-            // check access rules
-            if (!override && !this._checkAccessRules(req, fn)) {
-                return;
-            }
-
-            // set payload
-            // sets specific payload to return based on
-            // incoming querystring parameter payload=,
-            // (check resource configuration for default
-            // value)
-            var payload = this._setPayload(req);
-
-            // set query
-            // queries are pre-defined in resource's config,
-            // query is fetched by query name (default CRUD
-            // verbs plus custom)
-            var query = this._setQuery(req, 'retrieve');
-
-            // log
-            req = util.log.time.resources(this.$.server, req, 'MONGO query');
-
-            // query
-            this.$.mongo.Model
-                .findOne(query, payload)
-                .lean()
-                .exec(function (err, doc) {
-
-                    // [-] exit
-                    // if database error occured
-                    if (err) {
-                        return fn(true, null, 400, '00001');
-                    }
-
-                    // [-] exit
-                    // if database did not return document(s)
-                    if (!doc) {
-                        return fn(true, null, 404, '00002');
-                    }
-
-                    // log
-                    req = util.log.time.resources(self.$.server, req, 'MONGO done');
-
-                    // [+] exit
-                    return fn(null, doc, 200);
-
-                });
-
-        },
-
-        /**
-         * @method update(req, fn[, override])
-         * Updates document, invokes callback, override flag
-         * allows overriding access control (used by internal
-         * calls).
-         * @params {obj} req
-         * @params {fun} fn
-         * @params {bol} override
-         */
-        update : function (req, fn, override) {
-
-            var self = this;
-
-            // force action
-            if (!override) {
-                req[this.$.server.get('object')].action = 'update';
-            }
-
-            // [+/-] exit
-            // check access
-            if (!override && !this._checkAccess(req, fn)) {
-                return;
-            }
-
-            // [+/-] exit
-            // check access rules
-            if (!override && !this._checkAccessRules(req, fn)) {
-                return;
-            }
+            // normalize
+            name = name.toLowerCase();
 
             // [-] exit
-            // if incoming request has no body
-            if (typeof req.body === 'undefined') {
-                return fn(true, null, 400, '00003');
+            if (typeof this.$.queries[name] === 'undefined') {
+                return fn(true, null, 400, 'ERROR_RESOURCE_QUERY_NOT_FOUND');
             }
 
-            // set query
-            // queries are pre-defined in resource's config,
-            // query is fetched by query name (default CRUD
-            // verbs plus custom)
-            var query = this._setQuery(req, 'update');
-
-            // set date
-            // add `updated` data
-            _.extend(req.body, {
-                _updated : date.getUTCLocal()
-            });
-
-            // log
-            req = util.log.time.resources(this.$.server, req, 'MONGO query');
-
-            // query
-            this.$.mongo.Model
-                .find(query, function (err, docs) {
-
-                    // [-] exit
-                    // if database error occured
-                    if (err) {
-                        return fn(true, null, 400, '00001');
-                    }
-
-                    // [-] exit
-                    // if database did not return document(s)
-                    if (!docs || !docs.length) {
-                        return fn(true, null, 404, '00002');
-                    }
-
-                    // extend document with incoming data from
-                    // request body
-                    _.extend(docs[0], req.body);
-
-                    // save updated document to database
-                    docs[0].save(function (err, doc) {
-
-                        // [-] exit
-                        // if database error occured
-                        if (err) {
-                            return fn(true, null, 400, '00001');
-                        }
-
-                        // log
-                        req = util.log.time.resources(self.$.server, req, 'MONGO done');
-
-                        // [+] exit
-                        return fn(null, null, 204);
-
-                    });
-
-                });
+            // invoke query
+            return this.$.queries[name].call(this, options, fn);
 
         },
 
-        /**
-         * @method delete(req, fn[, override])
-         * Deletes document, invokes callback, override flag
-         * allows overriding access control (used by internal
-         * calls).
-         * @params {obj} req
-         * @params {fun} fn
-         * @params {bol} override
-         */
-        delete : function (req, fn, override) {
-
-            var self = this;
-
-            // force action
-            if (!override) {
-                req[this.$.server.get('object')].action = 'delete';
-            }
-
-            // [+/-] exit
-            // check access
-            if (!override && !this._checkAccess(req, fn)) {
-                return;
-            }
-
-            // [+/-] exit
-            // check access rules
-            if (!override && !this._checkAccessRules(req, fn)) {
-                return;
-            }
-
-            // set query
-            // queries are pre-defined in resource's config,
-            // query is fetched by query name (default CRUD
-            // verbs plus custom)
-            var query = this._setQuery(req, 'delete');
-
-            // log
-            req = util.log.time.resources(this.$.server, req, 'MONGO query');
-
-            // query
-            this.$.mongo.Model
-                .find(query, function (err, docs) {
-
-                    // [-] exit
-                    // if database error occured
-                    if (err) {
-                        return fn(true, null, 400, '00001');
-                    }
-
-                    // [-] exit
-                    // if database did not return document(s)
-                    if (!docs || !docs.length) {
-                        return fn(true, null, 404, '00002');
-                    }
-
-                    // save found document form database
-                    docs[0].remove(function (err) {
-
-                        // [-] exit
-                        // if database error occured
-                        if (err) {
-                            return fn(true, null, 400, '00001');
-                        }
-
-                        // log
-                        req = util.log.time.resources(self.$.server, req, 'MONGO done');
-
-                        // [+] exit
-                        return fn(null, null, 204);
-
-                    });
-
-                });
-
-        },
-
-        /**
-         * @method methods(name, fn)
-         * Adds method to instance, invoked in instance context.
-         * @param {str} name
-         * @param {fun} cb
-         */
-        methods : function (name, cb) {
-
-            var self = this;
-
-            // normalize
-            name = name.toLowerCase();
-
-            // set method
-            this[name] = function (req, fn, override) {
-
-                // force action
-                if (!override) {
-                    req[this.$.server.get('object')].action = name;
-                }
-
-                // [+/-] exit
-                // check access
-                if (!override && !self._checkAccess(req, fn)) {
-                    return;
-                }
-
-                // [+/-] exit
-                // check access rules
-                if (!override && !self._checkAccessRules(req, fn)) {
-                    return;
-                }
-
-                cb.apply(self, arguments);
-
-            };
-
-            return this;
-
-        },
-
-        /**
-         * @method service(name, cb)
-         * Adds service to instance, invoked in instance context.
-         * @param {str} name
-         * @param {fun} cb
-         */
-        service : function (name, cb) {
-
-            var self = this;
-
-            // normalize
-            name = name.toLowerCase();
-
-            // set services container
-            this.$.services = this.$.services || {};
-
-            // set default access rights, if not set yet
-            if (!this.$.access.methods[name]) {
-                this.$.access.methods[name] = {
-                    allowedClientGroups : 100,
-                    allowedClientKeys   : [],
-                    deniedClientKeys    : []
-                };
-            }
-
-            // set method
-            this.$.services[name] = function (req, fn, override) {
-
-                // force action
-                if (!override) {
-                    req[this.$.server.get('object')].action = name;
-                }
-
-                // [+/-] exit
-                // check access
-                if (!override && !self._checkAccess(req, fn)) {
-                    return;
-                }
-
-                // [+/-] exit
-                // check access rules
-                if (!override && !self._checkAccessRules(req, fn)) {
-                    return;
-                }
-
-                cb.apply(self, arguments);
-
-            };
-
-            return this;
-
+        // TODO: DEPRECATED
+        methods : function () {
+            return this.add.apply(this, arguments);
         }
 
     });

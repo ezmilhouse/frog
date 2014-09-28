@@ -24,6 +24,7 @@ define([
                 context   : null,
                 data      : {},
                 location  : null,
+                name      : null,
                 params    : null,
                 query     : null,
                 routes    : [],
@@ -52,7 +53,6 @@ define([
 
             var self = this;
 
-            var route;
             var routes = this.$.routes;
 
             // loop through all routes and match incoming
@@ -61,28 +61,30 @@ define([
             var validContext;
             for (var i = index; i < routes.length; i++) {
 
-                route = routes[i];
-
                 // match
                 if (!valid) {
 
                     // match against regexp
                     // returns true, false
-                    valid = route.route.match(path, []);
+                    valid = routes[i].route.match(path, []);
 
                     if (valid === true) {
 
                         // save context
-                        this.$.context = route.route.$;
+                        this.$.context = routes[i].route.$;
 
                         // save params
-                        this.$.params = route.route.$.params;
+                        this.$.params = routes[i].route.$.params;
 
                         // save query
-                        this.$.query = route.route.$.query;
+                        this.$.query = routes[i].route.$.query;
+
+                        // debug
+                        // double execution
+                        // log(this.$.name, 'routes: '+ routes.length, path, 'match: ' + valid, 'key: ' + i, 'executed');
 
                         // invoke callback, apply context
-                        route.fn.call(self, {
+                        routes[i].fn.call(self, {
 
                             context : this.$.context,
                             data    : this.$.data,
@@ -138,39 +140,41 @@ define([
 
             var self = this;
 
+            var dispatch = function () {
+
+                // save location first
+                self.$.location = location;
+
+                // extract hash
+                var hash = location.hash !== '' ? location.hash : null;
+
+                // extract uri
+                var path = location.pathname;
+
+                // add hash to path
+                if (hash) {
+                    path += hash;
+                }
+
+                // prepend context if set
+                if (this.$.context) {
+                    path = this.$.context + path;
+                }
+
+                // dispatch url
+                self._dispatch(path);
+
+            };
+
             require([
                 'hashchange'
-            ], function() {
+            ], function () {
 
                 // dispatch on hashchange event
-                $(window).hashchange(function () {
-
-                    // save location first
-                    self.$.location = location;
-
-                    // extract hash
-                    var hash = location.hash !== '' ? location.hash : null;
-
-                    // extract uri
-                    var path = location.pathname;
-
-                    // add hash to path
-                    if (hash) {
-                        path += hash;
-                    }
-
-                    // prepend context if set
-                    if (this.$.context) {
-                        path = this.$.context + path;
-                    }
-
-                    // dispatch url
-                    self._dispatch(path);
-
-                });
+                $(window).hashchange(dispatch);
 
                 // initial dispatch
-                $(window).hashchange();
+                dispatch();
 
             });
 
@@ -243,7 +247,6 @@ define([
             _.each(args, function (fn) {
 
                 self.$.routes.push({
-
                     route : new Route(path).init(),
                     fn    : function (req, next) {
 

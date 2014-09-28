@@ -5,10 +5,13 @@ define([
     'support/frog/src/Collection',
     'support/frog/src/Component',
     'support/frog/src/date',
+    'support/frog/src/Email',
     'support/frog/src/Events',
     'support/frog/src/Events.Singleton',
+    'support/frog/src/Facebook',
     'support/frog/src/Flow',
     'support/frog/src/Handler.Form',
+    'support/frog/src/Handler.Object',
     'support/frog/src/I18n',
     'support/frog/src/log',
     'support/frog/src/Model',
@@ -20,7 +23,7 @@ define([
     'support/frog/src/View',
     'support/frog/src/xhr'
 
-], function (Api, Base, Collection, Component, date, Events, events, Flow, HandlerForm, I18n, log, Model, require, Router, singleton, util, validations, View, xhr) {
+], function (Api, Base, Collection, Component, date, Email, Events, events, Facebook, Flow, HandlerForm, HandlerObject, I18n, log, Model, require, Router, singleton, util, validations, View, xhr) {
 
     var frog = {
 
@@ -29,11 +32,14 @@ define([
         Collection  : Collection,
         Component   : Component,
         date        : date,
+        Email       : Email,
         Events      : Events,
         events      : events,
+        Facebook    : Facebook,
         Flow        : Flow,
         Handler     : {
-            Form : HandlerForm
+            Form   : HandlerForm,
+            Object : HandlerObject
         },
         I18n        : I18n,
         log         : log,

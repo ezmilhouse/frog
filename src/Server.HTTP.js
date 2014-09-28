@@ -199,9 +199,6 @@ define([
          */
         _setText : function() {
 
-            console.log(this.$.dir);
-            console.log(this.$.text);
-
             // save to singleton
             singleton.text = require(this.$.dir + this.$.text);
 

@@ -10,11 +10,14 @@ switch (typeof define !== 'function') {
             Collection  : require('./src/Collection'),
             Component   : require('./src/Component'),
             date        : require('./src/date'),
+            Email       : require('./src/Email'),
             Events      : require('./src/Events'),
             events      : require('./src/events'),
+            Facebook    : require('./src/Facebook'),
             Flow        : require('./src/Flow'),
             Handler     : {
-                Form : require('./src/Handler.Form')
+                Form   : require('./src/Handler.Form'),
+                Object : require('./src/Handler.Object')
             },
             I18n        : require('./src/I18n'),
             Model       : require('./src/Model'),
@@ -24,8 +27,8 @@ switch (typeof define !== 'function') {
             Schema      : require('./src/Schema'),
             singleton   : require('./src/singleton'),
             Server      : {
-                HTTP  : require('./src/Server.HTTP'),
-                REST  : require('./src/Server.REST')
+                HTTP : require('./src/Server.HTTP'),
+                REST : require('./src/Server.REST')
             },
             util        : require('./src/util'),
             validations : require('./src/validations'),
@@ -47,10 +50,13 @@ switch (typeof define !== 'function') {
                 path + 'src/Collection',
                 path + 'src/Component',
                 path + 'src/date',
+                path + 'src/Email',
                 path + 'src/Events',
                 path + 'src/Events.Singleton',
+                path + 'src/Facebook',
                 path + 'src/Flow',
                 path + 'src/Handler.Form',
+                path + 'src/Handler.Object',
                 path + 'src/I18n',
                 path + 'src/log',
                 path + 'src/Model',
@@ -62,7 +68,7 @@ switch (typeof define !== 'function') {
                 path + 'src/View',
                 path + 'src/xhr'
 
-        ], function (Api, Base, Collection, Component, date, Events, events, Flow, HandlerForm, I18n, log, Model, require, Router, singleton, util, validations, View, xhr) {
+        ], function (Api, Base, Collection, Component, date, Email, Events, events, Facebook, Flow, HandlerForm, HandlerObject, I18n, log, Model, require, Router, singleton, util, validations, View, xhr) {
 
             var frog = {
 
@@ -73,11 +79,14 @@ switch (typeof define !== 'function') {
                 Collection  : Collection,
                 Component   : Component,
                 date        : date,
+                Email       : Email,
                 Events      : Events,
                 events      : events,
+                Facebook    : Facebook,
                 Flow        : Flow,
                 Handler     : {
-                    Form : HandlerForm
+                    Form   : HandlerForm,
+                    Object : HandlerObject
                 },
                 I18n        : I18n,
                 Model       : Model,

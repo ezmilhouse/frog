@@ -22,12 +22,14 @@ define([
         _ctor : function (options) {
 
             this.$ = {
-                action            : true,
-                css               : {
+                action           : true,
+                css              : {
                     field             : 'field',
                     fieldError        : 'field-error',
                     fieldErrorMessage : 'field-error-message',
+                    fieldErrorFlag    : 'field-error-flag',
                     fieldSuccess      : 'field-success',
+                    fieldSuccessFlag  : 'field-success-flag',
                     form              : 'form',
                     formBusy          : 'form-busy',
                     formCancel        : 'form-cancel',
@@ -36,31 +38,32 @@ define([
                     formNative        : 'form-native',
                     formSubmit        : 'form-submit'
                 },
-                data              : {},
-                el                : null,
-                endpoint          : '/',
-                errors            : null,
-                fields            : {},
-                globals           : {
+                data             : {},
+                el               : null,
+                endpoint         : '/',
+                errors           : null,
+                errors_all       : false,
+                fields           : {},
+                globals          : {
                     date : date,
                     util : util
                 },
-                listeners_fields  : false,
-                listeners_forms   : false,
-                markup            : {
+                listeners_fields : false,
+                listeners_forms  : false,
+                markup           : {
                     error_field : '',
                     error_form  : ''
                 },
-                method            : 'POST',
-                namespace         : null,
-                prefix            : 'frog-',
-                rules             : {},
-                selector          : 'form',
-                state             : 'loaded', // idle, error, ok
-                text              : {},
-                valid             : true,
-                validations       : validations,
-                view              : null
+                method           : 'POST',
+                namespace        : null,
+                prefix           : 'frog-',
+                rules            : {},
+                selector         : 'form',
+                state            : 'loaded', // idle, error, ok
+                text             : {},
+                valid            : true,
+                validations      : validations,
+                view             : null
             };
 
             if (options) {
@@ -242,48 +245,82 @@ define([
          */
         _setErrorMessage : function (field) {
 
+            // extract rules
+            var rules = this.$.rules[field] || [];
+
+            // reset rule params
+            var ruleParams;
+
+            // reset error
+            var error;
+
+            // reset error text
+            var errorText;
+
             // extract errors
             var errors = this.$.errors[field];
 
-            // extract specific last error
-            var error = errors[errors.length - 1];
+            // reset error messages
+            var str = '';
 
-            // extract rules
-            var rules = this.$.rules[field];
+            // reset collection of error messages
+            // (in correct order)
+            var arr = [];
 
-            // extract specific rule based on
-            // extracted error
-            var rule;
-            for (var i = 0; i < rules.length; i++) {
-                if (_.isArray(rules[i])) {
-                    if (rules[i][0] === error) {
-                        rule = rules[i];
-                    }
-                } else {
-                    if (rules[i] === error) {
-                        rule = rules[i];
+            // loop through all errors, build error
+            // message string, and collection of
+            // error messages (as array)
+            for (var i = 0; i < errors.length; i++) {
+
+                // extract single error
+                error = errors[i];
+
+                // extract error message text
+                errorText = this.$.text[error];
+
+                // extract array of rules params
+                ruleParams = (_.isArray(rules[1]))
+                    ? rules[1]
+                    : null;
+
+                // if rule has params, then now those params can be
+                // injected into the error message by their position
+                // in the array, skip first key (0) as it holds the
+                // rule name
+                // ex: "Minimum of [1] characters." ends up being
+                // ex: "Minimum of 6 characters."
+                if (ruleParams) {
+                    for (var i = 1; i < ruleParams.length; i++) {
+                        errorText = errorText.replace('[' + i + ']', ruleParams[i]);
                     }
                 }
+
+                // create single string of error messages
+                // add line break if not the first entry
+                if (str !== '') {
+                    str += '</br>';
+                }
+                str += errorText;
+
+                // create collection of error messages in
+                // correct order
+                arr.push(errorText);
+
             }
 
-            // extract error messages, replace placeholder
-            // in message string if rule was array
-            var str;
-            if (_.isArray(rule)) {
-                str = this.$.text[rule[0]];
-                for (var i = 1; i < rule.length; i++) {
-                    str = str.replace('[' + i + ']', rule[i]);
-                }
+            // check whether or not to show all, or only
+            // the last error messages
+            if (this.$.errors_all) {
+
+                // all error messages
+                return str;
+
             } else {
-                str = this.$.text[rule];
-            }
 
-            // fallback
-            if (!str) {
-                str = this.$.text[error];
-            }
+                // last error message
+                return arr[arr.length -1];
 
-            return str;
+            }
 
         },
 
@@ -332,7 +369,7 @@ define([
              * @params {required}{str} tag
              * @params {required}{str} field
              */
-            var _listeners = function(field, tag, type) {
+            var _listeners = function (field, tag, type) {
 
                 // different listeners based on tags and
                 // (if input) based on types
@@ -348,14 +385,20 @@ define([
 
                         switch (type) {
 
-                            case 'range' :
-                                $(document).on('input', ns + '[name=' + field + ']', function (evt) {
+                            case 'checkbox' || 'radio' :
+                                $(document).on('click', ns + '[name=' + field + ']', function (evt) {
                                     _validation(field);
                                 });
                                 break;
 
-                            case 'checkbox' || 'radio' :
-                                $(document).on('click', ns + '[name=' + field + ']', function (evt) {
+                            case 'hidden' :
+                                $(document).on('change', ns + '[name=' + field + ']', function (evt) {
+                                    _validation(field);
+                                });
+                                break;
+
+                            case 'range' :
+                                $(document).on('input', ns + '[name=' + field + ']', function (evt) {
                                     _validation(field);
                                 });
                                 break;
@@ -456,12 +499,18 @@ define([
          * Sets markup for error messages on form and field level.
          * @returns {*}
          */
-        _setMarkup : function() {
+        _setMarkup : function () {
+
+            // get css classes
+            var cl = this.$.css;
+
+            // get prefix
+            var prefix = this.$.prefix;
 
             // add markup for errors in form and field
             _.extend(this.$.markup, {
-                error_field : '<div class="fm-field-error-message"></div><div class="fm-field-error-flag">' + this.$.text.defaultError + '</div><div class="fm-field-success-flag">' + this.$.text.defaultSuccess + '</div>',
-                error_form  : '<div class="fm-form-error-message">' + this.$.text.formError + '</div>'
+                error_field : '<div class="' + cl.fieldErrorMessage + '"></div><div class="' + cl.fieldErrorFlag + '">' + this.$.text.defaultError + '</div><div class="' + cl.fieldSuccessFlag + '">' + this.$.text.defaultSuccess + '</div>',
+                error_form  : '<div class="' + cl.formErrorMessage + '">' + this.$.text.formError + '</div>'
             });
 
             // make chainable
@@ -489,7 +538,7 @@ define([
             var el = $(ns + '[name=' + field + ']');
 
             // extract form fields parent div
-            var parent = el.parent('.' + cl.field);
+            var parent = el.closest('.' + cl.field);
 
             // extract name
             var name = el.attr('name');
@@ -666,20 +715,6 @@ define([
         },
 
         /**
-         * @method idle()
-         * Releases form from busy state.
-         * @return {*}
-         */
-        idle : function() {
-
-            this._busy(false);
-
-            // make chainable
-            return this;
-
-        },
-
-        /**
          * @method data([obj])
          * Builds/extends form handlers $.globals object, used
          * as global in handler's view.
@@ -805,6 +840,20 @@ define([
         },
 
         /**
+         * @method idle()
+         * Releases form from busy state.
+         * @return {*}
+         */
+        idle : function () {
+
+            this._busy(false);
+
+            // make chainable
+            return this;
+
+        },
+
+        /**
          * @method listen()
          * Initiates form, field listeners.
          * @return {*}
@@ -845,7 +894,7 @@ define([
          * @params {optional}{str} url
          * @return {*}
          */
-        redirect : function(url) {
+        redirect : function (url) {
 
             // extract return url
             url = url || this.$.redirect || null;
@@ -1112,6 +1161,68 @@ define([
             // reset results
             var results;
 
+            /**
+             * @method cb([err])
+             * Validation calback function to normalize synchronous and
+             * asynchronous validations
+             */
+            var cb = function (err, fn) {
+
+                // get field errors
+                var errors = self.$.errors || {};
+
+                // if test fails, means: returns false save result on
+                // errors object, if not saved yet
+                if (err) {
+
+                    // create key from field name if it
+                    // does not exist yet
+                    if (typeof errors[field] === 'undefined') {
+                        errors[field] = [];
+                    }
+
+                    // push error, if not set yet
+                    if (errors[field].indexOf(ruleMethodName) === -1) {
+                        errors[field].push(ruleMethodName);
+                    }
+
+                } else {
+
+                    // remove error key if valid
+                    // delete errors[field];
+                    if (errors !== null && typeof errors[field] !== 'undefined') {
+
+                        // find rule entry
+                        var index = errors[field].indexOf(ruleMethodName);
+
+                        // remove error
+                        errors[field].splice(index, 1);
+
+                        // remove field (if no errors anymore)
+                        if (errors[field].length === 0) {
+                            delete errors[field];
+                        }
+
+                    }
+
+                }
+
+                // reset errors, if no more entries
+                if (_.isEmpty(errors)) {
+                    errors = null;
+                }
+
+                // save
+                self.$.errors = errors;
+
+                // set form state
+                self.$.valid = !(typeof self.$.errors !== 'undefined' && !_.isEmpty(self.$.errors));
+
+                // invoke callback
+                fn();
+
+            };
+
             // release busy
             self._busy(false);
 
@@ -1158,14 +1269,15 @@ define([
 
             }
 
-            // get field errors
-            var errors = this.$.errors || {};
-
             // get field data
             var fieldValue = this.fetch(field)[field];
 
             // get field rules
             var fieldRules = this.$.rules[field] || [];
+
+            // reset counters
+            var m = fieldRules.length;
+            var c = 0;
 
             // loop through all rules, invoke
             // validations
@@ -1184,31 +1296,23 @@ define([
                 // parameters
                 if (_.isArray(rule)) {
 
+                    // extract rule method name
+                    ruleMethodName = rule[0];
+
                     // incoming might be a function as well,
                     // otherwise check validations collection
                     // methods
-                    if (_.isFunction(rule[0])) {
+                    if (_.isFunction(rule[1])) {
 
                         // first index is method
-                        ruleMethod = rule[0];
+                        ruleMethod = rule[1];
 
                     } else {
-
-                        // extract rule mthod name
-                        ruleMethodName = rule[0];
 
                         // first index is method
                         ruleMethod = self.$.validations[ruleMethodName];
 
                     }
-
-                    // add field to rule array
-                    if (rule[rule.length - 1] !== field) {
-                        rule.push(field);
-                    }
-
-                    // invoke validation method
-                    ruleResult = ruleMethod.call(self, fieldValue, rule);
 
                 } else {
 
@@ -1225,73 +1329,46 @@ define([
                         // extract rule mthod name
                         ruleMethodName = rule;
 
+                        // build empty rule for consistency
+                        // in validation rule methods params
+                        rule = [];
+
                         // string is method
                         ruleMethod = self.$.validations[ruleMethodName];
 
                     }
 
-                    // invoke validation method
-                    ruleResult = ruleMethod.call(self, fieldValue, [field]);
-
                 }
 
-                // if test fails, means: returns false save result on
-                // errors object, if not saved yet
-                if (!ruleResult) {
+                // invoke validation method
+                // force rule to come in as a array
+                ruleMethod.call(self, fieldValue, rule, function (err) {
 
-                    // create key from field name if it
-                    // does not exist yet
-                    if (typeof errors[field] === 'undefined') {
-                        errors[field] = [];
-                    }
+                    // update counter
+                    c += 1;
 
-                    // push error, if not set yet
-                    if (errors[field].indexOf(ruleMethodName) === -1) {
-                        errors[field].push(ruleMethodName);
-                    }
+                    // invoke general validation callback
+                    cb(err, function () {
 
-                } else {
+                        if (c >= m) {
 
-                    // remove error key if valid
-                    // delete errors[field];
-                    if (errors !== null && typeof errors[field] !== 'undefined') {
+                            // create results object
+                            results = self._getResults();
 
-                        // find rule entry
-                        var index = errors[field].indexOf(ruleMethodName);
+                            // update state classes
+                            self._setStateClasses(field, results);
 
-                        // remove error
-                        errors[field].splice(index, 1);
+                            // exit
+                            fn(null, results);
 
-                        // remove field (if no errors anymore)
-                        if (errors[field].length === 0) {
-                            delete errors[field];
                         }
 
-                    }
+                    });
 
-                }
+                });
 
-                // reset errors, if no more entries
-                if (_.isEmpty(errors)) {
-                    errors = null;
-                }
-
-                // save
-                this.$.errors = errors;
 
             }
-
-            // set form state
-            this.$.valid = !(typeof this.$.errors !== 'undefined' && !_.isEmpty(this.$.errors));
-
-            // create results object
-            results = this._getResults();
-
-            // update state classes
-            this._setStateClasses(field, results);
-
-            // exit
-            fn(null, results);
 
         },
 
@@ -1310,6 +1387,16 @@ define([
             // make chainable
             return this;
 
+        },
+
+        // SHORTCUTS
+
+        /**
+         * @shortcut .exec([field][,fn])
+         * Shortcut to validate() method.
+         */
+        exec : function(field, fn) {
+            return this.validate.apply(this, arguments);
         }
 
     });

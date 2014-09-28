@@ -13,74 +13,81 @@ define([
     var validations = {
 
         /**
-         * @method ifRange(mixed, arr)
+         * @method ifRange(val, arr, fn)
          * Is optional, if set validates against isRange().
          * Otherwise returns true.
-         * @params {required}{str} mixed
+         * @params {required}{val} val
          * @params {required}{arr} arr
-         * @return {bol}
-         * @sample
-         *
-         *      // use as array
-         *      form.rules([['ifRange', 0, 10]]);
-         *
+         * @params {required}{fun} fn
          */
-        ifRange : function(mixed, arr) {
-            if (mixed && mixed !== '') {
-                return validations.isRange(mixed, arr);
+        ifRange : function (val, arr, fn) {
+
+            // reset flag
+            var valid = false;
+
+            if (val && val !== '') {
+                valid = validations.isRange(val, arr, fn);
             }
-            return true;
+
         },
 
         /**
-         * @method isChecked(mixed, arr)
+         * @method isChecked(val, arr, fn)
          * Checks form element against being checked or not,
          * input[type=checkbox], input[type=radio].
-         * @params {required}{str} mixed
+         * @params {required}{val} val
          * @params {required}{arr} arr
-         * @return {bol}
-         * @sample
-         *
-         *      // use as string
-         *      form.rules(['isChecked']);
-         *
+         * @params {required}{fun} fn
          */
-        isChecked : function(mixed, arr) {
-            return $('[name=' + arr[arr.length - 1] + ']').is(':checked');
+        isChecked : function (val, arr, fn) {
+
+            // reset flag
+            var valid = false;
+
+            valid = $('[name=' + arr[1] + ']').is(':checked');
+
+            // reverse results
+            // fn(err) convention
+            return fn(!valid);
+
         },
 
         /**
-         * @method isCreditCard(mixed)
+         * @method isCreditCard(val, arr, fn)
          * Validates against credit card format.
-         * @params {required}{str} mixed
-         * @return {bol}
-         * @sample
-         *
-         *      // use as string
-         *      form.rules(['isCreditCard']);
-         *
+         * @params {required}{val} val
+         * @params {required}{arr} arr
+         * @params {required}{fun} fn
          */
-        isCreditCard : function (mixed, arr) {
+        isCreditCard : function (val, arr, fn) {
+
+            // reset flag
+            var valid = false;
 
             // accept only spaces, digits and dashes
-            if (/[^0-9 \-]+/.test(mixed)) {
-                return false;
+            if (/[^0-9 \-]+/.test(val)) {
+
+                // reverse results
+                // fn(err) convention
+                return fn(true);
+
             }
+
             var nCheck = 0,
                 nDigit = 0,
                 bEven = false,
                 n, cDigit;
 
-            mixed = mixed.replace(/\D/g, "");
+            val = val.replace(/\D/g, "");
 
             // basing min and max length on
             // http://developer.ean.com/general_info/Valid_Credit_Card_Types
-            if (mixed.length < 13 || mixed.length > 19) {
+            if (val.length < 13 || val.length > 19) {
                 return false;
             }
 
-            for (n = mixed.length - 1; n >= 0; n--) {
-                cDigit = mixed.charAt(n);
+            for (n = val.length - 1; n >= 0; n--) {
+                cDigit = val.charAt(n);
                 nDigit = parseInt(cDigit, 10);
                 if (bEven) {
                     if (( nDigit *= 2 ) > 9) {
@@ -91,89 +98,146 @@ define([
                 bEven = !bEven;
             }
 
-            return ( nCheck % 10 ) === 0;
+            valid = ( nCheck % 10 ) === 0;
+
+            // reverse results
+            // fn(err) convention
+            return fn(!valid);
 
         },
 
         /**
-         * @method isEmail(mixed)
+         * @method isEmail(val, arr, fn)
          * Validates against email format.
-         * @params {required}{str} mixed
-         * @return {bol}
-         * @sample
-         *
-         *      // use as string
-         *      form.rules(['isEmail']);
-         *
+         * @params {required}{val} val
+         * @params {required}{arr} arr
+         * @params {required}{fun} fn
          */
-        isEmail : function (mixed) {
+        isEmail : function (val, arr, fn) {
+
+            // reset flag
+            var valid = false;
 
             // set regex
             // http://stackoverflow.com/questions/46155/validate-email-address-in-javascript
             var rex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
             // get results
-            return rex.test(mixed);
+            valid = rex.test(val);
+
+            // reverse results
+            // fn(err) convention
+            return fn(!valid);
 
         },
 
         /**
-         * @method isEnum(mixed, arr)
-         * Validates against list enumerated values.
-         * @params {required}{str} mixed
-         * @return {bol}
-         * @sample
-         *
-         *      // use as array (in array of rules)
-         *      // first element is rule name, with
-         *      // [1] starts the enumerated list
-         *      form.rules([['isEnum', 'male', 'female']]);
-         *
+         * @method isEmails(val, arr, fn)
+         * Validates multiple str against email format.
+         * @params {required}{val} val
+         * @params {required}{arr} arr
+         * @params {required}{fun} fn
          */
-        isEnum : function (mixed, arr) {
+        isEmails : function (val, arr, fn) {
+
+            // reset flag
+            var valid = false;
+
+            // reverse results
+            // fn(err) convention
+            return fn(!valid);
+
+        },
+
+        /**
+         * @method isEnum(val, arr, fn)
+         * Validates against list enumerated values.
+         * @params {required}{val} val
+         * @params {required}{arr} arr
+         * @params {required}{fun} fn
+         */
+        isEnum : function (val, arr, fn) {
+
+            // reset flag
+            var valid = false;
+
+            // remove first key
+            arr.splice(0, 1);
 
             // [+] valid
             // in array
-            if (arr.indexOf(mixed) > -1) {
-                return true;
+            if (arr.indexOf(val) > -1) {
+                valid = true;
             }
 
-            // [-] invalid
-            return false;
+            // reverse results
+            // fn(err) convention
+            return fn(!valid);
 
         },
 
         /**
-         * @method isEqualTo(mixed, match)
-         * Checks if incoming is matches given.
-         * @params {required}{str|int} mixed
-         * @params {required}{str|int} match
-         * @return {bol}
-         * @sample
-         *
-         *      // use as array
-         *      form.rules([['isEqualTo', 'match me']]);
-         *
+         * @method isEqualTo(val, arr, fn)
+         * Checks if incoming matches given.
+         * @params {required}{val} val
+         * @params {required}{arr} arr
+         * @params {required}{fun} fn
          */
-        isEqualTo : function (mixed, arr) {
-            return mixed === arr[1];
+        isEqualTo : function (val, arr, fn) {
+
+            // reset flag
+            var valid = false;
+
+            // compare valings
+            valid = val === arr[1];
+
+            // reverse results
+            // fn(err) convention
+            return fn(!valid);
+
         },
 
         /**
-         * @method isInList(mixed, el)
+         * @method isEqualToField(val, arr, fn)
+         * Checks if incoming matches value of incoming field's
+         * current value.
+         * @params {required}{val} val
+         * @params {required}{arr} arr
+         * @params {required}{fun} fn
+         */
+        isEqualToField : function (val, arr, fn) {
+
+            // reset flag
+            var valid = false;
+
+            // extract value from other field
+            // identifier is field name
+            var value = $('[name=' + arr[1] + ']', this.$.el).val();
+
+            // compare
+            valid = value === val;
+
+            // reverse results
+            // fn(err) convention
+            return fn(!valid);
+
+        },
+
+        /**
+         * @method isInList(val, arr, fn)
          * Checks if incoming value is also in list
          * of select options.
-         * @params {required}{str} mixed
-         * @params {required}{obj} el
-         * @return {bol}
+         * @params {required}{val} val
+         * @params {required}{arr} arr
+         * @params {required}{fun} fn
          */
-        isInList : function (mixed, arr) {
+        isInList : function (val, arr, fn) {
+
+            // reset flag
+            var valid = false;
 
             // fetch element
-            var el = $('[name=' + arr[arr.length - 1] + ']', this.$.el);
-
-            // reset valid
-            var valid = false;
+            var el = $('[name=' + arr[1] + ']', this.$.el);
 
             // loop through select options,
             // checks if incoming value is
@@ -182,170 +246,241 @@ define([
             var value;
             $('option', el).each(function () {
                 value = $(this).val();
-                if (value !== '' && value === mixed) {
+                if (value !== '' && value === val) {
                     valid = true;
                 }
             });
 
-            return valid;
+            // reverse results
+            // fn(err) convention
+            return fn(!valid);
 
         },
 
         /**
-         * @method isMax(mixed, max)
+         * @method isMax(val, arr, fn)
          * Checks if number is <= max.
-         * @params {required}{str} mixed
-         * @params {required}{int} max
-         * @return {bol}
-         * @sample
-         *
-         *      // use as array
-         *      form.rules([['isMax', 10]]);
-         *
+         * @params {required}{val} val
+         * @params {required}{arr} arr
+         * @params {required}{fun} fn
          */
-        isMax : function (mixed, arr) {
-            mixed = parseInt(mixed);
-            return mixed <= arr[1];
+        isMax : function (val, arr, fn) {
+
+            // reset flag
+            var valid = false;
+
+            // force integer
+            val = parseInt(val);
+
+            // check if lt (eq) than max
+            valid = val <= arr[1];
+
+            // reverse results
+            // fn(err) convention
+            return fn(!valid);
+
         },
 
         /**
-         * @method isMax(mixed, max)
-         * Checks if string length is <= max.
-         * @params {required}{str} mixed
-         * @params {required}{int} max
-         * @return {bol}
-         * @sample
-         *
-         *      // use as array
-         *      form.rules([['isMaxLength', 10]]);
-         *
+         * @method isMax(val, arr, fn)
+         * Checks if valing length is <= max.
+         * @params {required}{val} val
+         * @params {required}{arr} arr
+         * @params {required}{fun} fn
          */
-        isMaxLength : function (mixed, arr) {
-            return mixed.length <= arr[1];
+        isMaxLength : function (val, arr, fn) {
+
+            // reset flag
+            var valid = false;
+
+            // check val length
+            valid = val.length <= arr[1];
+
+            // reverse results
+            // fn(err) convention
+            return fn(!valid);
+
         },
 
         /**
-         * @method isMin(mixed, max)
+         * @method isMin(val, arr, fn)
          * Checks if number >= min.
-         * @params {required}{str} mixed
-         * @params {required}{int} min
-         * @return {bol}
-         * @sample
-         *
-         *      // use as array
-         *      form.rules([['isMin', 5]]);
-         *
+         * @params {required}{val} val
+         * @params {required}{arr} arr
+         * @params {required}{fun} fn
          */
-        isMin : function (mixed, arr) {
-            mixed = parseInt(mixed);
-            return mixed >= arr[1];
+        isMin : function (val, arr, fn) {
+
+            // reset flag
+            var valid = false;
+
+            // force integer
+            val = parseInt(val);
+
+
+            // check is gt (eq) to than min
+            valid = val >= arr[1];
+
+            // reverse results
+            // fn(err) convention
+            return fn(!valid);
+
         },
 
         /**
-         * @method isMin(mixed, max)
-         * Checks if string length is >= min.
-         * @params {required}{str} mixed
-         * @params {required}{int} min
-         * @return {bol}
-         * @sample
-         *
-         *      // use as array
-         *      form.rules([['isMinLength', 5]]);
-         *
+         * @method isMin(val, arr, fn)
+         * Checks if valing length is >= min.
+         * @params {required}{val} val
+         * @params {required}{arr} arr
+         * @params {required}{fun} fn
          */
-        isMinLength : function (mixed, arr) {
-            return mixed.length >= arr[1];
+        isMinLength : function (val, arr, fn) {
+
+            // reset flag
+            var valid = false;
+
+            // check val length
+            valid = val.length >= arr[1];
+
+            // reverse results
+            // fn(err) convention
+            return fn(!valid);
+
         },
 
         /**
-         * @method isRange(mixed, min, max)
+         * @method isNoop(val, arr, fn)
+         * Returns true (valid), always!
+         * @params {required}{val} val
+         * @params {required}{arr} arr
+         * @params {required}{fun} fn
+         */
+        isNoop : function(val, arr, fn) {
+
+            // force true
+            var valid = true;
+
+            // reverse results, to meet
+            // fn(err) convention
+            return fn(!valid);
+        },
+
+        /**
+         * @method isRange(val, arr, fn)
          * Checks if number is between min and max.
-         * @params {required}{in} mixed
-         * @params {required}{int} min
-         * @params {required}{int} max
-         * @return {bol}
-         * @sample
-         *
-         *      // use as array
-         *      form.rules([['isRange', 1, 10]]);
-         *
+         * @params {required}{val} val
+         * @params {required}{arr} arr
+         * @params {required}{fun} fn
          */
-        isRange : function (mixed, arr) {
+        isRange : function (val, arr, fn) {
 
-            console.log(mixed, arr);
+            // reset flag
+            var valid = false;
 
-            mixed = parseInt(mixed);
-            return mixed >= parseInt(arr[1]) && mixed <= parseInt(arr[2]);
+            // force integer
+            val = parseInt(val);
+
+            // check range
+            valid = val >= parseInt(arr[1]) && val <= parseInt(arr[2]);
+
+            // reverse results, to meet
+            // fn(err) convention
+            return fn(!valid);
+
         },
 
         /**
-         * @method isRangeLength(mixed, min, max)
-         * Checks if string length is between min and max.
-         * @params {required}{str} mixed
-         * @params {required}{int} min
-         * @params {required}{int} max
-         * @return {bol}
-         * @sample
-         *
-         *      // use as array
-         *      form.rules([['isRangeLength', 1, 10]]);
-         *
+         * @method isRangeLength(val, arr, fn)
+         * Checks if valing length is between min and max.
+         * @params {required}{val} val
+         * @params {required}{arr} arr
+         * @params {required}{fun} fn
          */
-        isRangeLength : function (mixed, arr) {
-            return mixed.length >= arr[1] && mixed.length <= arr[2];
+        isRangeLength : function (val, arr, fn) {
+
+            // reset flag
+            var valid = false;
+
+            // check range
+            valid = val.length >= arr[1] && val.length <= arr[2];
+
+            // reverse results, to meet
+            // fn(err) convention
+            return fn(!valid);
+
         },
 
         /**
-         * @method isNumbersOnly(mixed)
+         * @method isNumbersOnly(val, arr, fn)
          * Checks if incoming is numbers only.
-         * @params {required}{str} mixed
-         * @return {bol}
-         * @sample
-         *
-         *      // use as string
-         *      form.rules(['isNumbersOnly']);
-         *
+         * @params {required}{val} val
+         * @params {required}{arr} arr
+         * @params {required}{fun} fn
          */
-        isNumbersOnly : function (mixed, arr) {
-            return /^-?(?:\d+|\d{1,3}(?:,\d{3})+)?(?:\.\d+)?$/.test(mixed);
+        isNumbersOnly : function (val, arr, fn) {
+
+            // reset flag
+            var valid = false;
+
+            valid = /^-?(?:\d+|\d{1,3}(?:,\d{3})+)?(?:\.\d+)?$/.test(val);
+
+            // reverse results, to meet
+            // fn(err) convention
+            return fn(!valid);
+
         },
 
         /**
-         * @method isOptional(mixed)
+         * @method isOptional(val, arr, fn)
          * Validates against emptyness, only if not empty :-).
          * Basically here for consistency reasons.
-         * @params {required}{str} mixed
-         * @return {bol}
-         * @sample
-         *
-         *      // use as string
-         *      form.rules(['isOptional']);
-         *
+         * @params {required}{val} val
+         * @params {required}{arr} arr
+         * @params {required}{fun} fn
          */
-        isOptional : function (mixed) {
+        isOptional : function (val, arr, fn) {
+
+            // reset flag
+            var valid = false;
 
             // skip if no input
-            if (mixed === '') {
-                return true;
+            if (typeof val === 'undefined' || val === null || val === '') {
+
+                // all good, is optional, therefore
+                // only validated if more than nothing
+                return fn();
+
             }
 
-            return $.trim(mixed).length >= 1;
+            valid = util.trim(val).length >= 1;
+
+            // reverse results, to meet
+            // fn(err) convention
+            return fn(!valid);
 
         },
 
         /**
-         * @method isRequired(mixed)
+         * @method isRequired(val, arr, fn)
          * Validates against emptyness.
-         * @params {required}{str} mixed
-         * @return {bol}
-         * @sample
-         *
-         *      // use as string
-         *      form.rules(['isRequired']);
-         *
+         * @params {required}{val} val
+         * @params {required}{arr} arr
+         * @params {required}{fun} fn
          */
-        isRequired : function (mixed) {
-            return $.trim(mixed).length > 0;
+        isRequired : function (val, arr, fn) {
+
+            // reset flag
+            var valid = false;
+
+            // check string length
+            if (val) {
+                valid = util.trim(val).length > 0;
+            }
+
+            // reverse results, to meet
+            // fn(err) convention
+            return fn(!valid);
+
         }
 
     };

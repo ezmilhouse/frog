@@ -13,12 +13,22 @@ define([
 
     var util = {
 
-        hash : {
-
-            sha1 : function(str) {
-                return crypto.createHash('sha1').update(str).digest('hex');
-            }
-
+        /**
+         * @object codes
+         * List of application wide fallback status codes
+         * and messages.
+         */
+        codes : {
+            '200' : 'OK',
+            '201' : 'OK_CREATED',
+            '202' : 'OK_ACCEPTED',
+            '204' : 'OK_NO_CONTENT',
+            '400' : 'ERROR_BAD_REQUEST',
+            '401' : 'ERROR_UNAUTHORIZED',
+            '403' : 'ERROR_FORBIDDEN',
+            '404' : 'ERROR_NOT_FOUND',
+            '409' : 'ERROR_CONFLICT',
+            '500' : 'ERROR_INTERNAL_SERVER_ERROR'
         },
 
         /**
@@ -28,10 +38,14 @@ define([
         date : {
 
             formats : {
+                iso       : 'YYYY-MM-DDTHH:mm:ss.sss',
+                local     : {
+                    de     : 'DD.MM.YYYY - HH:mm:ss',
+                    de_day : 'DD.MM.YYYY'
+                },
                 utc       : 'MM-DD-YYYY HH:mm:ss ZZ',
                 utcutc    : 'ddd MMM DD YYYY HH:mm:ss.sss ZZ',
-                utc_parse : 'ddd MMM DD YYYY HH:mm:ss.sss ZZ',
-                iso       : 'YYYY-MM-DDTHH:mm:ss.sss'
+                utc_parse : 'ddd MMM DD YYYY HH:mm:ss.sss ZZ'
             },
 
             /**
@@ -39,6 +53,7 @@ define([
              * Takes UTC timestring, creates moment object,
              * converts into local time, returns formatted
              * date string.
+             *
              * @params {required}{str} time
              * @params {optional}{str} type
              * @return {str}
@@ -47,7 +62,7 @@ define([
 
                 // normalize
                 type = type || 'de';
-                type = util.date.types[type];
+                type = util.date.formats.local[type];
 
                 // return local date string
                 return moment(time).local().format(type);
@@ -57,6 +72,7 @@ define([
             /**
              * @method date.getUTC()
              * Creates current date string in UTC format.
+             *
              * @returns {*}
              */
             utc : function () {
@@ -66,6 +82,7 @@ define([
             /**
              * @method date.getUTCLocal()
              * Creates current local date in UTC format,
+             *
              * @return {str}
              */
             utcLocal : function (time, format) {
@@ -79,16 +96,24 @@ define([
 
                 return moment.utc().local().format(util.date.formats.utc);
 
-            },
+            }
+
+        },
+
+        /**
+         * @object date
+         * Everything related to hashing.
+         */
+        hash : {
 
             /**
-             * @object date.types
-             * List of date formatting strings,
-             * based on language keys
+             * @method sha1(str)
+             * Hashing incoming string using sha1.
+             * @params {required}{str} str
+             * @return {str}
              */
-            types : {
-                de     : 'DD.MM.YYYY - HH:mm:ss',
-                de_day : 'DD.MM.YYYY'
+            sha1 : function (str) {
+                return crypto.createHash('sha1').update(str).digest('hex');
             }
 
         },
@@ -98,6 +123,73 @@ define([
          * Proxy to moment library.
          */
         moment : moment,
+
+        /**
+         * @method trim(val)
+         * Trimms string, uses jquery if available otherwise
+         * falls back to native js method.
+         *
+         * @params {required}{str} val
+         * @return {str}
+         */
+        trim : function (val) {
+
+            // skip
+            // if undefined
+            if (typeof val === 'undefined') {
+                return val;
+            }
+
+            // force string
+            val = val.toString();
+
+            // jquery is available
+            if (typeof $ !== 'undefined') {
+                return $.trim(val);
+            }
+
+            // jquery not available
+            return val.replace(/^\s+|\s+$/gm,'');
+
+        },
+
+        /**
+         * @method guid(num)
+         * Generates given number of GUIDs, returns array of
+         * numbers.
+         *
+         * @params {required}{num} num
+         * @return {arr}
+         */
+        guid : function (num) {
+
+            // normalize
+            num = num || 1;
+
+            // calc random number
+            var s4 = function () {
+                return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+            };
+
+            // concat random numbers
+            var go = function () {
+                return (s4() + s4() + "-" + s4() + "-" + s4() + "-" + s4() + "-" + s4() + s4() + s4());
+            };
+
+            // loop through as many as given numbvers
+            var arr = [];
+            for (var i = 0; i < num; i++) {
+                arr.push(go());
+            }
+
+            return arr;
+
+        },
+
+
+
+
+
 
 
         // EVERYTHING BELOW THIS LINE SHOULD BE CONSIDERED
@@ -308,37 +400,6 @@ define([
 
             // return the modified object
             return target;
-
-        },
-
-        /**
-         * @method generateGUID(num)
-         * Generates given number of GUIDs, returns array of numbers.
-         * @params {required}{num} num
-         * @return {arr}
-         */
-        generateGUID : function (num) {
-
-            // normalize
-            num = num || 1;
-
-            // calc random number
-            var s4 = function () {
-                return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
-            };
-
-            // concat random numbers
-            var go = function () {
-                return (s4() + s4() + "-" + s4() + "-" + s4() + "-" + s4() + "-" + s4() + s4() + s4());
-            };
-
-            // loop through as many as given numbvers
-            var arr = [];
-            for (var i = 0; i < num; i++) {
-                arr.push(go());
-            }
-
-            return arr;
 
         },
 
