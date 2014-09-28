@@ -190,8 +190,31 @@ define({
             superagent        : 'support/superagent/superagent-1.14.1.min',
             text              : 'support/require/require-text-2.0.10.custom.min',
             underscore        : 'support/underscore/underscore-1.4.2.min',
-            // reqrites, shortcuts
-            'frog'            : 'support/frog/frog',
+            // rewrites, shortcuts
+            'src'             : 'support/frog/src',
+            'frog'            : (function () {
+
+                // check for sdk version
+                var version = $('script[data-version]').last().data('version');
+
+                // check for sdk build
+                var build = $('script[data-build]').last().data('build');
+
+                // use unbuild by default
+                var sdk = 'support/frog/frog';
+
+                // set correct build
+                if (version && version !== '') {
+                    sdk = 'support/frog/builds/' + version + '/frog-' + version;
+                    if (build && build !== '') {
+                        sdk += '.min'
+                    }
+                }
+
+                // set
+                return sdk;
+
+            })(),
             'html/views'      : '../html/views',
             'html'            : '../html',
             'frog/components' : 'components',

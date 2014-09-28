@@ -76,7 +76,7 @@ define([
                 // save module path as name
                 modulesNames[i] = paths[i];
 
-                if (server) {
+                if (typeof server !== 'undefined') {
 
                     // extract server
                     var app = singleton.server;

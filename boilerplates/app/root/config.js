@@ -143,16 +143,13 @@ define({
      *      minified version of a specific build, if set to
      *      `min` it uses the minified version. Only relevant
      *      if @key version is set to other than `null`.
-     *
      * @key {optional}{str} version
-     *      If set to other than `null`, application uses build
-     *      of specific version (ex: 0.1.96) of the frog sdk. if
-     *      set to `null` application runs with unbuild development
-     *      version of frog.
+     *      If set other than `null` application runs with
+     *      build version.
      */
     sdk : {
-        build   : null,
-        version : null
+        build   : null, // 'min',
+        version : null  // '0.1.16'
     },
 
     /**

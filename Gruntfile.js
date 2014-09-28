@@ -36,10 +36,11 @@ module.exports = function (grunt) {
     // define requirejs paths
     var paths = {
         ejs        : 'empty:',
-        frog       : 'frog',
         hashchange : 'empty:',
         request    : 'empty:',
+        moment     : 'empty:',
         numeral    : 'empty:',
+        superagent : 'empty:',
         underscore : 'empty:'
     };
 

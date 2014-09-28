@@ -4,7 +4,7 @@
 
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
         <script>window.jQuery || document.write('<script src="/support/jquery/jquery-1.11.1.min.js"><\/script>')</script>
-        <script data-main="/frog.js?t=1" src="/support/require/require-2.1.9.min.js"></script>
+        <script data-main="/frog.js?t=1" data-version="<%= config.sdk.version || '' %>" data-build="<%= config.sdk.build || '' %>" src="/support/require/require-2.1.9.min.js"></script>
 
         <script>
             (function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=
