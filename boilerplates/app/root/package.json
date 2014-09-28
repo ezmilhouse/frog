@@ -2,6 +2,7 @@
     "name"            : "frog-app",
     "dependencies"    : {
         "amdefine"        : "*",
+        "compression"     : "*",
         "connect-slashes" : "*",
         "cookie-parser"   : "*",
         "email-templates" : "*",

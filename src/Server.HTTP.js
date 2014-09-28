@@ -7,6 +7,7 @@ define([
     './app',
     './Base',
     'cluster',
+    'compression',
     'connect-slashes',
     'cookie-parser',
     'ejs-locals',
@@ -19,7 +20,7 @@ define([
     'os',
     './singleton',
     './util'
-], function (_, app, Base, cluster, slashes, cookieParser, engine, express, less, session, favicon, Flow, moment, os, singleton, util) {
+], function (_, app, Base, cluster, compression, slashes, cookieParser, engine, express, less, session, favicon, Flow, moment, os, singleton, util) {
 
     return Base.extend({
 
@@ -362,11 +363,21 @@ define([
             // sets routing trailing slash rule
             app.set('strict routing', false);
 
+            // set expires headers
+            app.use('*', function(req, res, next) {
+                res.set('Cache-Control', 'public, max-age=345600'); // 4 days
+                res.set('Expires', new Date(Date.now() + 345600000).toUTCString());
+                next();
+            });
+
             // handle cookies
             app.use(cookieParser());
 
             // handle sessions
             app.use(session(this.$.sessions));
+
+            // add gzip compression
+            app.use(compression());
 
             // handle favicon
             app.use(favicon(this.$.dir + this.$.favicon));
@@ -378,7 +389,9 @@ define([
             // should only be used in development
             // environment
             if (this.$.env === 'development') {
-                app.use('/less-css', less(this.$.dir + this.$.public + '/less'));
+                app.use('/less-css', less(this.$.dir + this.$.public + '/less', {
+                    compress : true
+                }));
             }
 
             // force trailing slash
