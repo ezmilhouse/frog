@@ -92,7 +92,7 @@ build-init:
 #
 ###############################################################################
 
-frog:
+frog-setup:
 	@cp -rf public/support/frog/boilerplates/app/root/* .
 	@cp -rf public/support/frog/boilerplates/app/support/* public/support
 	@cp -rf public/support/frog/boilerplates/app/public/* public
