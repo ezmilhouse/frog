@@ -3,6 +3,9 @@
 ###############################################################################
 ### OPTIONS ###################################################################
 
+# compoennt to add
+c = auth
+
 # current directory
 d = $(shell pwd)
 
@@ -88,7 +91,7 @@ build-init:
 # $ cd www
 #
 # @example
-# $ make frog
+# $ make frog-setup
 #
 ###############################################################################
 
@@ -107,7 +110,12 @@ frog-setup:
 	@mv public/config.development.js public/config.local.js
 
 frog-start:
-	nodemon frog.js -e=$(e) -p=$(p) -u=$(u) -l=$(l)
+	@nodemon frog.js -e=$(e) -p=$(p) -u=$(u) -l=$(l)
+
+frog-add:
+	@mkdir -p public/components
+	@git clone --recursive git@github.com:ezmilhouse/frog-com-$(c).git components/$(c)
+	@rm public/components/emp.ty
 
 
 
