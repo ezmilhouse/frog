@@ -16,7 +16,8 @@
         "restify"         : "*",
         "serve-favicon"   : "*",
         "superagent"      : "*",
-        "underscore"      : "*"
+        "underscore"      : "*",
+        "yargs"           : "*"
     },
     "devDependencies" : {
         "node-inspector" : "*",
