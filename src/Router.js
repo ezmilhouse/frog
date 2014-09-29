@@ -79,10 +79,6 @@ define([
                         // save query
                         this.$.query = routes[i].route.$.query;
 
-                        // debug
-                        // double execution
-                        // log(this.$.name, 'routes: '+ routes.length, path, 'match: ' + valid, 'key: ' + i, 'executed');
-
                         // invoke callback, apply context
                         routes[i].fn.call(self, {
 

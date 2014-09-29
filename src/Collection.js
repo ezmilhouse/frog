@@ -206,7 +206,6 @@ define([
 
                     // error
                     if (err || body.error) {
-                        console.log('o(O', err, body, status);
                         return fn(true);
                     }
 
@@ -339,7 +338,6 @@ define([
 
                     // error
                     if (err || body.error) {
-                        console.log('o(O', err, body, status);
                         return fn(true);
                     }
 

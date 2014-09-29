@@ -152,12 +152,6 @@ define([
             var queryIndex = path.indexOf('?');
             var uri = ~queryIndex ? path.slice(0, queryIndex) : path;
 
-            // console.log(path);
-            // console.log(keys);
-            // console.log(query);
-            // console.log(queryIndex);
-            // console.log(uri);
-
             // try to match
             var match = this.$.regexp.exec(uri);
             // console.log(match);

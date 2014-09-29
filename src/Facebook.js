@@ -115,8 +115,6 @@ define([
                     // fetch list of invitable friends
                     FB.api('/me/invitable_friends', function (res) {
 
-                        log(res);
-
                         // error
                         // facebook api error
                         if (res && !res.error) {
@@ -152,8 +150,6 @@ define([
 
             // getch list
             FB.api('/me/friends', function (res) {
-
-                log(res);
 
                 // error
                 // facebook api error
