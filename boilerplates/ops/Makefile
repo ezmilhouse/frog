@@ -6,8 +6,23 @@
 # current directory
 d = $(shell pwd)
 
+# default environment
+e = development
+
 # test folder
 f = $(shell pwd)/tests
+
+# application name (lowercase, alpha)
+n = frog-app
+
+# default port
+p = 2500
+
+# default cluster mode setting
+u = false
+
+# default config.local setting
+l = true
 
 
 
@@ -20,11 +35,13 @@ f = $(shell pwd)/tests
 #
 # @process build
 # Builds new version of the SDK.
-# @example make build
+# @example
+# $ make build
 #
 # @process build-init
 # Installs build dependencies, runs build.
-# @example make build-init
+# @example
+# $ make build-init
 #
 ###############################################################################
 
@@ -59,15 +76,57 @@ build-init:
 ###############################################################################
 ###############################################################################
 ###############################################################################
+### APP #######################################################################
+#
+# @process app
+# Creates new frog application.
+#
+# @prepare
+# $ mkdir -p www/public/support
+# $ git clone --recursive git@github.com:ezmilhouse/frog.git www/public/support/frog
+# $ cp www/public/support/frog/Makefile www/Makefile
+# $ cd www
+#
+# @example
+# $ make frog
+#
+###############################################################################
+
+frog:
+	@cp -rf public/support/frog/boilerplates/app/root/* .
+	@cp -rf public/support/frog/boilerplates/app/support/* public/support
+	@cp -rf public/support/frog/boilerplates/app/public/* public
+	@rm -rf server
+	@mkdir server
+	@cp -rf public/support/frog/boilerplates/app/server/* server
+	@npm install
+	@cd node_modules && rm -rf frog
+	@cd node_modules && ln -s $(shell pwd)/public/support/frog
+	@cd server/js/misc && ln -s $(shell pwd)/public/js/misc/misc.text.js
+	@mv config.development.js config.local.js
+	@mv public/config.development.js public/config.local.js
+
+frog-start:
+	nodemon frog.js -e=$(e) -p=$(p) -u=$(u) -l=$(l)
+
+
+
+
+
+###############################################################################
+###############################################################################
+###############################################################################
 ### TESTS #####################################################################
 #
 # @process test
 # Runs all SDK tests.
-# @example make test
+# @example
+# $ make test
 #
 # @process test-init
 # Installs test dependencies, runs test.
-# @example make test-init
+# @example
+# $ make test-init
 #
 ###############################################################################
 
