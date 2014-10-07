@@ -1,23 +1,8 @@
 {
     "name"            : "frog-app",
     "dependencies"    : {
-        "amdefine"        : "*",
-        "compression"     : "*",
-        "connect-slashes" : "*",
-        "cookie-parser"   : "*",
-        "email-templates" : "*",
-        "express-less"    : "*",
-        "express-session" : "*",
-        "express"         : "*",
-        "frog"            : "*",
-        "moment"          : "*",
-        "nodemailer"      : "*",
-        "numeral"         : "*",
-        "restify"         : "*",
-        "serve-favicon"   : "*",
-        "superagent"      : "*",
-        "underscore"      : "*",
-        "yargs"           : "*"
+        "moment" : "*",
+        "yargs"  : "*"
     },
     "devDependencies" : {
         "node-inspector" : "*",
