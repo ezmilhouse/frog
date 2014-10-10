@@ -273,7 +273,6 @@ define([
                     fn = fn || util.noop;
                     break;
             }
-            fn = fn || util.noop;
 
             // preserve scope
             var self = this;
