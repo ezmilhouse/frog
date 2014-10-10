@@ -1,8 +1,9 @@
 {
     "name"            : "frog-app",
     "dependencies"    : {
-        "moment" : "*",
-        "yargs"  : "*"
+        "moment"     : "*",
+        "underscore" : "*",
+        "yargs"      : "*"
     },
     "devDependencies" : {
         "node-inspector" : "*",

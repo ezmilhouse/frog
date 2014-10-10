@@ -229,14 +229,50 @@ define([
         // PUBLIC
 
         /**
-         * @method bootstrap(fn)
+         * @method bootstrap([config][,render][,fn])
          * Bootstrap component, invoke rendering layout.
-         * @params {required}{obj} obj
-         * @params {required}{fun} fn
+         * @params {optional}{obj} config
+         * @params {optional}{bol} render
+         * @params {optional}{fun} fn
          */
-        bootstrap : function (config, fn) {
+        bootstrap : function (config, render, fn) {
 
             // normalize
+            switch(arguments.length) {
+                case 1 :
+                    if (_.isObject(config)) {
+                        config = config || {};
+                        render = false;
+                        fn = util.noop;
+                    }
+                    if (_.isBoolean(config)) {
+                        render = config || false;
+                        config = {};
+                        fn = util.noop;
+                    }
+                    if (_.isFunction(config)) {
+                        fn = config || util.noop;
+                        config = {};
+                        render = false;
+                    }
+                    break;
+                case 2 :
+                    config = config || {};
+                    if (_.isBoolean(render)) {
+                        render = render || false;
+                        fn = util.noop;
+                    }
+                    if (_.isFunction(render)) {
+                        fn = render || util.noop;
+                        render = false;
+                    }
+                    break;
+                default :
+                    config = config || {};
+                    render = render || false;
+                    fn = fn || util.noop;
+                    break;
+            }
             fn = fn || util.noop;
 
             // preserve scope
@@ -287,6 +323,18 @@ define([
 
                 })
                 .seq(function (cb) {
+
+                    // skip
+                    // if initial render is other than true
+                    if (!render) {
+
+                        // trigger requiring componnets index.js
+                        self._trigger();
+
+                        // exit
+                        return fn.call(self, null, self);
+
+                    }
 
                     // render component into target selector
                     // invoke callback

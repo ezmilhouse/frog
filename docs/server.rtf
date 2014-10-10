@@ -1,0 +1,50 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1265\cocoasubrtf210
+\cocoascreenfonts1{\fonttbl\f0\fmodern\fcharset0 Courier-Bold;\f1\fmodern\fcharset0 Courier;}
+{\colortbl;\red255\green255\blue255;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\slleading160\partightenfactor0
+
+\f0\b\fs24 \cf0 #  Installing Vagrant, Docker (and dependencies) on Mac OS X
+\f1\b0 \
+\
+
+\f0\b ## Homebrew
+\f1\b0  \
+\ul http://brew.sh/\ulnone \
+$ ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"\
+\
+
+\f0\b ## Cask\
+
+\f1\b0 \ul https://github.com/caskroom/homebrew-cask\ulnone \
+$ brew tap caskroom/homebrew-cask\
+$ brew install brew-cask \
+\
+
+\f0\b ## Virtual Box\
+
+\f1\b0 \ul https://www.virtualbox.org/\ulnone \
+$ brew cask install virtualbox\
+\
+
+\f0\b ## Vagrant\
+
+\f1\b0 \ul https://www.vagrantup.com/downloads\ulnone \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\slleading160\qj\partightenfactor0
+Vagrant works with 
+\f0\b Providers (ex: VirtualBox)
+\f1\b0  and 
+\f0\b Provisioners (Vagrant)
+\f1\b0  to help create these development environments. A Vagrant file describes the required virtual machine environment using a Ruby DSL. When describing Docker containers, Vagrant makes each container look like it is its own virtual machine. But this is a lie, as each Docker container is actually running in a "proxy" virtual machine.  \
+Therefore, 
+\f0\b \ul two Vagrant files
+\f1\b0 \ulnone  are required, one to define the proxy virtual machine and one to define the the Docker containers.\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\slleading160\partightenfactor0
+\
+## Docker\
+\
+\
+\
+\
+}
