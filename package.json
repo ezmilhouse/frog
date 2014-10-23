@@ -1,33 +1,33 @@
 {
-    "name"            : "frog",
-    "dependencies"    : {
-        "amdefine"        : "*",
-        "compression"     : "*",
-        "connect-slashes" : "*",
-        "cookie-parser"   : "*",
-        "ejs"             : "*",
-        "ejs-locals"      : "*",
-        "email-templates" : "*",
-        "express-less"    : "*",
-        "express-session" : "*",
-        "express"         : "*",
-        "moment"          : "*",
-        "mongoose"        : "*",
-        "nodemailer"      : "*",
-        "numeral"         : "*",
-        "restify"         : "*",
-        "serve-favicon"   : "*",
-        "superagent"      : "*",
-        "underscore"      : "*",
-        "yargs"           : "*"
-    },
-    "devDependencies" : {
-        "chai"                    : "*",
-        "grunt"                   : "*",
-        "grunt-contrib-requirejs" : "*",
-        "mocha"                   : "*",
-        "node-inspector"          : "*",
-        "nodemon"                 : "*"
-    },
-    "version"         : "0.1.21"
+  "name"            : "frog",
+  "dependencies"    : {
+	"amdefine"        : "*",
+	"compression"     : "*",
+	"connect-slashes" : "*",
+	"cookie-parser"   : "*",
+	"ejs"             : "*",
+	"ejs-locals"      : "*",
+	"email-templates" : "*",
+	"express-less"    : "*",
+	"express-session" : "*",
+	"express"         : "*",
+	"moment"          : "*",
+	"mongoose"        : "*",
+	"nodemailer"      : "*",
+	"numeral"         : "*",
+	"restify"         : "*",
+	"serve-favicon"   : "*",
+	"superagent"      : "*",
+	"underscore"      : "*",
+	"yargs"           : "*"
+  },
+  "devDependencies" : {
+	"chai"                    : "*",
+	"grunt"                   : "*",
+	"grunt-contrib-requirejs" : "*",
+	"mocha"                   : "*",
+	"node-inspector"          : "*",
+	"nodemon"                 : "*"
+  },
+  "version"         : "0.1.27"
 }
