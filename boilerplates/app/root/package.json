@@ -1,6 +1,7 @@
 {
     "name"            : "frog-app",
     "dependencies"    : {
+        "amdefine"   : "*",
         "moment"     : "*",
         "underscore" : "*",
         "yargs"      : "*"

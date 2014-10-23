@@ -1,0 +1,15 @@
+# WORKING WITH VAGRANT
+  Before you start working, `reload` the Vagrant box you're working on, otherwise you might run into weird behaviour, especially when it comes to `nodemon` restarting your app hundreds of times for every change. Reload and everything works fine.
+
+  $ v reload app
+
+  If you are on a fresh box, you can `start` all relevant docker containers:
+
+  $ e start
+
+  If it's a used machine, you have to restart all docker containers:
+
+  $ e restart
+
+
+  

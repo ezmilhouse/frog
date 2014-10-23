@@ -40,6 +40,7 @@ Thumbs.db
 *.iml
 atlassian-ide-plugin.xml
 *.sublime-project
+.vagrant
 
 # NODE
 ###############################################################################

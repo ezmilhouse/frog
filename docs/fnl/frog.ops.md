@@ -1,3 +1,7 @@
+make sh script executable
+
+$ chmod +x
+
 Layout
 
 ├── etc
@@ -73,7 +77,7 @@ $ nano .bash_profile
 
 RELOAD (in /~)
 $ cd
-$ . ~/.bash_profile
+$
 
 HOST
 Add local hosts by editing the `hosts` file in Mac OS X, add IP/TLD pairs to access local hosts in the browser, if it doesn't work immediately after saving, flush the host cache.

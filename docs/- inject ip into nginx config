@@ -1,0 +1,49 @@
+- inject ip into nginx config
+
+- vagrant todos
+	- namespace boxes
+	- clean up repo
+	- think about best way to inject them
+	- make it work with schalke/www
+	- make it work with preview.schalkebonus.de
+
+
+# VAGRANT
+
+$ vagrant up
+  starts vagrant machine (provisions if not provisioned yet)
+  
+  # forces provision
+  --provison 
+
+  # forces specific provision to run
+  --provision-with shell 
+
+$ vagrant destroy
+  destroys machine, leaves system in a clean state, all resources gone
+
+  # no (manual) confirmation necessary
+  -f 
+
+$ vagrant suspend
+  suspends the machine (rather than shutting it down via `halt`, or completely `destroy` it), consider it `sleeping` (all RAM contents saved)
+
+$ vagrant halt
+  shuts down `up` machine, tries to do it `graceful` 
+
+  # force shutdown (even if `graceful` fails)
+  -f 
+
+$ vagrant provision
+  provisions already `up` machine, new provision is without another `up`
+
+$ vagrant status [MACHINE]
+  shows status of machine(s)
+
+
+
+
+
+
+
+
