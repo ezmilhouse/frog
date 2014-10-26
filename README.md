@@ -27,7 +27,7 @@ Allows you to control the execution order of multiple asynchronous function call
 
 #### Example
 
-```
+```js
 frog.Flow
     .seq(function(cb) {
     
