@@ -12,12 +12,12 @@ Web application framework based on `node.js` and `require.js`.
   - [core.date]()
   - [core.Events](#)
   - [core.Events.Singleton](#)
-  - [core.Flow](#)
+  - [core.Flow](#core.flow)
   - [core.Handler.Form](#)
   - [core.Handler.Object](#)
   - [core.I18n](#)
   - [core.Inherit](#)
-  - [core.log](#)
+  - [core.log](#core.log)
   - [core.Model](#)
   - [core.singleton](#)
   - [core.util](#)
@@ -54,6 +54,7 @@ Web application framework based on `node.js` and `require.js`.
 > DEPRECATED
 > Might as well be merged with `core.singleton`
 
+<a name="core.flow"></a>
 ### core.Flow
 ***
 Allows you to control the execution order of multiple asynchronous function calls in a stack of functions, sequentially, as well as in parallel.
@@ -160,12 +161,13 @@ frog.Flow
 
 #### Methods
 
-- [end](end)
-- [par](par)
-- [parEach](parEach)
+- [end](#core.flow.end)
+- [par](#core.flow.par)
+- [parEach](#core.flow.parEach)
 - [seq](seq)
-- [seqEach](seqEach)
+- [seqEach](#core.flow.seqEach)
 
+<a name="core.flow.end"></a>
 ##### .end([cb])
 > ***cb*** _Function_  
 > Callback to be invoked when flow stack has executed completely.
@@ -188,6 +190,7 @@ frog.Flow
     });
 ```
 
+<a name="core.flow.par"></a>
 ##### .par([cb])
 > ***cb*** _Function_  
 > Callback to be invoked when function has executed.
@@ -217,6 +220,7 @@ frog.Flow
     .end();
 ```
 
+<a name="core.flow.parEach"></a>
 ##### .parEach(arr)
 > ***arr*** _Array_  
 > Array of functions to be executed in parallel.
@@ -255,6 +259,7 @@ frog.Flow
     .end();
 ```
 
+<a name="core.flow.seq"></a>
 ##### .seq([fn])
 > ***cb*** _Function_  
 > Callback to be invoked when function has executed.
@@ -278,6 +283,7 @@ frog.Flow
     .end();
 ```
 
+<a name="core.flow.seqEach"></a>
 ##### .seqEach(arr)
 > ***arr*** _Array_  
 > Array of functions to be executed sequentially.
@@ -325,9 +331,52 @@ frog.Flow
 > Might end ap as `core.Object`
 
 ### core.I18n
-### core.Inherit
+### core.Inheri
+
+<a name="core.log"></a>
 ### core.log
-> Functions  
+Lightweight wrapper for `console.log()` to avoid all kinds of FF problems if `console.log()` is somewhere left in production code.
+Contains `.log()` and `.trc()` methods, both are attached to `window` object as well, therefore available everywhere.
+
+### Methods
+
+- [log](#core.log.log)
+- [trc](#core.log.trc)
+
+<a name="core.log.log"></a>
+#### log(mixed0[,mixedn])
+> ***mixed0*** _*_
+> Whatever you want to log out.
+> ***mixedn*** _*_
+> Unlimited number of arguments, whatever you want to log out.
+
+Wraps arround `console.log()` if available, logs into console.
+
+```js
+// show log in console
+frog.log('a', 'b', 'c');
+
+// call on window object
+log('a', 'b', 'c');
+
+```
+
+<a name="core.log.trc"></a>
+#### trc(mixed0[,mixedn])
+> ***mixed0*** _*_
+> Whatever you want to trace out.
+> ***mixedn*** _*_
+> Unlimited number of arguments, whatever you want to trace out.
+
+Wraps arround `console.trace()` if available. Logs including trace into console.
+
+```js
+// show trace in console
+frog.trc();
+
+// call on window object
+trc();
+```
 
 ### core.Model
 ### core.singleton
