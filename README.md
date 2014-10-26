@@ -346,7 +346,7 @@ Contains `.log()` and `.trc()` methods, both are attached to `window` object as 
 <a name="core.log.log"></a>
 #### log(mixed0[,mixedn])
 > ***mixed0*** _*_  
-> Whatever you want to log out.
+> Whatever you want to log out.  
 > ***mixedn*** _*_  
 > Unlimited number of arguments, whatever you want to log out.
 
@@ -364,7 +364,7 @@ log('a', 'b', 'c');
 <a name="core.log.trc"></a>
 #### trc(mixed0[,mixedn])
 > ***mixed0*** _*_  
-> Whatever you want to trace out.
+> Whatever you want to trace out.  
 > ***mixedn*** _*_  
 > Unlimited number of arguments, whatever you want to trace out.
 
