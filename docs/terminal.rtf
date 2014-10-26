@@ -1,0 +1,84 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1343\cocoasubrtf140
+\cocoascreenfonts1{\fonttbl\f0\fmodern\fcharset0 Courier-Bold;\f1\fmodern\fcharset0 Courier;}
+{\colortbl;\red255\green255\blue255;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl360\slmult1\slleading160\pardirnatural
+
+\f0\b\fs24 \cf0 \ul \ulc0 BASH\
+
+\f1\b0 \ulnone \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl360\slmult1\slleading160\partightenfactor0
+
+\f0\b NAVIGATE DIRECTORIES
+\f1\b0 \
+$ cd 		// back home\
+$ cd ..		// one up\
+$ cd -		// back to previous directory\
+\
+
+\f0\b CREATE DIRECTORIES
+\f1\b0 \
+$ mkdir tmp			// create dir\
+$ mkdir -p tmp/test	// create dir recursively\
+\
+
+\f0\b COPY
+\f1\b0 \
+$ cp -R -n origin destination	// -R subtree from this point, -n do not overwrite existing file\
+\
+
+\f0\b INSTALL SOFTWARE: ALL USERS
+\f1\b0 \
+$ /usr/local		// application folders\
+$ /usr/local/bin	// application binaries\
+\
+
+\f0\b INSTALL SOFTWARE: LOCAL USER /~
+\f1\b0 \
+$ /Users/[USERNAME]	// or cd  \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\slleading160\pardirnatural
+
+\f0\b \ul BASH PROFILE
+\f1\b0 \ulnone \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl360\slmult1\slleading160\partightenfactor0
+
+\f0\b \
+EDIT (in /~)
+\f1\b0 \
+$ cd\
+$ nano .bash_profile\
+\
+
+\f0\b RELOAD (in /~)
+\f1\b0 \
+$ cd\
+$ . ~/.bash_profile\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl360\slmult1\slleading160\pardirnatural
+
+\f0\b \ul HOST
+\f1\b0 \ulnone \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl360\slmult1\slleading160\partightenfactor0
+Add local hosts by editing the `hosts` file in Mac OS X, add IP/TLD pairs to access local hosts in the browser, if it doesn't work immediately after saving, flush the host cache.\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl360\slmult1\slleading160\partightenfactor0
+
+\f0\b EDIT HOSTFILE
+\f1\b0 \
+$ sudo nano /private/etc/hosts\
+\
+
+\f0\b FLUSH CACHE AFTER HOSTFILE
+\f1\b0 \
+$ dscacheutil -flushcache; sudo killall -HUP mDNSResponder\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+
+\f0\b \ul PERMISSIONS\
+\
+\ulnone \
+MAKE EXECUTABLE\
+\
+
+\f1\b0 $ chmod +x path/to/file\
+}
