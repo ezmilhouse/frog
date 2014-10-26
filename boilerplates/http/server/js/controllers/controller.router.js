@@ -1,8 +1,10 @@
-var _ = require('underscore');
-var define = require('amdefine')(module);
-define('frog/api', require('frog').singleton.api);
-define('frog/config', require('frog').singleton.config);
-var moment = require('moment');
+if (typeof define === 'undefined') {
+    var _ = require('underscore');
+    var define = require('amdefine')(module);
+    define('frog/api', require('frog').singleton.api);
+    define('frog/config', require('frog').singleton.config);
+    var moment = require('moment');
+}
 
 define([
     'frog',

@@ -26,7 +26,8 @@ define(function () {
 
     return {
         log      : window.log,
-        logtrace : window.logtrace
+        logtrace : window.logtrace,
+        trc      : window.logtrace
     };
 
 });

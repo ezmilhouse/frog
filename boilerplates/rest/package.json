@@ -1,0 +1,12 @@
+{
+  "name"            : "frog-rest",
+  "dependencies"    : {
+	"amdefine" : "*",
+	"request"  : "*",
+	"secrets"  : "*"
+  },
+  "devDependencies" : {
+	"nodemon" : "*"
+  },
+  "version"         : "0.1.0"
+}

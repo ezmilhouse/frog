@@ -4,14 +4,18 @@ FROG_CLUSTER=false
 FROG_DIR=.
 FROG_LOCAL=false
 FROG_ENV="development"
-FROG_PORT="4000"
+FROG_PORT_HTTP="4000"
+FROG_PORT_REST="5000"
 FROG_REPO="/Users/ezmil/Workspace/var/www/frog"
+FROG_REPO_BRANCH="master"
 FROG_COMP_REPO="git@github.com:ezmilhouse/frog-components"
 FROG_TYPE="http" # http, rest
 FROG_TESTS=true
 
 case "$1" in
 
+    # add)
+    #
     # frog add path/to/app component-name
     # frog add path/to/app component-name new-component-name
     add)
@@ -68,6 +72,8 @@ case "$1" in
 
     ;;
 
+    # build)
+    #
     # frog build
     # frog build -r path/to/repo
     # frog build -r path/to/repo -t false
@@ -119,6 +125,8 @@ case "$1" in
 
     ;;
 
+    # create)
+    #
     # frog create path/to/app
     # frog create path/to/app -r path/to/repo
     create)
@@ -182,11 +190,11 @@ case "$1" in
         # fetch dependencies
         npm install
 
-        # link frog into (public) support folder
-        ln -s ${FROG_REPO} ./public/support/frog
-
         # link frog into (server) node_modules folder
         ln -s ${FROG_REPO} ./node_modules/frog
+
+        # link frog into (public) support folder
+        ln -s ${PWD}/node_modules/frog ./public/support/frog
 
         # link proprietary misc.text.js to the server
         ln -s ${PWD}/public/js/misc/misc.text.js ./server/js/misc/misc.text.js
@@ -196,6 +204,8 @@ case "$1" in
 
     ;;
 
+    # test)
+    #
     # frog test
     # frog test -r path/to/repo
     test)
@@ -235,6 +245,65 @@ case "$1" in
 
     ;;
 
+    # docs)
+    #
+    # frog docs save
+    # frog docs save -r path/to/repo
+    # frog docs save -r path/to/repo -b master
+    docs)
+
+        # set options index
+        OPTIND=3
+
+        # parse options
+        while getopts ":b:r:" o; do
+
+            case $o in
+
+                # -b [str] frog repository branch
+                b)
+                    FROG_REPO_BRANCH=$OPTARG
+                ;;
+
+                # -r [str] path to frog repository
+                r)
+                    FROG_REPO=$OPTARG
+                ;;
+
+                :)
+                    echo "[o_O] option -$OPTARG requires argument"
+                    exit 1
+                ;;
+
+                ?)
+                    echo "[o_O] unknown option -$OPTARG"
+                    exit 1
+                ;;
+
+            esac
+
+        done
+
+        # reset options index
+        OPTIND=1
+
+        case "$2" in
+
+            save)
+
+                # add README.md, commit, push
+                git add :/README.md
+                git commit -m 'README.md updated'
+                git push origin ${FROG_REPO_BRANCH}
+
+            ;;
+
+        esac
+
+    ;;
+
+    # *
+    #
     # frog .
     # frog path/to/app
     # frog path/to/app -e production
@@ -269,7 +338,7 @@ case "$1" in
 
                 # -p [int] specify port to run on
                 p)
-                    FROG_PORT=$OPTARG
+                    FROG_PORT_HTTP=$OPTARG
                 ;;
 
                 # -u [bol] run in cluster mode
@@ -304,7 +373,7 @@ case "$1" in
         pushd ${FROG_DIR}
 
         # start frog application
-        nodemon frog.js -e=${FROG_ENV} -l=${FROG_LOCAL} -p=${FROG_PORT} -u=${FROG_CLUSTER}
+        nodemon frog.js -e=${FROG_ENV} -l=${FROG_LOCAL} -p=${FROG_PORT_HTTP} -u=${FROG_CLUSTER}
 
         # change working directory (back to script context)
         popd

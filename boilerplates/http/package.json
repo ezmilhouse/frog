@@ -1,5 +1,5 @@
 {
-    "name"            : "frog-app",
+    "name"            : "frog-http",
     "dependencies"    : {
         "amdefine"   : "*",
         "moment"     : "*",

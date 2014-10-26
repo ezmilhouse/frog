@@ -113,7 +113,7 @@ define({
      * in production environments you might want to set the
      * upstream of your NGINX (or APACHE) to this port.
      */
-    port : 2510,
+    port : 2000,
 
     /**
      * @key {required}{str} public
