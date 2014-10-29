@@ -107,6 +107,15 @@ define([
         hash : {
 
             /**
+             * @method rand()
+             * Create random 256bit string, mostly used for secrets.
+             * @return {str}
+             */
+            rand : function () {
+                return crypto.randomBytes(256).toString('hex');
+            },
+
+            /**
              * @method sha1(str)
              * Hashing incoming string using sha1.
              * @params {required}{str} str
@@ -114,6 +123,27 @@ define([
              */
             sha1 : function (str) {
                 return crypto.createHash('sha1').update(str).digest('hex');
+            },
+
+            /**
+             * @method uid()
+             * Create universally unique identifier.
+             * @return {str}
+             */
+            uuid : function () {
+
+                // calc random number
+                var s4 = function () {
+                    return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+                };
+
+                // concat random numbers
+                var go = function () {
+                    return (s4() + s4() + "-" + s4() + "-" + s4() + "-" + s4() + "-" + s4() + s4() + s4());
+                };
+
+                return go();
+
             }
 
         },
@@ -149,7 +179,7 @@ define([
             }
 
             // jquery not available
-            return val.replace(/^\s+|\s+$/gm,'');
+            return val.replace(/^\s+|\s+$/gm, '');
 
         },
 
@@ -185,11 +215,6 @@ define([
             return arr;
 
         },
-
-
-
-
-
 
 
         // EVERYTHING BELOW THIS LINE SHOULD BE CONSIDERED

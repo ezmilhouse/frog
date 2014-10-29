@@ -30,6 +30,7 @@ switch (typeof define !== 'function') {
                 HTTP : require('./src/Server.HTTP'),
                 REST : require('./src/Server.REST')
             },
+            Service     : require('./src/Service'),
             util        : require('./src/util'),
             validations : require('./src/validations'),
             View        : require('./src/View'),

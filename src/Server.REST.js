@@ -261,7 +261,8 @@ define([
             }
 
             // fetch clients
-            self.$.resources['resource:clients'].get('queries.index').call(self.$.resources['resource:clients'], {}, function(err, data, status, code) {
+            /*
+            self.$.resources['resource:clients'].get('queries.index').call(self.$.resources['resource:clients'], {}, function (err, data, status, code) {
 
                 // [-] exit
                 if (err) {
@@ -282,6 +283,9 @@ define([
                 next();
 
             }, true);
+            */
+
+            next();
 
         },
 
@@ -447,15 +451,47 @@ define([
             // preserve scope
             var self = this;
 
+            // try mongo uri first
+            var uri = this.$.mongo.url;
+
+            // if not available, build it
+            // from mongo options
+            // ex: mongodb://user:1234@127.0.0.1:27017/default
+            if (!uri) {
+
+                // protocoll
+                uri = 'mongodb://';
+
+                // credentials (if available)
+                if (this.$.mongo.username && this.$.mongo.password) {
+                    uri += this.$.mongo.username;
+                    uri += ':';
+                    uri += this.$.mongo.password;
+                    uri += '@';
+                }
+
+                // host
+                uri += this.$.mongo.host;
+
+                // port
+                uri += ':';
+                uri += this.$.mongo.port;
+
+                // database
+                uri += '/';
+                uri += this.$.mongo.db;
+
+            }
+
             // connect to mongo db
-            mongoose.connect(this.$.mongo.url + '/' + this.$.mongo.db, {
+            mongoose.connect(uri, {
                 server : {
                     poolSize : this.$.mongo.poolSize
                 }
             }, function (err) {
 
                 if (err) {
-                    return;
+                    return fn(true, err, 400);
                 }
 
                 // start server

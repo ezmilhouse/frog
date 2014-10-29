@@ -31,6 +31,8 @@ Web application framework based on `node.js` and `require.js`.
   - [client.Route](#)
   - [client.Router](#)
   - [client.View](#)
+- REST
+  - [rest.Service](#rest.Service)
 - Server
   - [server.Email](#)
   - [server.HTTP](#)
@@ -407,6 +409,49 @@ trc();
 
 ### client.Router
 ### client.View
+
+##  REST
+
+<a name="rest.Service"></a>
+### rest.Service
+A `Service` instance is a piece of logic that you is accessbale by url and event emitter.
+
+```
+
+var fn = function(a, b, cb) {
+
+	// some logic
+	var c = a + b;
+	
+	// invoke callback when ready
+	cb(null, {
+		a : a,
+		b : b,
+		c: c
+	}, 200);
+
+};
+
+var service = new frog.Service({
+	fn        : fn,
+	method    : 'POST',
+	namespace : 'foo:bar',
+	route     : '/foo/bar' 
+});
+
+```
+
+Now you can call service via url:
+
+```
+POST /foo/bar
+```
+
+or internally using the event emitter:
+
+```
+app.emit('foo:bar');
+```
 
 ##  Server
 ### Server.Email

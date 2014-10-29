@@ -74,14 +74,18 @@ define([
                         minimize   : false,
                         transform  : function (doc, ret, options) {
 
-                            // copy _id value
-                            ret.id = ret._id;
+                            if (typeof ret._version !== 'undefined') {
 
-                            // remove _id key
-                            delete ret._id;
+                                // copy _id value
+                                ret.id = ret._id;
 
-                            // remove __v key
-                            delete ret.__v;
+                                // remove _id key
+                                delete ret._id;
+
+                                // remove __v key
+                                delete ret.__v;
+
+                            }
 
                         },
                         virtuals   : true
@@ -109,14 +113,18 @@ define([
                         // before returning
                         transform  : function (doc, ret, options) {
 
-                            // copy _id value
-                            ret.id = ret._id;
+                            if (typeof ret._version !== 'undefined') {
 
-                            // remove _id key
-                            delete ret._id;
+                                // copy _id value
+                                ret.id = ret._id;
 
-                            // remove __v key
-                            delete ret.__v;
+                                // remove _id key
+                                delete ret._id;
+
+                                // remove __v key
+                                delete ret.__v;
+
+                            }
 
                         },
 
