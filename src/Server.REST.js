@@ -71,6 +71,7 @@ define([
             this._setLocal();
             this._setOptions(local);
             this._setVersion();
+            this._setDebug();
             this._setEnvironment();
             this._setPort();
             this._setCluster();
@@ -111,6 +112,23 @@ define([
 
             // set cluster
             this.$.cluster = (this.$.shell.u === 'true');
+
+            // make chainable
+            return this;
+
+        },
+
+        /**
+         * @method _setDebug()
+         * Enables/disables debug mode, if set REST server
+         * will open up port 5858 for debugging purposes.
+         * @returns {*}
+         * @private
+         */
+        _setDebug : function() {
+
+            // set debug from incoming shell option
+            this.$.debug = (this.$.shell.d === true);
 
             // make chainable
             return this;
@@ -432,7 +450,7 @@ define([
         _log : function () {
 
             // stdout log message
-            util.log.node.process(process, this.$.port);
+            util.log.node.process(process, this.$.port, this.$.debug);
 
             // make chainable
             return this;

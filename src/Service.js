@@ -48,6 +48,7 @@ define([
 
             // prepare
             this._setListeners();
+            this._setMethods();
             this._setModel();
             this._setRoute();
 
@@ -56,6 +57,56 @@ define([
         },
 
         // PRIVATE
+
+        /**
+         * @method _setMethod()
+         * Sets http method based on CRUD method or falls
+         * back to GET in case of custom service.
+         * @return {*}
+         */
+        _setMethods : function() {
+
+            var self = this;
+
+            // reset method
+            var method;
+
+            // find correct http method based on native
+            // CRUD method or set
+            switch(this.$.fn) {
+                case 'index' :
+                    method = 'GET';
+                    break;
+                case 'create' :
+                    method = 'POST';
+                    break;
+                case 'retrieve' :
+                    method = 'GET';
+                    break;
+                case 'update' :
+                    method = 'PUT';
+                    break;
+                case 'delete' :
+                    method = 'DELETE';
+                    break;
+                default :
+                    method = this.$.method || 'GET';
+                    break;
+            }
+
+            // overwrite if method is set separately
+            // (in case of CRUD), otherwise set preset
+            // method
+            if (this.$.method) {
+                method = this.$.method;
+            } else {
+                this.$.method = method;
+            }
+
+            // make chainable
+            return this;
+
+        },
 
         /**
          * @method _setModel()
@@ -90,17 +141,71 @@ define([
 
             /**
              * @middleware normalize
-             * MIddleware tha t normalizes request objects.
+             * Middleware that normalizes callback based on existing
+             * response object.
              * @params {required}{obj} req
              * @params {required}{obj} res
              * @params {required}{fun} next
              */
-            var normalize = function() {
+            var normalize = function (req, res) {
+
+                // reset callback
+                var cb = util.noop;
+
+                // internal requests might come with nothing
+                // but a callback function, therefore we have
+                // to normalize req, res objects here
+                if (_.isFunction(req)) {
+
+                    // set callback
+                    cb = req;
+
+                    // set empty request object
+                    req = {
+                        body   : {},
+                        params : {},
+                        query  : {}
+                    }
+
+                } else {
+
+                    // normalize (maybe empty) req object keys
+                    req.body = req.body || {};
+                    req.params = req.params || {};
+                    req.query = req.query || {};
+
+                    // differentiate between incoming (native)
+                    // res object, and incoming callback
+                    if (_.isFunction(res)) {
+
+                        // set callback
+                        cb = res;
+
+                    } else {
+
+                        // set callback to common send function
+                        cb = function (err, body, status, code) {
+                            self.$.server.send(req, res, err, body, status, code);
+                        }
+
+                    }
+
+                }
+
+                return {
+                    body   : req.body,
+                    cb     : cb,
+                    params : req.params,
+                    query  : req.query
+                }
 
             };
 
             // get restify app object
             var app = this.$.app;
+
+            // reset
+            var obj;
 
             // set event listener based on set function fn is string,
             // meaning a pre-set crud function or a custom function
@@ -109,64 +214,55 @@ define([
                 // INDEX
 
                 case 'index' :
-                    app.on('service:' + this.$.namespace + ':index', function(req, res) {
-
-
-                        // HIER GEHT'S WEITER
-                        // normalize für den Fall, interner event call,
-                        // kein req, res object
-                        // send method anpassen, wenn res null, erneuter callback
-                        // vielleicht send Methode in Service Klasse?
-
-                        self._get(req.params, req.body, req.query, function(err, body, status, code) {
-                            self.$.server.send(req, res, err, body, status, code);
+                    app.on('service:' + this.$.namespace + ':index',
+                        function (req, cb) {
+                            req = normalize(req, cb);
+                            self._get(req.params, req.body, req.query, req.cb);
                         });
-
-                    });
                     break;
 
                 // CRUD
 
                 case 'create' :
-                    app.on('service:' + this.$.namespace + ':create', function(req, res) {
-                        self._get(req.params, req.body, req.query, function(err, body, status, code) {
-                            self.$.server.send(req, res, err, body, status, code);
+                    app.on('service:' + this.$.namespace + ':create',
+                        function (req, cb) {
+                            req = normalize(req, cb);
+                            self._new(req.params, req.body, req.query, req.cb);
                         });
-                    });
                     break;
 
                 case 'retrieve' :
-                    app.on('service:' + this.$.namespace + ':retrieve', function(req, res) {
-                        self._get(req.params, req.body, req.query, function(err, body, status, code) {
-                            self.$.server.send(req, res, err, body, status, code);
+                    app.on('service:' + this.$.namespace + ':retrieve',
+                        function (req, cb) {
+                            req = normalize(req, cb);
+                            self._getById(req.params, req.body, req.query, req.cb);
                         });
-                    });
                     break;
 
                 case 'update' :
-                    app.on('service:' + this.$.namespace + ':update', function(req, res) {
-                        self._get(req.params, req.body, req.query, function(err, body, status, code) {
-                            self.$.server.send(req, res, err, body, status, code);
+                    app.on('service:' + this.$.namespace + ':update',
+                        function (req, cb) {
+                            req = normalize(req, cb);
+                            self._setById(req.params, req.body, req.query, req.cb);
                         });
-                    });
                     break;
 
                 case 'delete' :
-                    app.on('service:' + this.$.namespace + ':delete', function(req, res) {
-                        self._get(req.params, req.body, req.query, function(err, body, status, code) {
-                            self.$.server.send(req, res, err, body, status, code);
+                    app.on('service:' + this.$.namespace + ':delete',
+                        function (req, cb) {
+                            req = normalize(req, cb);
+                            self._delById(req.params, req.body, req.query, req.cb);
                         });
-                    });
                     break;
 
                 // CUSTOM
 
                 default :
-                    app.on('service:' + this.$.namespace, function(req, res) {
-                        self.$.fn(req.params, req.body, req.query, function(err, body, status, code) {
-                            self.$.server.send(req, res, err, body, status, code);
+                    app.on('service:' + this.$.namespace,
+                        function (req, cb) {
+                            req = normalize(req, cb);
+                            self.$.fn(req.params, req.body, req.query, req.cb);
                         });
-                    });
                     break;
 
             }
@@ -273,7 +369,6 @@ define([
 
                 // skip!
                 if (err) {
-                    console.log(body, err);
                     return cb(true, err, 400, 'ERROR_MONGO_DOCUMENT_NOT_CREATED');
                 }
 

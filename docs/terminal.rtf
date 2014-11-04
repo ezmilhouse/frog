@@ -3,8 +3,7 @@
 {\colortbl;\red255\green255\blue255;}
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl360\slmult1\slleading160\pardirnatural
 
-\f0\b\fs24 \cf0 \ul \ulc0 BASH\
-
+\f0\b\fs24 \cf0 \ul \ulc0 BASH
 \f1\b0 \ulnone \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl360\slmult1\slleading160\partightenfactor0
 
@@ -38,11 +37,8 @@ $ /Users/[USERNAME]	// or cd  \
 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\slleading160\pardirnatural
 
-\f0\b \ul BASH PROFILE
-\f1\b0 \ulnone \
+\f0\b \ul BASH PROFILE\ulnone \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl360\slmult1\slleading160\partightenfactor0
-
-\f0\b \
 EDIT (in /~)
 \f1\b0 \
 $ cd\
@@ -61,7 +57,6 @@ $ . ~/.bash_profile\
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl360\slmult1\slleading160\partightenfactor0
 Add local hosts by editing the `hosts` file in Mac OS X, add IP/TLD pairs to access local hosts in the browser, if it doesn't work immediately after saving, flush the host cache.\
 \
-\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl360\slmult1\slleading160\partightenfactor0
 
 \f0\b EDIT HOSTFILE
 \f1\b0 \
@@ -72,13 +67,25 @@ $ sudo nano /private/etc/hosts\
 \f1\b0 \
 $ dscacheutil -flushcache; sudo killall -HUP mDNSResponder\
 \
-\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\slleading160\pardirnatural
 
 \f0\b \ul PERMISSIONS\
-\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\slleading160\pardirnatural
 \ulnone \
 MAKE EXECUTABLE\
-\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\slleading160\pardirnatural
 
 \f1\b0 $ chmod +x path/to/file\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\slleading160\pardirnatural
+
+\f0\b MAKE EVERYTHING OWNED BY EVERYONE
+\f1\b0 \
+$ sudo chown -R ezmil:staff .\
+\
+
+\f0\b SET PRIVATE KEY PERMISSIONS
+\f1\b0 \
+$ chmod go-rwx aws.pem\
+\
 }

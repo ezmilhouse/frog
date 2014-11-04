@@ -1,6 +1,7 @@
 #!/bin/sh
 
 FROG_CLUSTER=false
+FROG_DEBUG=false
 FROG_DIR=.
 FROG_LOCAL=false
 FROG_ENV="development"
@@ -178,14 +179,8 @@ case "$1" in
         mkdir ./public/support
         mkdir ./server
 
-        # copy root files
-        cp -rf ${FROG_REPO}/boilerplates/app/root/* .
-
         # copy ./public/* files
-        cp -rf ${FROG_REPO}/boilerplates/app/public/* ./public
-
-        # copy ./server/* files
-        cp -rf ${FROG_REPO}/boilerplates/app/server/* ./server
+        cp -rf ${FROG_REPO}/boilerplates/http/* .
 
         # fetch dependencies
         npm install
@@ -246,7 +241,7 @@ case "$1" in
     ;;
 
     # docs)
-    #
+
     # frog docs save
     # frog docs save -r path/to/repo
     # frog docs save -r path/to/repo -b master
@@ -322,9 +317,14 @@ case "$1" in
         OPTIND=2
 
         # parse options
-        while getopts ":e:l:p:u:" o; do
+        while getopts ":d:e:l:p:u:" o; do
 
             case $o in
+
+                # -d [bol] set debug mode
+                d)
+                    FROG_DEBUG=$OPTARG
+                ;;
 
                 # -e [str] set environment (development, production)
                 e)
@@ -372,8 +372,20 @@ case "$1" in
         # change working directory
         pushd ${FROG_DIR}
 
-        # start frog application
-        nodemon frog.js -e=${FROG_ENV} -l=${FROG_LOCAL} -p=${FROG_PORT_HTTP} -u=${FROG_CLUSTER}
+        echo ${FROG_DEBUG}
+
+        if [ ! "${FROG_DEBUG}" ]; then
+
+            # start frog application
+            nodemon frog.js -e=${FROG_ENV} -l=${FROG_LOCAL} -p=${FROG_PORT_HTTP} -u=${FROG_CLUSTER}
+
+        else
+
+            # start frog application
+            # in debug mode
+            nodemon --debug frog.js -e=${FROG_ENV} -l=${FROG_LOCAL} -p=${FROG_PORT_HTTP} -u=${FROG_CLUSTER}
+
+        fi
 
         # change working directory (back to script context)
         popd

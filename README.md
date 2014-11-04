@@ -414,10 +414,116 @@ trc();
 
 <a name="rest.Service"></a>
 ### rest.Service
-A `Service` instance is a piece of logic that you is accessbale by url and event emitter.
+A `service` is a piece of logic that you can be accessed via URL or internal event emission. Support for `CRUD` services is natively implemented, the follwoing `CRUD` srevices are supported:
+
+```
+HTTP Method   | URI            | CRUD Verb    
+--------------|----------------|--------------
+GET           | /users         | index
+POST          | /users         | create
+GET           | /users/:id     | retrieve
+PUT           | /users/:id     | update
+DELETE        | /users/:id     | delete
+--------------|----------------|--------------
+```
+
+###Example: CRUD (index, create, retrieve, update, delete)
+To setup a complete REST resource, define a frog `Schema` and add services along supported CRUD verbs.
+
 
 ```
 
+// SCHEMA
+
+var schema = new frog.Schema({
+	collection : 'users',
+	document   : {
+	    name : {type : String, index : true, default : 'Mr Frog'},
+	    city : {type : String, index : true, default : 'Berlin'}
+	},
+	options    : {
+	    strict : false
+	}
+});
+
+// SERVICES
+
+// index
+new frog.Service({
+	fn        : 'index',
+	method    : 'GET',
+	namespace : 'users',
+	route     : '/users',
+	schema    : schema
+});
+
+// create
+new frog.Service({
+	fn        : 'create',
+	method    : 'POST',
+	namespace : 'users',
+	route     : '/users',
+	schema    : schema
+});
+
+// retrieve
+new frog.Service({
+	fn        : 'retrieve',
+	method    : 'GET',
+	namespace : 'users',
+	route     : '/users/:id',
+	schema    : schema
+});
+
+// update
+new frog.Service({
+	fn        : 'update',
+	method    : 'PUT',
+	namespace : 'users',
+	route     : '/users/:id',
+	schema    : schema
+});
+
+// delete
+new frog.Service({
+	fn        : 'delete',
+	method    : 'DELETE',
+	namespace : 'users',
+	route     : '/users/:id',
+	schema    : schema
+});
+```
+
+Access your services via `HTTP` requests:
+
+```
+GET    http://localhost:[PORT]/users
+POST   http://localhost:[PORT]/users
+GET    http://localhost:[PORT]/users/1234567890
+PUT    http://localhost:[PORT]/users/1234567890
+DELETE http://localhost:[PORT]/users/1234567890
+
+```
+
+#### Options
+Add querystring parameters to filter/trigger responses.
+
+#### limit (str)
+_Available on `index` requests only._   
+Sets the maximum number of objects to be returned.
+
+#### (String) offset
+Available on `index` requests only. Sets offset to start from.
+
+#### (String) page
+Available on `index` requests only. Sets page to calculate offset from.
+
+#### (Object) sort
+Available on `index` requests only. 
+ 
+
+
+```
 var fn = function(a, b, cb) {
 
 	// some logic

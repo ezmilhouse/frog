@@ -565,14 +565,18 @@ define([
                 }
             },
             node  : {
-                process           : function (process, port) {
+                process           : function (process, port, debug) {
                     var str = '';
                     str += '\n';
                     str += moment().format('D MMM HH:mm:ss') + ' - ' + '[node] Process (PID): ' + process.pid;
                     str += '\n';
                     str += moment().format('D MMM HH:mm:ss') + ' - ' + '[node] Node.js: ' + process.versions.node;
                     str += '\n';
-                    str += moment().format('D MMM HH:mm:ss') + ' - ' + '[node] Running on port ' + port + ', debug on port ' + process.debugPort;
+                    if (debug) {
+                        str += moment().format('D MMM HH:mm:ss') + ' - ' + '[node] Running on port ' + port + ', debug on port ' + process.debugPort;
+                    } else {
+                        str += moment().format('D MMM HH:mm:ss') + ' - ' + '[node] Running on port ' + port;
+                    }
                     str += '\n';
                     str += moment().format('D MMM HH:mm:ss') + ' - ' + '[node] Visit at http://localhost:' + port;
                     console.log(str);
