@@ -414,7 +414,86 @@ trc();
 
 <a name="rest.Service"></a>
 ### rest.Service
-A `service` is a piece of logic that you can be accessed via URL or internal event emission. Support for `CRUD` services is natively implemented, the follwoing `CRUD` srevices are supported:
+A `service` is a piece of logic that can be accessed via URL or internal event emission. 
+
+```js
+
+// service logic
+var fn = function(req, cb) {
+
+	// fetch users
+	var users = ['Peter', 'Bob', 'Andrew'];
+	
+	// return all users
+	cb(null, users, 200, 'OK');
+
+}
+
+// service (as resource)
+new frog.Service({
+	fn        : fn,
+	method    : 'GET',
+	namespace : 'users',
+	route     : '/users'
+});
+
+```
+
+Access service via `http://localhost:[PORT]/users`, receive response object
+
+```js
+
+// service response object
+{
+	code    : 'OK'
+	count   : 3,
+	data    : ['Peter', 'Bob', 'Andrew'],
+	debug   : false,
+	error   : false,
+	status  : 200,
+	success : true
+}
+
+```
+
+### Options
+
+#### [fun|str] fn
+Set string to use native CRUD service (`index`, `create`, `retrieve` `update`, `delete`) or function. When using function, function comes with four standard arguments `err` `body`, `status`, `code`:
+
+```js
+
+// CRUD service
+new frog.Service({
+	fn : 'create'
+	// ...
+});
+
+// custom service
+new frog.Service({
+	fn : function(req, cb) {
+	
+		// do stuff
+		// invoke callback
+		cb(null, true, 200, 'OK');
+	
+	}
+	// ...
+});
+
+
+```
+
+
+#### [str] method
+#### [str] namespace
+#### [str] route
+#### [obj] schema
+
+
+
+
+Support for `CRUD` services is already implemented, the follwoing `CRUD` services are supported:
 
 ```
 HTTP Method   | URI            | CRUD Verb    
@@ -427,11 +506,31 @@ DELETE        | /users/:id     | delete
 --------------|----------------|--------------
 ```
 
-###Example: CRUD (index, create, retrieve, update, delete)
-To setup a complete REST resource, define a frog `Schema` and add services along supported CRUD verbs.
+### URL Parameters
+Use the following URL parameters to handle, specify request and response object.
 
+#### [bol] debug
+Turns on debug mode, results in verbose response object.
 
-```
+#### [num] limit
+Sets the maximum number of objects (array keys) to be returned.
+
+#### [num] offset
+Sets the number of number of objects to be skipped.
+
+#### [num] page
+Used to calculate offset based on given limit.  
+
+#### [str] payload
+Name of pre-set payload, if set response object is reduced to given payload keys.
+
+### [obj] sort
+Accepts mongo sort object.
+
+### Example: CRUD (`index`, `create`, `retrieve`, `update`, `delete`)
+To setup an REST API resource that supports all available CRUD verbs just setup `Schema` and `Services` according to the spec.
+
+```js
 
 // SCHEMA
 
@@ -504,36 +603,23 @@ PUT    http://localhost:[PORT]/users/1234567890
 DELETE http://localhost:[PORT]/users/1234567890
 
 ```
-
-#### Options
-Add querystring parameters to filter/trigger responses.
-
-#### limit (str)
-_Available on `index` requests only._   
-Sets the maximum number of objects to be returned.
-
-#### (String) offset
-Available on `index` requests only. Sets offset to start from.
-
-#### (String) page
-Available on `index` requests only. Sets page to calculate offset from.
-
-#### (Object) sort
-Available on `index` requests only. 
  
+Example: Function 
+ 
+```js
 
-
-```
-var fn = function(a, b, cb) {
+var fn = function(a, b, c) {
 
 	// some logic
 	var c = a + b;
 	
 	// invoke callback when ready
+	// callback comes with 4 parameters
+	// cb(err)
 	cb(null, {
 		a : a,
 		b : b,
-		c: c
+		c : c
 	}, 200);
 
 };
