@@ -414,7 +414,9 @@ trc();
 
 <a name="rest.Service"></a>
 ### rest.Service
-A `service` is a piece of logic that can be accessed via URL or internal event emission. 
+A REST `Service` represents a piece of logic that can be accessed via URL (in via internal event emission for cross reference purposes). You can bind whatever mthod to your a `Service` instance or use one of five native `CRUD` methods alread implemented.
+
+### Example: 
 
 ```js
 
@@ -422,14 +424,19 @@ A `service` is a piece of logic that can be accessed via URL or internal event e
 var fn = function(req, cb) {
 
 	// fetch users
-	var users = ['Peter', 'Bob', 'Andrew'];
+	var users = [
+		'Peter', 
+		'Bob', 
+		'Andrew'
+	];
 	
 	// return all users
 	cb(null, users, 200, 'OK');
 
-}
+};
 
-// service (as resource)
+
+// service (as REST resource)
 new frog.Service({
 	fn        : fn,
 	method    : 'GET',
@@ -439,7 +446,7 @@ new frog.Service({
 
 ```
 
-Access service via `http://localhost:[PORT]/users`, receive response object
+Results in a router `http://localhost:[port]/users` bound to the `fn` method that holds your service logic. Calling this URL via http `GET` will return standard response object:
 
 ```js
 
@@ -447,12 +454,124 @@ Access service via `http://localhost:[PORT]/users`, receive response object
 {
 	code    : 'OK'
 	count   : 3,
-	data    : ['Peter', 'Bob', 'Andrew'],
+	data    : [
+		'Peter', 
+		'Bob', 
+		'Andrew'
+	],
 	debug   : false,
 	error   : false,
 	status  : 200,
 	success : true
 }
+
+```
+
+### Example: CRUD (`index`, `create`, `retrieve`, `update`, `delete`)
+You can use the native CRUD services to implement full-blown REST resources. Just add a `Schema` and create `Service` instances for all five methods:
+
+```js
+
+
+// SCHEMA
+
+var schema = new frog.Schema({
+	collection : 'users',
+	document   : {
+	    name : {type : String, index : true, default : 'John Doe'},
+	    city : {type : String, index : true, default : 'New York City'}
+	},
+	options    : {
+	    strict : false
+	}
+});
+
+// SERVICES
+
+// index
+new frog.Service({
+	fn        : 'index',
+	method    : 'GET',
+	namespace : 'users',
+	route     : '/users',
+	schema    : schema
+});
+
+// create
+new frog.Service({
+	fn        : 'create',
+	method    : 'POST',
+	namespace : 'users',
+	route     : '/users',
+	schema    : schema
+});
+
+// retrieve
+new frog.Service({
+	fn        : 'retrieve',
+	method    : 'GET',
+	namespace : 'users',
+	route     : '/users/:id',
+	schema    : schema
+});
+
+// update
+new frog.Service({
+	fn        : 'update',
+	method    : 'PUT',
+	namespace : 'users',
+	route     : '/users/:id',
+	schema    : schema
+});
+
+// delete
+new frog.Service({
+	fn        : 'delete',
+	method    : 'DELETE',
+	namespace : 'users',
+	route     : '/users/:id',
+	schema    : schema
+});
+
+
+```
+
+### Options
+
+- [fn](#rest.Service.fn)
+- [method](#rest.Service.method)
+- [namespce](#rest.Service.namespace)
+- [route](#rest.Service.route)
+- [schema](#rest.Service.schema)
+
+<a name="rest.Service.fn"></a>
+#### fn
+> ***fn*** _str|fun_  
+> Function or string representing one of the five CRUD verbs: index, create, retrieve, update, delete.
+> ***method*** _str_  
+> Http method to make this service accessable from, methods to CRUD services are set automatically (GET, POST, PUT, DELETE), can be overwritten here, defaults to GET
+> ***namespace*** _str_  
+> The namespace set here allows to access service internally by event emission.
+> ***route*** _str_  
+> Follows the restify routing mechanics, excepts regex.
+> ***schema*** _obj_  
+> Mongoose schema (for MongoDB).
+
+
+
+```js
+
+
+
+
+
+```
+
+Access service via `http://localhost:[PORT]/users`, receive response object
+
+```js
+
+
 
 ```
 
