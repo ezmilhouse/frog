@@ -416,6 +416,13 @@ trc();
 ### rest.Service
 A REST `Service` represents a piece of logic that can be accessed via URL (in via internal event emission for cross reference purposes). You can bind whatever mthod to your a `Service` instance or use one of five native `CRUD` methods alread implemented.
 
+- [Options](#rest.Service.Options)
+- [Function](#rest.Service.Function)
+- [Callback](#rest.Service.Callback)
+- [Response Object](#rest.Service.ResponseObject)
+- [Access by URL](#rest.Service.AccessByUrl)
+- [Access by Event Emission](#rest.Service.AccessByEventEmission)
+
 ### Example: 
 
 ```js
@@ -467,8 +474,14 @@ Results in a router `http://localhost:[port]/users` bound to the `fn` method tha
 
 ```
 
-### Example: CRUD (`index`, `create`, `retrieve`, `update`, `delete`)
+### Example: CRUD
 You can use the native CRUD services to implement full-blown REST resources. Just add a `Schema` and create `Service` instances for all five methods:
+
+- index
+- create
+- retrieve
+- update
+- delete
 
 ```js
 
@@ -536,28 +549,65 @@ new frog.Service({
 
 ```
 
+<a name="rest.Service.Options"></a>
 ### Options
 
-- [fn](#rest.Service.fn)
-- [method](#rest.Service.method)
-- [namespce](#rest.Service.namespace)
-- [route](#rest.Service.route)
-- [schema](#rest.Service.schema)
-
-<a name="rest.Service.fn"></a>
-#### fn
 > ***fn*** _str|fun_  
 > Function or string representing one of the five CRUD verbs: index, create, retrieve, update, delete.
+
 > ***method*** _str_  
 > Http method to make this service accessable from, methods to CRUD services are set automatically (GET, POST, PUT, DELETE), can be overwritten here, defaults to GET
+
 > ***namespace*** _str_  
 > The namespace set here allows to access service internally by event emission.
+
 > ***route*** _str_  
 > Follows the restify routing mechanics, excepts regex.
+
 > ***schema*** _obj_  
 > Mongoose schema (for MongoDB).
 
+<a name="rest.Service.Function"></a>
+### Function
+The function you pass to the `Service` constructor comes with to arguments.
+> ***req*** _obj_  
+> A request object holding keys `params`, `query`, `body`.
+> ***cb*** _*_  
+> A callback to return results, see callback below.
 
+```js
+
+new frog.Service({
+	
+	fn : function(req, cb) {
+	
+		var id = req.params.id;
+	
+		cb(null, id, 200, 'OK');
+	
+	},
+	
+	// ...
+
+});
+
+```
+
+
+
+
+
+<a name="rest.Service.Callback"></a>
+### Callback
+
+<a name="rest.Service.ResponseObject"></a>
+### Response Object
+
+<a name="rest.Service.AccessByUrl"></a>
+### Access By URL
+
+<a name="rest.Service.AccessByEventEmission"></a>
+### Access by Event Emission
 
 ```js
 
