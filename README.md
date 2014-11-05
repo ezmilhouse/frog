@@ -477,11 +477,11 @@ Results in a router `http://localhost:[port]/users` bound to the `fn` method tha
 ### Example: CRUD
 You can use the native CRUD services to implement full-blown REST resources. Just add a `Schema` and create `Service` instances for all five methods:
 
-- index
-- create
-- retrieve
-- update
-- delete
+- INDEX
+- CREATE
+- RETRIEVE
+- UPDATE
+- DELETE
 
 ```js
 
