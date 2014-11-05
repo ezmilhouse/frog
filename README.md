@@ -262,7 +262,7 @@ frog.Flow
 ```
 
 <a name="core.flow.seq"></a>
-##### .seq([fn])
+##### .seq([cb])
 > ***cb*** _Function_  
 > Callback to be invoked when function has executed.
 
@@ -560,7 +560,7 @@ new frog.Service({
 ### Options
 Create a `Service` instance using the following options:
 
-> `required` ***fn*** _str | fun_  
+> `required` ***fn*** _String | Function_  
 > Function or string representing one of the five CRUD verbs:  
 > index  
 > create  
@@ -568,23 +568,23 @@ Create a `Service` instance using the following options:
 > update  
 > delete
 
-> `optional` ***method*** _str_  
+> `optional` ***method*** _String_  
 > Http method to make this service accessable from, methods to CRUD services are set automatically (GET, POST, PUT, DELETE), can be overwritten here, defaults to GET.
 
-> `required` ***namespace*** _str_  
+> `required` ***namespace*** _String_  
 > The namespace set here allows to access service internally by event emission.
 
-> `optional` ***route*** _str_  
+> `optional` ***route*** _String_  
 > Follows the restify routing mechanics, excepts regex. Service not available via URL if not set.
 
-> `optional` ***schema*** _obj_  
+> `optional` ***schema*** _Object_  
 > Mongoose schema (for MongoDB). Required only in case of native CRUD methods.
 
 <a name="rest.Service.Function"></a>
 ### Function
 The function you pass to the `Service` constructor as `fn` value will have two arguments
 > ***req*** _obj_  
-> A request object holding keys: `params`, `query`, `body`.
+> A request object holding keys: `params`, `query`, `body`.  
 > ***cb*** _*_  
 > A callback to return results when done.
 
