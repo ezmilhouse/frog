@@ -560,19 +560,19 @@ new frog.Service({
 ### Options
 Create a `Service` instance using the following options:
 
-> ***fn***  `required` _str / fun_  
-> Function or string representing one of the five CRUD verbs: index, create, retrieve, update, delete.
+> ***fn*** `required` _str | fun_  
+> `fun` or `str` representing one of the five CRUD verbs: index, create, retrieve, update, delete.
 
-> _optional_ ***method*** _str_  
-> Http method to make this service accessable from, methods to CRUD services are set automatically (GET, POST, PUT, DELETE), can be overwritten here, defaults to GET
+> ***method*** `optional` _str_  
+> Http method to make this service accessable from, methods to CRUD services are set automatically (GET, POST, PUT, DELETE), can be overwritten here, defaults to GET.
 
-> _required_ ***namespace*** _str_  
+> ***namespace*** `required` _str_  
 > The namespace set here allows to access service internally by event emission.
 
-> _optional_ ***route*** _str_  
+> ***route*** `optional` _str_  
 > Follows the restify routing mechanics, excepts regex. Service not available via URL if not set.
 
-> _optional_ ***schema*** _obj_  
+> ***schema*** `optional` _obj_  
 > Mongoose schema (for MongoDB). Required only in case of native CRUD methods.
 
 <a name="rest.Service.Function"></a>
