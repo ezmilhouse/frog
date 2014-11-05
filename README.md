@@ -560,7 +560,7 @@ new frog.Service({
 ### Options
 Create a `Service` instance using the following options:
 
-> _required_ ***fn***  _str / fun_  
+> ***fn***  `required` _str / fun_  
 > Function or string representing one of the five CRUD verbs: index, create, retrieve, update, delete.
 
 > _optional_ ***method*** _str_  
