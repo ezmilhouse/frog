@@ -557,10 +557,9 @@ new frog.Service({
 ```
 
 <a name="rest.Service.Options"></a>
-### Options
-Create a `Service` instance using the following options:
-
-> `required` ***fn*** _String | Function_  
+##### new frog.Service([options])
+Create a `Service` instance using the following `options`:
+> ***fn*** _Function_ `required`
 > Function or string representing one of the five CRUD verbs:  
 > index  
 > create  
@@ -568,7 +567,7 @@ Create a `Service` instance using the following options:
 > update  
 > delete
 
-> `optional` ***method*** _String_  
+> ***method*** _String_ `optional`  
 > Http method to make this service accessable from, methods to CRUD services are set automatically (GET, POST, PUT, DELETE), can be overwritten here, defaults to GET.
 
 > `required` ***namespace*** _String_  
