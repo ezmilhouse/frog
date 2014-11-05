@@ -414,7 +414,10 @@ trc();
 
 <a name="rest.Service"></a>
 ### rest.Service
-A REST `Service` represents a piece of logic that can be accessed via URL (in via internal event emission for cross reference purposes). You can bind whatever mthod to your a `Service` instance or use one of five native `CRUD` methods alread implemented.
+A REST `Service` represents a piece of logic that can be accessed via URL (or via internal event emission for cross reference purposes). You can bind whatever method to your `Service` instance or use one of five native `CRUD` methods.
+
+- [Example](#rest.Service.Example)
+- [Example: CRUD](#rest.Service.ExampleCRUD)
 
 - [Options](#rest.Service.Options)
 - [Function](#rest.Service.Function)
@@ -423,6 +426,7 @@ A REST `Service` represents a piece of logic that can be accessed via URL (in vi
 - [Access by URL](#rest.Service.AccessByUrl)
 - [Access by Event Emission](#rest.Service.AccessByEventEmission)
 
+<a name="rest.Service.Example"></a>
 ### Example: 
 
 ```js
@@ -453,7 +457,7 @@ new frog.Service({
 
 ```
 
-Results in a router `http://localhost:[port]/users` bound to the `fn` method that holds your service logic. Calling this URL via http `GET` will return standard response object:
+Setting up the `Service` instance above results in a route `http://localhost:[port]/users` being created that is bound to the `fn` method that holds the service logic. Calling this URL via http `GET` will trigger `fn` and return a standard response object based on given parameters of the `cb` call.
 
 ```js
 
@@ -474,8 +478,11 @@ Results in a router `http://localhost:[port]/users` bound to the `fn` method tha
 
 ```
 
+Learn more about the response object [below](#rest.Service.ResponseObject).
+
+<a name="rest.Service.ExampleCRUD"></a>
 ### Example: CRUD
-You can use the native CRUD services to implement full-blown REST resources. Just add a `Schema` and create `Service` instances for all five methods:
+You can use native CRUD services to implement full REST resources. Just add a `Schema` and create `Service` instances for all available methods:
 
 - INDEX
 - CREATE
@@ -551,21 +558,22 @@ new frog.Service({
 
 <a name="rest.Service.Options"></a>
 ### Options
+Create a `Service` instance using the following options:
 
-> ***fn*** _str|fun_  
+> _required_ ***fn***  _str / fun_  
 > Function or string representing one of the five CRUD verbs: index, create, retrieve, update, delete.
 
-> ***method*** _str_  
+> _optional_ ***method*** _str_  
 > Http method to make this service accessable from, methods to CRUD services are set automatically (GET, POST, PUT, DELETE), can be overwritten here, defaults to GET
 
-> ***namespace*** _str_  
+> _required_ ***namespace*** _str_  
 > The namespace set here allows to access service internally by event emission.
 
-> ***route*** _str_  
-> Follows the restify routing mechanics, excepts regex.
+> _optional_ ***route*** _str_  
+> Follows the restify routing mechanics, excepts regex. Service not available via URL if not set.
 
-> ***schema*** _obj_  
-> Mongoose schema (for MongoDB).
+> _optional_ ***schema*** _obj_  
+> Mongoose schema (for MongoDB). Required only in case of native CRUD methods.
 
 <a name="rest.Service.Function"></a>
 ### Function
