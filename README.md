@@ -560,44 +560,71 @@ new frog.Service({
 ### Options
 Create a `Service` instance using the following options:
 
-> ***fn*** `required` _str | fun_  
-> `fun` or `str` representing one of the five CRUD verbs: index, create, retrieve, update, delete.
+> `required` ***fn*** _str | fun_  
+> Function or string representing one of the five CRUD verbs:  
+> index  
+> create  
+> retrieve  
+> update  
+> delete
 
-> ***method*** `optional` _str_  
+> `optional` ***method*** _str_  
 > Http method to make this service accessable from, methods to CRUD services are set automatically (GET, POST, PUT, DELETE), can be overwritten here, defaults to GET.
 
-> ***namespace*** `required` _str_  
+> `required` ***namespace*** _str_  
 > The namespace set here allows to access service internally by event emission.
 
-> ***route*** `optional` _str_  
+> `optional` ***route*** _str_  
 > Follows the restify routing mechanics, excepts regex. Service not available via URL if not set.
 
-> ***schema*** `optional` _obj_  
+> `optional` ***schema*** _obj_  
 > Mongoose schema (for MongoDB). Required only in case of native CRUD methods.
 
 <a name="rest.Service.Function"></a>
 ### Function
-The function you pass to the `Service` constructor comes with to arguments.
+The function you pass to the `Service` constructor as `fn` value will have two arguments
 > ***req*** _obj_  
-> A request object holding keys `params`, `query`, `body`.
+> A request object holding keys: `params`, `query`, `body`.
 > ***cb*** _*_  
-> A callback to return results, see callback below.
+> A callback to return results when done.
 
 ```js
 
-new frog.Service({
+// service logic
+var fn = function(req, cb) {
 	
-	fn : function(req, cb) {
+	// extract user id from route /users/:id/education
+	// route parameters are saved on params object
+	var userId = req.params.id;
 	
-		var id = req.params.id;
+	// some random logic
+	var userYearsInSchools = 10;
+	var userYearsInCollege = 4;
 	
-		cb(null, id, 200, 'OK');
-	
-	},
-	
-	// ...
+	// some random result
+	var userYearsInEducation = userYearsInSchools + userYearsInCollege;
 
+	// some random async method (or event call)
+	setTimeout(function() {
+	
+		// invoke callback when everything is done
+		cb(null, {
+			userId : userId,
+			userYearsInEducation : userYearsInEducation 
+		}, 200, 'OK');
+	
+	}, 1000);
+
+}
+
+// service
+new frog.Service({
+	fn        : fn,
+	method    : 'GET',
+	namespace : 'users',
+	route     : '/users/:id/education'
 });
+
 
 ```
 
