@@ -5,6 +5,8 @@ Frog
 ====
 Web application framework based on `node.js` and `require.js`.
 
+- Basics
+  - [Callback](#basics.Callback) 
 - Core
   - [core.app](#)
   - [core.Base](#)
@@ -40,6 +42,19 @@ Web application framework based on `node.js` and `require.js`.
   - [server.Resource](#)
   - [server.Schema](#)
 
+&nbsp;
+****
+&nbsp;
+
+
+
+&nbsp;
+****
+&nbsp;
+
+<a name="core"></a>
+### Core
+
 ### core.app
 > Singleton  
 > DEPRECATED
@@ -68,7 +83,7 @@ The `.get()` and `.set()` methods are used to set/get data within callbacks, ple
 
 Execution of the flow stack is triggered by the `.end()` method, it can invoke its own callback, when all execution is done, this callback still executes in flow's scope, therefore you can access flow data using `.get()`.
 
-```js
+```
 frog.Flow
     .seq(function(cb) {
     
@@ -176,7 +191,7 @@ frog.Flow
 
 Ends (caps) flow stack and triggers its execution. Allows optional `cb` as final callback, it will be invoked after flow stack has executed completely. Flows without `.end()` cap will not execute at all.
 
-```js
+```
 frog.Flow
     .seq(function(cb) {
         cb();
@@ -199,7 +214,7 @@ frog.Flow
 
 Allows to add a single function that should be executed in `parallel` within flow stack. Function receives callback function `cb` as parameter, when invoked next function in flow stack will be executed.
 
-```js
+```
 frog.Flow
     .par(function(cb) {
     
@@ -229,7 +244,7 @@ frog.Flow
 
 Allows to add an array of functions that should be executed in `parallel` within flow stack. Functions in array receive callback function `cb` as parameter, when invoked next function in flow stack will be executed.
 
-```js
+```
 // prepare array of callbacks
 var arr = [
    
@@ -268,7 +283,7 @@ frog.Flow
 
 Allows to add a single function that should be executed `sequentially` within flow stack. Function receives callback function `cb` as parameter, when invoked next function in flow stack will be executed.
 
-```js
+```
 frog.Flow
     .seq(function(cb) {
         // sequential, executed first
@@ -292,7 +307,7 @@ frog.Flow
 
 Allows to add an array of functions that should be executed `sequentially` within flow stack. Functions in array receive callback function `cb` as parameter, when invoked next function in flow stack will be executed.
 
-```js
+```
 // prepare array of callbacks
 var arr = [
 
@@ -333,7 +348,7 @@ frog.Flow
 > Might end ap as `core.Object`
 
 ### core.I18n
-### core.Inheri
+### core.Inherit
 
 <a name="core.log"></a>
 ### core.log
@@ -354,7 +369,7 @@ Contains `.log()` and `.trc()` methods, both are attached to `window` object as 
 
 Wraps arround `console.log()` if available, logs into console.
 
-```js
+```
 // show log in console
 frog.log('a', 'b', 'c');
 
@@ -372,7 +387,7 @@ log('a', 'b', 'c');
 
 Wraps arround `console.trace()` if available. Logs including trace into console.
 
-```js
+```
 // show trace in console
 frog.trc();
 
@@ -412,6 +427,108 @@ trc();
 
 ##  REST
 
+<a name="rest.Basics"></a>
+### Basics
+Basic methods, behaviours true for all classes and methods.
+
+- [URL Parameters](#rest.Basics.URLParameters) 
+- [Response Object](#rest.Basics.ResponseObject) 
+
+&nbsp;
+
+<a name="rest.Basics.URLParameters"></a>
+### URL Parameters
+If you use  custom functions to represent your application's logic, then you're free to send whatever parameter you want via URL. 
+You can access these parameters via the `req` argument of `fn`. Find detailed information on the service function [here](#rest.Service.Function).
+
+If you decide to go with one of the existing [CRUD methods](#rest.Service.ExampleCRUD), then you have a fixed set of URL parameters that you can send with every request.  
+
+### URL Parameters
+Use the following URL parameters to handle, specify request and response object.
+
+#### [bol] debug
+Turns on debug mode, results in verbose response object.
+
+#### [num] limit
+Sets the maximum number of objects (array keys) to be returned.
+
+#### [num] offset
+Sets the number of number of objects to be skipped.
+
+#### [num] page
+Used to calculate offset based on given limit.  
+
+#### [str] payload
+Name of pre-set payload, if set response object is reduced to given payload keys.
+
+### [obj] sort
+Accepts mongo sort object.
+
+&nbsp;
+
+<a name="rest.Basics.ResponseObject"></a>
+### Response Object
+Every REST resource, every service responds with the same type of response object.
+
+**code** _String_    
+> Descriptive code, defaults to http status code descriptions, ex. CREATED, might be set to custom code in case of errors.  
+
+**count** _Integer_  
+> `optional`  
+> Available only in list case, holds total number of items in list (response array length).
+
+**data** _Mixed_    
+> Holds returned data.
+
+**debug** _Boolean_ 
+> Gives information about request mode, `true` when debug mode is turned on.
+
+**error** _Boolean_ 
+> Boolean to test against, `false` in success case.
+
+**status** _Integer_ 
+> Holds correct http status code.
+
+**success** _Boolean_ 
+> Boolean to test against, `false` in error case.
+
+#### Example
+
+```
+// default
+{
+	code    : 'OK'
+	data    : {
+		
+		// response object
+		// ...
+		
+	},
+	debug   : false,
+	error   : false,
+	status  : 200,
+	success : true
+}
+
+// list
+{
+	code    : 'OK'
+	count   : 5,
+	data    : [
+	
+		// response array
+		// ...
+	
+	],
+	debug   : false,
+	error   : false,
+	status  : 200,
+	success : true
+}
+```
+
+&nbsp;
+
 <a name="rest.Service"></a>
 ### rest.Service
 A REST `Service` represents a piece of logic that can be accessed via URL (or via internal event emission for cross reference purposes). You can bind whatever method to your `Service` instance or use one of five native `CRUD` methods.
@@ -419,18 +536,21 @@ A REST `Service` represents a piece of logic that can be accessed via URL (or vi
 - [Example](#rest.Service.Example)
 - [Example: CRUD](#rest.Service.ExampleCRUD)
 
-- [Options](#rest.Service.Options)
+All the details here:
+
+- [Constructor](#rest.Service.Constructor)
 - [Function](#rest.Service.Function)
 - [Callback](#rest.Service.Callback)
 - [Response Object](#rest.Service.ResponseObject)
 - [Access by URL](#rest.Service.AccessByUrl)
 - [Access by Event Emission](#rest.Service.AccessByEventEmission)
 
+&nbsp;
+
 <a name="rest.Service.Example"></a>
 ### Example: 
 
-```js
-
+```
 // service logic
 var fn = function(req, cb) {
 
@@ -459,8 +579,7 @@ new frog.Service({
 
 Setting up the `Service` instance above results in a route `http://localhost:[port]/users` being created that is bound to the `fn` method that holds the service logic. Calling this URL via http `GET` will trigger `fn` and return a standard response object based on given parameters of the `cb` call.
 
-```js
-
+```
 // service response object
 {
 	code    : 'OK'
@@ -475,24 +594,28 @@ Setting up the `Service` instance above results in a route `http://localhost:[po
 	status  : 200,
 	success : true
 }
-
 ```
 
 Learn more about the response object [below](#rest.Service.ResponseObject).
+
+&nbsp;
 
 <a name="rest.Service.ExampleCRUD"></a>
 ### Example: CRUD
 You can use native CRUD services to implement full REST resources. Just add a `Schema` and create `Service` instances for all available methods:
 
-- INDEX
-- CREATE
-- RETRIEVE
-- UPDATE
-- DELETE
+```
+HTTP Method   | URI            | CRUD Verb    
+--------------|----------------|--------------
+GET           | /users         | index
+POST          | /users         | create
+GET           | /users/:id     | retrieve
+PUT           | /users/:id     | update
+DELETE        | /users/:id     | delete
+--------------|----------------|--------------
+```
 
-```js
-
-
+```
 // SCHEMA
 
 var schema = new frog.Schema({
@@ -553,42 +676,49 @@ new frog.Service({
 	schema    : schema
 });
 
-
 ```
 
-<a name="rest.Service.Options"></a>
-##### new frog.Service([options])
+&nbsp;
+
+<a name="rest.Service.Constructor"></a>
+### Constructor
+### new frog.Service(options)
 Create a `Service` instance using the following `options`:
-> ***fn*** _Function_ `required`
-> Function or string representing one of the five CRUD verbs:  
-> index  
-> create  
-> retrieve  
-> update  
-> delete
 
-> ***method*** _String_ `optional`  
-> Http method to make this service accessable from, methods to CRUD services are set automatically (GET, POST, PUT, DELETE), can be overwritten here, defaults to GET.
+**fn** _Function_  
+> Function or string representing one of the five CRUD verbs: index, create, retrieve, update, delete.  
 
-> `required` ***namespace*** _String_  
-> The namespace set here allows to access service internally by event emission.
+**method** _String_    
+> `optional`  
+> Http method to make this service accessable from, methods to CRUD services are set automatically (GET, POST, PUT, DELETE), can be overwritten here, defaults to GET.  
 
-> `optional` ***route*** _String_  
-> Follows the restify routing mechanics, excepts regex. Service not available via URL if not set.
+**namespace** _String_   
+> The namespace set here allows to access service internally by event emission.  
 
-> `optional` ***schema*** _Object_  
+**route** _String_   
+> `optional`  
+> Follows the restify routing mechanics, excepts regex. Service not available via URL if not set.  
+
+**schema** _Object_    
+> `optional`  
 > Mongoose schema (for MongoDB). Required only in case of native CRUD methods.
+
+&nbsp;
 
 <a name="rest.Service.Function"></a>
 ### Function
-The function you pass to the `Service` constructor as `fn` value will have two arguments
-> ***req*** _obj_  
+### fn(req, cb)
+The function you pass to the `Service` constructor as `fn` value has two arguments:
+
+**req** _Object_  
 > A request object holding keys: `params`, `query`, `body`.  
-> ***cb*** _*_  
+
+**cb** _Function_  
 > A callback to return results when done.
 
-```js
+#### Example
 
+```
 // service logic
 var fn = function(req, cb) {
 	
@@ -623,69 +753,61 @@ new frog.Service({
 	namespace : 'users',
 	route     : '/users/:id/education'
 });
-
-
 ```
 
-
-
-
+&nbsp;
 
 <a name="rest.Service.Callback"></a>
 ### Callback
+### cb([err][, body][, status][, code])
+The callback function to be used inside `fn` has [default callback footprint](#basics.Callback).
+
+&nbsp;
 
 <a name="rest.Service.ResponseObject"></a>
 ### Response Object
+The response object based on parameters sent with `cb` has the [default REST footprint](#rest.Basics.ResponseObject).
+
+&nbsp;
 
 <a name="rest.Service.AccessByUrl"></a>
 ### Access By URL
+If you use  custom functions to represent your application's logic, then you're free to send whatever parameter you want via URL. 
+You can access these parameters via the `req` argument of `fn`. Find detailed information on the service function [here](#rest.Service.Function).
+
+If you decide to go with one of the existing [CRUD methods](#rest.Service.ExampleCRUD), then you have a fixed set of URL parameters that you can send with every request.  
+
+
+
+### URL Parameters
+Use the following URL parameters to handle, specify request and response object.
+
+#### [bol] debug
+Turns on debug mode, results in verbose response object.
+
+#### [num] limit
+Sets the maximum number of objects (array keys) to be returned.
+
+#### [num] offset
+Sets the number of number of objects to be skipped.
+
+#### [num] page
+Used to calculate offset based on given limit.  
+
+#### [str] payload
+Name of pre-set payload, if set response object is reduced to given payload keys.
+
+### [obj] sort
+Accepts mongo sort object.
+
+&nbsp;
 
 <a name="rest.Service.AccessByEventEmission"></a>
 ### Access by Event Emission
 
-```js
-
-
-
-
-
-```
-
-Access service via `http://localhost:[PORT]/users`, receive response object
-
-```js
-
-
-
-```
 
 ### Options
 
-#### [fun|str] fn
-Set string to use native CRUD service (`index`, `create`, `retrieve` `update`, `delete`) or function. When using function, function comes with four standard arguments `err` `body`, `status`, `code`:
-
-```js
-
-// CRUD service
-new frog.Service({
-	fn : 'create'
-	// ...
-});
-
-// custom service
-new frog.Service({
-	fn : function(req, cb) {
-	
-		// do stuff
-		// invoke callback
-		cb(null, true, 200, 'OK');
-	
-	}
-	// ...
-});
-
-
-```
 
 
 #### [str] method

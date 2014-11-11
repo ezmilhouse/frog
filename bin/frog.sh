@@ -1,15 +1,16 @@
 #!/bin/sh
 
 FROG_CLUSTER=false
+FROG_COMP_REPO="git@github.com:ezmilhouse/frog-components"
 FROG_DEBUG=false
 FROG_DIR=.
+FROG_EXECUTABLE="nodemon" # forever, node
 FROG_LOCAL=false
 FROG_ENV="development"
 FROG_PORT_HTTP="4000"
 FROG_PORT_REST="5000"
 FROG_REPO="/Users/ezmil/Workspace/var/www/frog"
 FROG_REPO_BRANCH="master"
-FROG_COMP_REPO="git@github.com:ezmilhouse/frog-components"
 FROG_TYPE="http" # http, rest
 FROG_TESTS=true
 
@@ -305,6 +306,7 @@ case "$1" in
     # frog path/to/app -e production -l true
     # frog path/to/app -e production -l true -p 2000
     # frog path/to/app -e production -l true -p 2000 -u true
+    # frog path/to/app -e production -l true -p 2000 -u true -x nodemon
     *)
 
         # required: path
@@ -317,7 +319,7 @@ case "$1" in
         OPTIND=2
 
         # parse options
-        while getopts ":d:e:l:p:u:" o; do
+        while getopts ":d:e:l:p:u:x:" o; do
 
             case $o in
 
@@ -346,6 +348,12 @@ case "$1" in
                     FROG_CLUSTER=$OPTARG
                 ;;
 
+                # -x [str] executable to use to run node process
+                # nodemon, node, forever
+                x)
+                    FROG_EXECUTABLE=$OPTARG
+                ;;
+
                 :)
                     echo "[o_O] option -$OPTARG requires argument"
                     exit 1
@@ -372,18 +380,16 @@ case "$1" in
         # change working directory
         pushd ${FROG_DIR}
 
-        echo ${FROG_DEBUG}
-
-        if [ ! "${FROG_DEBUG}" ]; then
+        if [ "${FROG_DEBUG}" != true ]; then
 
             # start frog application
-            nodemon frog.js -e=${FROG_ENV} -l=${FROG_LOCAL} -p=${FROG_PORT_HTTP} -u=${FROG_CLUSTER}
+            ${FROG_EXECUTABLE} frog.js -e=${FROG_ENV} -l=${FROG_LOCAL} -p=${FROG_PORT_HTTP} -u=${FROG_CLUSTER}
 
         else
 
             # start frog application
             # in debug mode
-            nodemon --debug frog.js -e=${FROG_ENV} -l=${FROG_LOCAL} -p=${FROG_PORT_HTTP} -u=${FROG_CLUSTER}
+            ${FROG_EXECUTABLE} --debug frog.js -e=${FROG_ENV} -l=${FROG_LOCAL} -p=${FROG_PORT_HTTP} -u=${FROG_CLUSTER}
 
         fi
 

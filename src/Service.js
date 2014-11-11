@@ -28,15 +28,14 @@ define([
                     limit  : 100,
                     offset : 0,
                     page   : 1,
-                    sort   : {
-                        '_created' : -1
-                    }
+                    sort   : {}
                 },
                 fn        : null,
                 id        : null,
                 method    : null,
                 Model     : null,
                 namespace : null,
+                payload   : [],
                 route     : null,
                 schema    : null,
                 server    : singleton.server
@@ -47,8 +46,10 @@ define([
             }
 
             // prepare
+            this._setNamespace();
             this._setListeners();
             this._setMethods();
+            this._setPayload();
             this._setModel();
             this._setRoute();
 
@@ -64,7 +65,7 @@ define([
          * back to GET in case of custom service.
          * @return {*}
          */
-        _setMethods : function() {
+        _setMethods : function () {
 
             var self = this;
 
@@ -73,7 +74,7 @@ define([
 
             // find correct http method based on native
             // CRUD method or set
-            switch(this.$.fn) {
+            switch (this.$.fn) {
                 case 'index' :
                     method = 'GET';
                     break;
@@ -149,44 +150,73 @@ define([
              */
             var normalize = function (req, res) {
 
-                // reset callback
-                var cb = util.noop;
-
+                // normalize
                 // internal requests might come with nothing
                 // but a callback function, therefore we have
                 // to normalize req, res objects here
-                if (_.isFunction(req)) {
+                switch (arguments.length) {
+                    case 0 :
+                        req = {
+                            body   : {},
+                            params : {},
+                            query  : {}
+                        };
+                        res = null;
+                        break;
+                    default :
+                        if (_.isFunction(req)) {
+                            res = req;
+                            req = {
+                                body   : {},
+                                params : {},
+                                query  : {}
+                            };
+                        } else {
+                            req = req || {};
+                            res = res || null;
+                        }
+                        break;
+                }
+
+                // reset callback
+                var cb = util.noop;
+
+                // normalize
+                req.body = (typeof req.body !== 'undefined')
+                    ? req.body
+                    : {};
+
+                // normalize
+                req.params = (typeof req.params !== 'undefined')
+                    ? req.params
+                    : {};
+
+                // normalize
+                req.query = (typeof req.query !== 'undefined')
+                    ? req.query
+                    : {};
+
+                // differentiate between incoming (native)
+                // res object, and incoming callback
+                if (_.isFunction(res)) {
 
                     // set callback
-                    cb = req;
-
-                    // set empty request object
-                    req = {
-                        body   : {},
-                        params : {},
-                        query  : {}
-                    }
+                    cb = res;
 
                 } else {
 
-                    // normalize (maybe empty) req object keys
-                    req.body = req.body || {};
-                    req.params = req.params || {};
-                    req.query = req.query || {};
+                    // set callback to common send function
+                    cb = function (err, body, status, code) {
 
-                    // differentiate between incoming (native)
-                    // res object, and incoming callback
-                    if (_.isFunction(res)) {
-
-                        // set callback
-                        cb = res;
-
-                    } else {
-
-                        // set callback to common send function
-                        cb = function (err, body, status, code) {
-                            self.$.server.send(req, res, err, body, status, code);
+                        // response object is available,
+                        // sending back results is possible
+                        if (res) {
+                            return self.$.server.send(req, res, err, body, status, code);
                         }
+
+                        // placeholder if response object
+                        // is not available
+                        util.noop();
 
                     }
 
@@ -215,8 +245,8 @@ define([
 
                 case 'index' :
                     app.on('service:' + this.$.namespace + ':index',
-                        function (req, cb) {
-                            req = normalize(req, cb);
+                        function (req, res) {
+                            req = normalize(req, res);
                             self._get(req.params, req.body, req.query, req.cb);
                         });
                     break;
@@ -225,32 +255,32 @@ define([
 
                 case 'create' :
                     app.on('service:' + this.$.namespace + ':create',
-                        function (req, cb) {
-                            req = normalize(req, cb);
+                        function (req, res) {
+                            req = normalize(req, res);
                             self._new(req.params, req.body, req.query, req.cb);
                         });
                     break;
 
                 case 'retrieve' :
                     app.on('service:' + this.$.namespace + ':retrieve',
-                        function (req, cb) {
-                            req = normalize(req, cb);
+                        function (req, res) {
+                            req = normalize(req, res);
                             self._getById(req.params, req.body, req.query, req.cb);
                         });
                     break;
 
                 case 'update' :
                     app.on('service:' + this.$.namespace + ':update',
-                        function (req, cb) {
-                            req = normalize(req, cb);
+                        function (req, res) {
+                            req = normalize(req, res);
                             self._setById(req.params, req.body, req.query, req.cb);
                         });
                     break;
 
                 case 'delete' :
                     app.on('service:' + this.$.namespace + ':delete',
-                        function (req, cb) {
-                            req = normalize(req, cb);
+                        function (req, res) {
+                            req = normalize(req, res);
                             self._delById(req.params, req.body, req.query, req.cb);
                         });
                     break;
@@ -259,11 +289,69 @@ define([
 
                 default :
                     app.on('service:' + this.$.namespace,
-                        function (req, cb) {
-                            req = normalize(req, cb);
+                        function (req, res) {
+                            req = normalize(req, res);
                             self.$.fn(req.params, req.body, req.query, req.cb);
                         });
                     break;
+
+            }
+
+            // make chainable
+            return this;
+
+        },
+
+        /**
+         * @method _setNamespace()
+         * Handles case in which no namepsace is set, falls
+         * back to url instead.
+         * @returns {*}
+         */
+        _setNamespace : function () {
+
+            // extract namespace
+            var ns = this.$.namespace;
+
+            // if not set fall back to url
+            if (!ns) {
+                ns = this.$.route;
+            }
+
+            // save
+            this.$.namespace = ns;
+
+            // make chainable
+            return this;
+
+        },
+
+        /**
+         * @method _setPayload()
+         * Converts incoming array of field names into mongoose
+         * style of payload (being object keys set to true / false).
+         */
+        _setPayload : function () {
+
+            var payload = this.$.payload;
+
+            // convert array into object
+            if (_.isArray(payload)) {
+
+                var obj = {};
+
+                // if more than 0 entries convert into
+                // mongoose object
+                if (payload.length > 0) {
+
+                    for (var i = 0; i < payload.length; i++) {
+                        obj[payload[i]] = 1;
+                    }
+
+                }
+
+                // save
+                this.$.payload = obj;
 
             }
 
@@ -281,6 +369,12 @@ define([
         _setRoute : function () {
 
             var self = this;
+
+            // skip
+            // if no route set
+            if (!this.$.route) {
+                return this;
+            }
 
             /**
              * @middleware normalize
@@ -440,36 +534,35 @@ define([
             delete query.page;
             delete query.sort;
 
-            // get mongo model
-            var Model = this.$.Model;
-
             // find documents
-            Model.find(query, {}, {
-                limit : limit,
-                skip  : offset,
-                sort  : sort
-            }, function (err, docs) {
+            this.$.Model
+                .find(query)
+                .limit(limit)
+                .skip(offset)
+                .sort(sort)
+                .select(this.$.payload)
+                .exec(function (err, docs) {
 
-                // skip!
-                if (err) {
-                    return cb(true, err, 400, 'ERROR_MONGO_DOCUMENT_FIND_FAILED');
-                }
+                    // skip!
+                    if (err) {
+                        return cb(true, err, 400, 'ERROR_MONGO_DOCUMENT_FIND_FAILED');
+                    }
 
-                // skip!
-                // normalize body to null
-                if (!docs || docs.length === 0) {
-                    return cb(null, null, 200);
-                }
+                    // skip!
+                    // normalize body to null
+                    if (!docs || docs.length === 0) {
+                        return cb(null, null, 200);
+                    }
 
-                // normalize
-                _.map(docs, function (doc) {
-                    return doc.toObject();
+                    // normalize
+                    _.map(docs, function (doc) {
+                        return doc.toObject();
+                    });
+
+                    // exit
+                    return cb(null, docs, 200);
+
                 });
-
-                // exit
-                return cb(null, docs, 200);
-
-            });
 
         },
 
@@ -494,32 +587,32 @@ define([
                 return cb(true, null, 400, 'ERROR_MONGO_ID_IS_MISSING');
             }
 
-            // get mongo model
-            var Model = this.$.Model;
-
             // find document
-            Model.findOne({
-                _id : id
-            }, {}, function (err, doc) {
+            this.$.Model
+                .findOne({
+                    _id : id
+                })
+                .select(this.$.payload)
+                .exec(function (err, doc) {
 
-                // skip!
-                if (err) {
-                    return cb(true, err, 400, 'ERROR_MONGO_DOCUMENT_FIND_ONE_FAILED');
-                }
+                    // skip!
+                    if (err) {
+                        return cb(true, err, 400, 'ERROR_MONGO_DOCUMENT_FIND_ONE_FAILED');
+                    }
 
-                // skip!
-                // normalize body to null
-                if (!doc) {
-                    return cb(null, null, 200);
-                }
+                    // skip!
+                    // normalize body to null
+                    if (!doc) {
+                        return cb(null, null, 200);
+                    }
 
-                // normalize
-                doc = doc.toObject();
+                    // normalize
+                    doc = doc.toObject();
 
-                // exit
-                return cb(null, doc, 200);
+                    // exit
+                    return cb(null, doc, 200);
 
-            });
+                });
 
         },
 
@@ -553,23 +646,23 @@ define([
                 _updated : date.getUTCLocal()
             });
 
-            // get mongo model
-            var Model = this.$.Model;
-
             // update documents
-            Model.update(query, body, function (err, num) {
+            this.$.Model
+                .update(query, body)
+                .select(this.$.payload)
+                .exec(function (err, num) {
 
-                // skip!
-                if (err) {
-                    return cb(true, err, 400, 'ERROR_MONGO_DOCUMENT_UPDATE_FAILED');
-                }
+                    // skip!
+                    if (err) {
+                        return cb(true, err, 400, 'ERROR_MONGO_DOCUMENT_UPDATE_FAILED');
+                    }
 
-                // exit
-                return cb(null, {
-                    count : num
-                }, 204);
+                    // exit
+                    return cb(null, {
+                        count : num
+                    }, 204);
 
-            });
+                });
 
         },
 
@@ -604,31 +697,31 @@ define([
                 _updated : date.getUTCLocal()
             });
 
-            // get mongo model
-            var Model = this.$.Model;
-
             // update document
-            Model.findOneAndUpdate({
-                _id : id
-            }, body, function (err, num) {
+            this.$.Model
+                .findOneAndUpdate({
+                    _id : id
+                }, body)
+                .select(this.$.payload)
+                .exec(function (err, num) {
 
-                // skip!
-                if (err) {
-                    return cb(true, err, 400, 'ERROR_MONGO_DOCUMENT_UPDATE_ONE_FAILED');
-                }
+                    // skip!
+                    if (err) {
+                        return cb(true, err, 400, 'ERROR_MONGO_DOCUMENT_UPDATE_ONE_FAILED');
+                    }
 
-                // skip!
-                // normalize body to null
-                if (!num) {
-                    return cb(true, err, 400, 'ERROR_MONGO_DOCUMENT_UPDATE_ONE_FAILED_NO_MATCHES');
-                }
+                    // skip!
+                    // normalize body to null
+                    if (!num) {
+                        return cb(true, err, 400, 'ERROR_MONGO_DOCUMENT_UPDATE_ONE_FAILED_NO_MATCHES');
+                    }
 
-                // exit
-                return cb(null, {
-                    count : num
-                }, 204);
+                    // exit
+                    return cb(null, {
+                        count : num
+                    }, 204);
 
-            });
+                });
 
         },
 
@@ -655,20 +748,23 @@ define([
             // get mongo model
             var Model = this.$.Model;
 
-            // update documents
-            Model.remove(query, function (err, num) {
+            // remove documents
+            this.$.Model
+                .remove(query)
+                .select(this.$.payload)
+                .exec(function (err, num) {
 
-                // skip!
-                if (err) {
-                    return cb(true, err, 400, 'ERROR_MONGO_DOCUMENT_UPDATE_FAILED');
-                }
+                    // skip!
+                    if (err) {
+                        return cb(true, err, 400, 'ERROR_MONGO_DOCUMENT_UPDATE_FAILED');
+                    }
 
-                // exit
-                return cb(null, {
-                    count : num
-                }, 204);
+                    // exit
+                    return cb(null, {
+                        count : num
+                    }, 204);
 
-            });
+                });
 
         },
 
@@ -693,79 +789,30 @@ define([
                 return cb(true, null, 400, 'ERROR_MONGO_ID_IS_MISSING');
             }
 
-            // get mongo model
-            var Model = this.$.Model;
+            this.$.Model
+                .findOneAndRemove({
+                    _id : id
+                })
+                .select(this.$.payload)
+                .exec(function (err, num) {
 
-            // update document
-            Model.findOneAndRemove({
-                _id : id
-            }, function (err, num) {
+                    // skip!
+                    if (err) {
+                        return cb(true, err, 400, 'ERROR_MONGO_DOCUMENT_UPDATE_ONE_FAILED');
+                    }
 
-                // skip!
-                if (err) {
-                    return cb(true, err, 400, 'ERROR_MONGO_DOCUMENT_UPDATE_ONE_FAILED');
-                }
+                    // skip!
+                    // normalize body to null
+                    if (!num) {
+                        return cb(true, err, 400, 'ERROR_MONGO_DOCUMENT_UPDATE_ONE_FAILED_NO_MATCHES');
+                    }
 
-                // skip!
-                // normalize body to null
-                if (!num) {
-                    return cb(true, err, 400, 'ERROR_MONGO_DOCUMENT_UPDATE_ONE_FAILED_NO_MATCHES');
-                }
+                    // exit
+                    return cb(null, {
+                        count : num
+                    }, 204);
 
-                // exit
-                return cb(null, {
-                    count : num
-                }, 204);
-
-            });
-
-        },
-
-        // PUBLIC: INDEX
-
-        /**
-         * @object methods
-         * Holds all methods that can be bound by fn
-         * string.
-         */
-        methods : {
-
-            /**
-             * @shortcut _get(query[,fn])
-             */
-            index : function (query, options, fn) {
-                this._get.apply(this, arguments);
-            },
-
-            // PUBLIC: CRUD
-
-            /**
-             * @shortcut _set(body[,fn])
-             */
-            create : function (body, fn) {
-                this._new.apply(this, arguments);
-            },
-
-            /**
-             * @shortcut _getById(id[,fn])
-             */
-            retrieve : function (id, fn) {
-                this._getById.apply(this, arguments);
-            },
-
-            /**
-             * @shortcut _setById(id, body[,fn])
-             */
-            update : function (id, body, fn) {
-                this._setById.apply(this, arguments);
-            },
-
-            /**
-             * @shortcut _delById(id[,fn])
-             */
-            remove : function (id, fn) {
-                this._delById.apply(this, arguments);
-            }
+                });
 
         }
 
