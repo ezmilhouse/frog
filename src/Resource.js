@@ -1,26 +1,3 @@
-// from within resource:
-// function call
-// this.update(id, body, fn);
-
-// from within resource:
-// event emission
-// this.emit('update', id, body, fn);
-// slef.emit('update', id, body, fn);
-
-// from outside resource, app available:
-// event emission
-// app.emit('resources:clients:update', id, body, fn)
-
-// from outside resource, app not available
-// frog.singleton.resources.clients.update(id, body, fn);
-
-// default index querystring params
-// limit
-// offset
-// page
-// sort
-// order
-
 if (typeof define !== 'function') {
     var _ = require('underscore');
     var define = require('amdefine')(module);
@@ -28,15 +5,16 @@ if (typeof define !== 'function') {
 
 define([
     './Base',
-    './singleton',
+    './Service',
     './util'
-], function (Base, singleton, util) {
+], function (Base, Service, util) {
+
 
     return Base.extend({
 
         /**
          * @method _ctor([obj])
-         * Constructor of Resource class.
+         * Constructor of Service class.
          *
          * @params {optional}{obj} options
          * @return {*}
@@ -44,15 +22,18 @@ define([
         _ctor : function (options) {
 
             this.$ = {
-                app        : null,
-                collection : null,
-                context    : '',
-                id         : null,
-                namespace  : null,
-                route      : null,
-                schema     : null,
-                server     : null,
-                services   : []
+                id        : null,
+                methods   : [
+                    'index',
+                    'create',
+                    'retrieve',
+                    'update',
+                    'delete'
+                ],
+                namespace : null,
+                payload   : [],
+                route     : null,
+                schema    : null
             };
 
             if (options) {
@@ -62,6 +43,120 @@ define([
             // prepare
             this._setServices();
 
+            return this;
+
+        },
+
+        // PRIVATE
+
+        /**
+         * @method _setMethodIndex()
+         * Adds CRUD index method to resource.
+         * @return {*}
+         */
+        _setMethodIndex : function () {
+
+            // index
+            new Service({
+                fn        : 'index',
+                method    : 'GET',
+                namespace : this.$.namespace,
+                payload   : this.$.payload,
+                route     : this.$.route,
+                schema    : this.$.schema
+            });
+
+            // make chainable
+            return this;
+
+        },
+
+        /**
+         * @method _setMethodCreate()
+         * Adds CRUD create method to resource.
+         * @return {*}
+         */
+        _setMethodCreate : function () {
+
+            // create
+            new Service({
+                fn        : 'create',
+                method    : 'POST',
+                namespace : this.$.namespace,
+                payload   : this.$.payload,
+                route     : this.$.route,
+                schema    : this.$.schema
+            });
+
+            // make chainable
+            return this;
+
+        },
+
+        /**
+         * @method _setMethodRetrieve()
+         * Adds CRUD retrieve method to resource.
+         * @return {*}
+         */
+        _setMethodRetrieve : function () {
+
+            // retrieve
+            new Service({
+                fn        : 'retrieve',
+                id        : this.$.id,
+                method    : 'GET',
+                namespace : this.$.namespace,
+                payload   : this.$.payload,
+                route     : this.$.route + '/:' + this.$.id,
+                schema    : this.$.schema
+            });
+
+            // make chainable
+            return this;
+
+        },
+
+        /**
+         * @method _setMethodUpdate()
+         * Adds CRUD update method to resource.
+         * @return {*}
+         */
+        _setMethodUpdate : function () {
+
+            // update
+            new Service({
+                fn        : 'update',
+                id        : this.$.id,
+                method    : 'PUT',
+                namespace : this.$.namespace,
+                payload   : this.$.payload,
+                route     : this.$.route + '/:' + this.$.id,
+                schema    : this.$.schema
+            });
+
+            // make chainable
+            return this;
+
+        },
+
+        /**
+         * @method _setMethodDelete()
+         * Adds CRUD delete method to resource.
+         * @return {*}
+         */
+        _setMethodDelete : function () {
+
+            // delete
+            new Service({
+                fn        : 'delete',
+                id        : this.$.id,
+                method    : 'DELETE',
+                namespace : this.$.namespace,
+                payload   : this.$.payload,
+                route     : this.$.route + '/:' + this.$.id,
+                schema    : this.$.schema
+            });
+
             // make chainable
             return this;
 
@@ -69,122 +164,43 @@ define([
 
         /**
          * @method _setService()
-         * Sets default (CRUID + index) and custom services,
-         * to be accessible under sthis resource.
+         * Create CRUD srevices.
          * @return {*}
          */
         _setServices : function () {
 
-            var self = this;
+            // get allowed methods
+            var methods = this.$.methods;
 
-            // get id key
-            var id = this.$.id;
+            // index
+            if (methods.indexOf('index') > -1) {
+                this._setMethodIndex();
+            }
 
-            // get namespace
-            var namespace = this.$.namespace;
+            // create
+            if (methods.indexOf('create') > -1) {
+                this._setMethodCreate();
+            }
 
-            // get route
-            var route = this.$.context + this.$.route;
+            // retrieve
+            if (methods.indexOf('retrieve') > -1) {
+                this._setMethodRetrieve();
+            }
 
-            // INDEX
+            // update
+            if (methods.indexOf('update') > -1) {
+                this._setMethodUpdate();
+            }
 
-            // index(query, fn)
-            new frog.Service({
-                fn        : 'index',
-                method    : 'GET',
-                namespace : 'resource:' + namespace + ':index',
-                route     : route,
-                schema    : this.$.schema
-            });
-
-            // CRUD
-
-            // create(body, fn)
-            new frog.Service({
-                fn        : 'create',
-                method    : 'POST',
-                namespace : 'resource:' + namespace + ':create',
-                route     : route,
-                schema    : this.$.schema
-            });
-
-            // retrieve(id, fn)
-            new frog.Service({
-                fn        : 'retrieve',
-                method    : 'GET',
-                namespace : 'resource:' + namespace + ':retrieve',
-                route     : route + '/:' + id,
-                schema    : this.$.schema
-            });
-
-            // update(id, body, fn)
-            new frog.Service({
-                fn        : 'update',
-                method    : 'PUT',
-                namespace : 'resource:' + namespace + ':update',
-                route     : route + '/:' + id,
-                schema    : this.$.schema
-            });
-
-            // delete(id, fn)
-            new frog.Service({
-                fn        : 'delete',
-                method    : 'DELETE',
-                namespace : 'resource:' + namespace + ':delete',
-                route     : route + '/:' + id,
-                schema    : this.$.schema
-            });
-
-            // SERVICES
-
-            // extract services
-            var services = this.$.services;
-
-            // loop through all incoming services, create
-            // service instances accordingly
-            for (var i = 0; i < services.length; i++) {
-
-                (function (services, i) {
-
-                    // get service
-                    var service = services[i];
-
-                    // add service
-                    new frog.Service({
-                        fn        : service.fn,
-                        method    : service.method,
-                        namespace : 'resource:' + namespace + ':' + service.namespace,
-                        route     : route + '/:' + id,
-                        schema    : self.$.schema
-                    });
-
-                })(services, i);
-
+            // index
+            if (methods.indexOf('delete') > -1) {
+                this._setMethodDelete();
             }
 
             // make chainable
             return this;
 
-        },
-
-        // PUBLIC
-
-        emit : function (service) {
-
-            // convert
-            var params = Array.prototype.slice.call(arguments);
-
-            // remove first key
-            params.shift();
-
-            // call service
-            this.services[service].apply(params);
-
-            // make chainable
-            return this;
-
         }
-
 
     });
 

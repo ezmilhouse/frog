@@ -3,7 +3,98 @@
 {\colortbl;\red255\green255\blue255;}
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl360\slmult1\slleading160\pardirnatural
 
-\f0\b\fs24 \cf0 \ul \ulc0 BASH
+\f0\b\fs24 \cf0 \ul \ulc0 UBUNTU\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\ul INITIAL SETUP\ulnone \
+\
+CREATE USER WITH ROOT PRIVILEGES\
+\
+
+\f1\b0 # ssh into machine, use root password when promted\
+# p: 8UMezqxzScN9sr\
+$ ssh root@144.76.34.118 \
+\
+# create new user, set password, set information when promted\
+$ adduser www\
+\
+# add user www to sudo group\
+$ gpasswd -a www sudo\
+\
+
+\f0\b SET UP SSH KEY
+\f1\b0 \
+\
+# on your local system, print out, \
+# copy public key\
+$ cat ~/.ssh/id_rsa.pub\
+\
+# adding public key\
+# change user\
+$ su - www\
+\
+# create ssh key directory, set\
+# permissions for directory\
+$ mkdir .ssh\
+$ chmod 700 .ssh\
+\
+# add public key\
+$ nano .ssh/authorized_keys\
+\
+# reduce permissions on authorized keys\
+$ chmod 600 .ssh/authorized_keys\
+\
+# exit to root user\
+$ exit\
+\
+# open a new terminal and try to connect to server\
+# should work\
+$ ssh www@144.76.34.118\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl360\slmult1\slleading160\pardirnatural
+
+\f0\b \ul \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\ulnone CONFIGURE SSH\
+\
+
+\f1\b0 # open ssh configuration\
+$ nano /etc/ssh/sshd_config\
+\
+# change port\
+Port 22 -> Port 2838\
+\
+# change login permission\
+PermitRootLogin yes -> PermitRootLogin no\
+\
+# restart ssh (to load new configuration)\
+$ service ssh restart\
+\
+# before you exit your root user, test ssh configuration\
+# open new terminal, you should be loggedin with www user\
+$ ssh -p 2838 www@144.76.34.118\
+\
+
+\f0\b Install Node.js
+\f1\b0 \
+
+\f0\b \ul \
+
+\f1\b0 \ulnone # install essentials\
+$ apt-get install -y nodejs\
+$ update-alternatives --install /usr/bin/node node /usr/bin/nodejs 10\
+$ apt-get install -y npm\
+$ npm install -g \\\
+    commander \\\
+    forever \\\
+    grunt \\\
+    mocha \\\
+    nodemon \\\
+    node-inspector \\\
+    phantomjs
+\f0\b \ul \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl360\slmult1\slleading160\pardirnatural
+\ul \
+BASH
 \f1\b0 \ulnone \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl360\slmult1\slleading160\partightenfactor0
 
@@ -87,5 +178,7 @@ $ sudo chown -R ezmil:staff .\
 \f0\b SET PRIVATE KEY PERMISSIONS
 \f1\b0 \
 $ chmod go-rwx aws.pem\
+\
+\
 \
 }

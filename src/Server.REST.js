@@ -458,13 +458,16 @@ define([
         },
 
         /**
-         * @method _run()
+         * @method _run([fn])
          * Starts restify server instance by invoking .listen()
          * with given port.
-         *
+         * @params {optional}{fun} fn
          * @return {*}
          */
-        _run : function () {
+        _run : function (fn) {
+
+            // normalize
+            fn = fn || util.noop;
 
             // preserve scope
             var self = this;
@@ -509,6 +512,7 @@ define([
             }, function (err) {
 
                 if (err) {
+                    console.log('[frog] Unable to connect to database, no service on port ' + self.$.mongo.host + ':' + self.$.mongo.port);
                     return fn(true, err, 400);
                 }
 
