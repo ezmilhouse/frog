@@ -14,24 +14,6 @@ define([
     var util = {
 
         /**
-         * @object codes
-         * List of application wide fallback status codes
-         * and messages.
-         */
-        codes : {
-            '200' : 'OK',
-            '201' : 'OK_CREATED',
-            '202' : 'OK_ACCEPTED',
-            '204' : 'OK_NO_CONTENT',
-            '400' : 'ERROR_BAD_REQUEST',
-            '401' : 'ERROR_UNAUTHORIZED',
-            '403' : 'ERROR_FORBIDDEN',
-            '404' : 'ERROR_NOT_FOUND',
-            '409' : 'ERROR_CONFLICT',
-            '500' : 'ERROR_INTERNAL_SERVER_ERROR'
-        },
-
-        /**
          * @object date
          * Everything date related.
          */
@@ -383,13 +365,13 @@ define([
             for (i = 0; i < length; i++) {
 
                 // only deal with non-null/undefined values
-                if ((options = arguments[ i ]) != null) {
+                if ((options = arguments[i]) != null) {
 
                     // extend the base object
                     for (name in options) {
 
-                        src = target[ name ];
-                        copy = options[ name ];
+                        src = target[name];
+                        copy = options[name];
 
                         // prevent never-ending loop
                         if (target === copy) {
@@ -407,13 +389,13 @@ define([
                             }
 
                             // never move original objects, clone them
-                            target[ name ] = util.deepextend(deep, clone, copy);
+                            target[name] = util.deepextend(deep, clone, copy);
 
 
                         } else if (copy !== undefined) {
 
                             // don't bring in undefined values
-                            target[ name ] = copy;
+                            target[name] = copy;
 
                         }
 
@@ -694,6 +676,8 @@ define([
 
         /**
          * @object messages
+         * TODO: DEPRECATED
+         * TODO: SHOULD BE ON APPLICATION LEVEL
          * Various messages.
          */
         messages : {

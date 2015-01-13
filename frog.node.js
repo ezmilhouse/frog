@@ -20,6 +20,7 @@ switch (typeof define !== 'function') {
                 Object : require('./src/Handler.Object')
             },
             I18n        : require('./src/I18n'),
+            Middleware  : require('./src/Middleware'),
             Model       : require('./src/Model'),
             require     : require('./src/require'),
             Resource    : require('./src/Resource'),

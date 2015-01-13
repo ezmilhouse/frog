@@ -9,7 +9,6 @@ define([
     './util'
 ], function (Base, Service, util) {
 
-
     return Base.extend({
 
         /**
@@ -33,6 +32,7 @@ define([
                 namespace : null,
                 payload   : [],
                 route     : null,
+                safe      : true, // if set to false {} queries on _del, _set are possible
                 schema    : null
             };
 
@@ -63,6 +63,7 @@ define([
                 namespace : this.$.namespace,
                 payload   : this.$.payload,
                 route     : this.$.route,
+                safe      : this.$.safe,
                 schema    : this.$.schema
             });
 
@@ -85,6 +86,7 @@ define([
                 namespace : this.$.namespace,
                 payload   : this.$.payload,
                 route     : this.$.route,
+                safe      : this.$.safe,
                 schema    : this.$.schema
             });
 
@@ -108,6 +110,7 @@ define([
                 namespace : this.$.namespace,
                 payload   : this.$.payload,
                 route     : this.$.route + '/:' + this.$.id,
+                safe      : this.$.safe,
                 schema    : this.$.schema
             });
 
@@ -131,6 +134,26 @@ define([
                 namespace : this.$.namespace,
                 payload   : this.$.payload,
                 route     : this.$.route + '/:' + this.$.id,
+                safe      : this.$.safe,
+                schema    : this.$.schema
+            });
+
+            // skip
+            // if in safe mode, avoids updates
+            // of multiple documents
+            if (this.$.safe) {
+                return this;
+            }
+
+            // update (multiple documents affected)
+            new Service({
+                fn        : 'update',
+                id        : this.$.id,
+                method    : 'PUT',
+                namespace : this.$.namespace,
+                payload   : this.$.payload,
+                route     : this.$.route,
+                safe      : this.$.safe,
                 schema    : this.$.schema
             });
 
@@ -154,6 +177,26 @@ define([
                 namespace : this.$.namespace,
                 payload   : this.$.payload,
                 route     : this.$.route + '/:' + this.$.id,
+                safe      : this.$.safe,
+                schema    : this.$.schema
+            });
+
+            // skip
+            // if in safe mode, avoids deletes
+            // of multiple documents
+            if (this.$.safe) {
+                return this;
+            }
+
+            // delete (multiple documents affected)
+            new Service({
+                fn        : 'delete',
+                id        : this.$.id,
+                method    : 'DELETE',
+                namespace : this.$.namespace,
+                payload   : this.$.payload,
+                route     : this.$.route,
+                safe      : this.$.safe,
                 schema    : this.$.schema
             });
 

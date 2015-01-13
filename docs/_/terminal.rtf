@@ -1,17 +1,19 @@
-{\rtf1\ansi\ansicpg1252\cocoartf1343\cocoasubrtf140
-\cocoascreenfonts1{\fonttbl\f0\fmodern\fcharset0 Courier-Bold;\f1\fmodern\fcharset0 Courier;}
+{\rtf1\ansi\ansicpg1252\cocoartf1343\cocoasubrtf160
+{\fonttbl\f0\fmodern\fcharset0 Courier-Bold;\f1\fmodern\fcharset0 Courier;}
 {\colortbl;\red255\green255\blue255;}
+\vieww25280\viewh15480\viewkind0
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl360\slmult1\slleading160\pardirnatural
 
 \f0\b\fs24 \cf0 \ul \ulc0 UBUNTU\
 \
-\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
-\ul INITIAL SETUP\ulnone \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\slleading160\pardirnatural
+\cf0 INITIAL SETUP\ulnone \
 \
 CREATE USER WITH ROOT PRIVILEGES\
 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\slleading160\pardirnatural
 
-\f1\b0 # ssh into machine, use root password when promted\
+\f1\b0 \cf0 # ssh into machine, use root password when promted\
 # p: 8UMezqxzScN9sr\
 $ ssh root@144.76.34.118 \
 \
@@ -21,8 +23,9 @@ $ adduser www\
 # add user www to sudo group\
 $ gpasswd -a www sudo\
 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\slleading160\pardirnatural
 
-\f0\b SET UP SSH KEY
+\f0\b \cf0 SET UP SSH KEY
 \f1\b0 \
 \
 # on your local system, print out, \
@@ -52,12 +55,13 @@ $ exit\
 $ ssh www@144.76.34.118\
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl360\slmult1\slleading160\pardirnatural
 
-\f0\b \ul \
-\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
-\ulnone CONFIGURE SSH\
+\f0\b \cf0 \ul \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\slleading160\pardirnatural
+\cf0 \ulnone CONFIGURE SSH\
 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\slleading160\pardirnatural
 
-\f1\b0 # open ssh configuration\
+\f1\b0 \cf0 # open ssh configuration\
 $ nano /etc/ssh/sshd_config\
 \
 # change port\
@@ -65,7 +69,7 @@ Port 22 -> Port 2838\
 \
 # change login permission\
 PermitRootLogin yes -> PermitRootLogin no\
-\
+I\
 # restart ssh (to load new configuration)\
 $ service ssh restart\
 \
@@ -73,13 +77,15 @@ $ service ssh restart\
 # open new terminal, you should be loggedin with www user\
 $ ssh -p 2838 www@144.76.34.118\
 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\slleading160\pardirnatural
 
-\f0\b Install Node.js
+\f0\b \cf0 Install Node.js
 \f1\b0 \
 
 \f0\b \ul \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\slleading160\pardirnatural
 
-\f1\b0 \ulnone # install essentials\
+\f1\b0 \cf0 \ulnone # install essentials\
 $ apt-get install -y nodejs\
 $ update-alternatives --install /usr/bin/node node /usr/bin/nodejs 10\
 $ apt-get install -y npm\
@@ -93,12 +99,22 @@ $ npm install -g \\\
     phantomjs
 \f0\b \ul \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl360\slmult1\slleading160\pardirnatural
-\ul \
-BASH
+\cf0 \
+BASH\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\cf0 \ulnone PACK / UNPACK\ul \
+
 \f1\b0 \ulnone \
+# unpack gzipped\
+$ tar -xzvf file.tar.gz
+\f0\b \ul \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl360\slmult1\slleading160\pardirnatural
+
+\f1\b0 \cf0 \ulnone \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl360\slmult1\slleading160\partightenfactor0
 
-\f0\b NAVIGATE DIRECTORIES
+\f0\b \cf0 NAVIGATE DIRECTORIES
 \f1\b0 \
 $ cd 		// back home\
 $ cd ..		// one up\
@@ -128,9 +144,9 @@ $ /Users/[USERNAME]	// or cd  \
 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\slleading160\pardirnatural
 
-\f0\b \ul BASH PROFILE\ulnone \
+\f0\b \cf0 \ul BASH PROFILE\ulnone \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl360\slmult1\slleading160\partightenfactor0
-EDIT (in /~)
+\cf0 EDIT (in /~)
 \f1\b0 \
 $ cd\
 $ nano .bash_profile\
@@ -143,10 +159,10 @@ $ . ~/.bash_profile\
 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl360\slmult1\slleading160\pardirnatural
 
-\f0\b \ul HOST
+\f0\b \cf0 \ul HOST
 \f1\b0 \ulnone \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl360\slmult1\slleading160\partightenfactor0
-Add local hosts by editing the `hosts` file in Mac OS X, add IP/TLD pairs to access local hosts in the browser, if it doesn't work immediately after saving, flush the host cache.\
+\cf0 Add local hosts by editing the `hosts` file in Mac OS X, add IP/TLD pairs to access local hosts in the browser, if it doesn't work immediately after saving, flush the host cache.\
 \
 
 \f0\b EDIT HOSTFILE
@@ -160,17 +176,16 @@ $ dscacheutil -flushcache; sudo killall -HUP mDNSResponder\
 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\slleading160\pardirnatural
 
-\f0\b \ul PERMISSIONS\
-\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\slleading160\pardirnatural
+\f0\b \cf0 \ul PERMISSIONS\
 \ulnone \
 MAKE EXECUTABLE\
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\slleading160\pardirnatural
 
-\f1\b0 $ chmod +x path/to/file\
+\f1\b0 \cf0 $ chmod +x path/to/file\
 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\slleading160\pardirnatural
 
-\f0\b MAKE EVERYTHING OWNED BY EVERYONE
+\f0\b \cf0 MAKE EVERYTHING OWNED BY EVERYONE
 \f1\b0 \
 $ sudo chown -R ezmil:staff .\
 \
@@ -178,6 +193,13 @@ $ sudo chown -R ezmil:staff .\
 \f0\b SET PRIVATE KEY PERMISSIONS
 \f1\b0 \
 $ chmod go-rwx aws.pem\
+\
+
+\f0\b INSTALLING JIRA
+\f1\b0 \
+Use wizard: {\field{\*\fldinst{HYPERLINK "https://confluence.atlassian.com/display/JIRA/Installing+JIRA+on+Linux#InstallingJIRAonLinux-UsingtheConsoleWizard"}}{\fldrslt https://confluence.atlassian.com/display/JIRA/Installing+JIRA+on+Linux#InstallingJIRAonLinux-UsingtheConsoleWizard}}\
+Jira running on 8080 (web), 8005 (control) \
+\
 \
 \
 \

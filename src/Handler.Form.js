@@ -318,7 +318,7 @@ define([
             } else {
 
                 // last error message
-                return arr[arr.length -1];
+                return arr[arr.length - 1];
 
             }
 
@@ -1002,45 +1002,7 @@ define([
         },
 
         /**
-         * @method send(fn)
-         * Replaces native form submission if set.
-         * @params {required}{fun} fn
-         * @return {*}
-         */
-        send : function (fn) {
-
-            // set callback
-            this.$.action = fn;
-
-            // make chainable
-            return this;
-
-        },
-
-        /**
-         * @method success([field])
-         * Sets specific field's or whole form's to `ok`, overwrites
-         * existing state, does not validate, sets state wih brute
-         * force
-         * @params {optional}{str} field
-         * @return {*}
-         */
-        success : function (field) {
-
-            // normalize
-            field = field || null;
-
-
-            // ...
-
-
-            // make chainable
-            return this;
-
-        },
-
-        /**
-         * @method test(field[,value])
+         * @method rules(field[,value])
          * Adds validation rules, rules are used bei this.validate()
          * to validate form fields, validation rule callbakcs have
          * to return true (is valid) or false (is invalid).
@@ -1048,13 +1010,13 @@ define([
          * @params {optional}{fun} fn
          * @return {*}
          */
-        test : function (field, arr) {
+        rules : function (field, arr) {
 
             // skip
             // incoming array, loop, call recursively
             if (_.isArray(field)) {
                 for (var i = 0; i < field.length; i++) {
-                    this.test(field[i]);
+                    this.rules(field[i]);
                 }
                 // exit
                 return this;
@@ -1064,7 +1026,7 @@ define([
             // incoming object, loop, call recursively
             if (_.isObject(field)) {
                 for (var key in field) {
-                    this.test(key, field[key]);
+                    this.rules(key, field[key]);
                 }
                 // exit
                 return this;
@@ -1100,6 +1062,44 @@ define([
                 }
 
             }
+
+            // make chainable
+            return this;
+
+        },
+
+        /**
+         * @method send(fn)
+         * Replaces native form submission if set.
+         * @params {required}{fun} fn
+         * @return {*}
+         */
+        send : function (fn) {
+
+            // set callback
+            this.$.action = fn;
+
+            // make chainable
+            return this;
+
+        },
+
+        /**
+         * @method success([field])
+         * Sets specific field's or whole form's to `ok`, overwrites
+         * existing state, does not validate, sets state wih brute
+         * force
+         * @params {optional}{str} field
+         * @return {*}
+         */
+        success : function (field) {
+
+            // normalize
+            field = field || null;
+
+
+            // ...
+
 
             // make chainable
             return this;
@@ -1395,7 +1395,7 @@ define([
          * @shortcut .exec([field][,fn])
          * Shortcut to validate() method.
          */
-        exec : function(field, fn) {
+        exec : function (field, fn) {
             return this.validate.apply(this, arguments);
         }
 

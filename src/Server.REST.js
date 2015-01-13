@@ -35,10 +35,28 @@ define([
                 dir         : null,
                 env         : 'development',
                 gzip        : true,
-                headers     : {},
+                headers     : [
+                    'Accept',
+                    'Content-Type',
+                    'Origin',
+                    'X-Requested-With'
+                ],
                 jsonp       : true,
                 local       : true,
                 log         : true,
+                methods     : [
+                    'HEAD',
+                    'GET',
+                    'POST',
+                    'PUT',
+                    'DELETE',
+                    'OPTIONS'
+                ],
+                messages    : {
+                    errors   : null,
+                    success  : null,
+                    warnings : null
+                },
                 mongo       : {
                     db       : 'frog',
                     password : '',
@@ -125,7 +143,7 @@ define([
          * @returns {*}
          * @private
          */
-        _setDebug : function() {
+        _setDebug : function () {
 
             // set debug from incoming shell option
             this.$.debug = (this.$.shell.d === true);
@@ -244,199 +262,6 @@ define([
 
             // make chainable
             return this;
-
-        },
-
-        /**
-         * @method akaClientList(req, res, next)
-         * Fetches clients list from database, caches list, (skipped
-         * if already cached).
-         *
-         * TODO: I don't like this approach at all, why can clients
-         * TODO: not be live? Why do we need this caching of clients
-         * TODO: as global varibale?
-         *
-         * @params {required}{obj} req
-         * @params {required}{obj} res
-         * @params {required}{fun} next
-         */
-        _middlewareClients : function (req, res, next) {
-
-            var self = this;
-
-            // skip
-            // if clients already loaded
-            if (singleton.clients !== null) {
-                return next();
-            }
-
-            // skip
-            // if server instance comes with
-            // list of clients
-            if (self.$.clients.length > 0) {
-                singleton.clients = self.$.clients;
-                return next();
-            }
-
-            // fetch clients
-            /*
-            self.$.resources['resource:clients'].get('queries.index').call(self.$.resources['resource:clients'], {}, function (err, data, status, code) {
-
-                // [-] exit
-                if (err) {
-                    self.send(req, res, true, null, 400, '00020');
-                    return next(false);
-                }
-
-                // [-] exit
-                if (!data || _.isEmpty(data)) {
-                    self.send(req, res, true, null, 400, '00020');
-                    return next(false);
-                }
-
-                // save clients list in cache
-                singleton.clients = data;
-
-                // [+] exit
-                next();
-
-            }, true);
-            */
-
-            next();
-
-        },
-
-        /**
-         * @method _middlewareCookie(req, res, next)
-         * Check if incoming request comes with cookie header, if so
-         * extracts cookie (and session id) and saves them on the req
-         * object. If cookie is not set, (maybe) existing cookie/session
-         * on req object is reset.
-         *
-         * @params {required}{obj} req
-         * @params {required}{obj} res
-         * @params {required}{fun} next
-         */
-        _middlewareCookie : function (req, res, next) {
-
-            var self = this;
-
-            // reset session
-            var session;
-
-            // reset cookie
-            var cookie;
-
-            // get cookie name
-            var cookieName = self.$.headers.session;
-
-            // if incoming aka header contains session,
-            // use sent in session, if not try to extract
-            // session from existing cookie
-            if (typeof req.headers[cookieName.toLowerCase()] !== 'undefined') {
-
-                // set session based on incoming session header
-                session = req.headers[cookieName.toLowerCase()];
-
-            } else {
-
-                // cookies
-                cookie = util.parseCookie(req.headers);
-
-                // check for ISAAC cookie key
-                if (typeof cookie[cookieName] !== 'undefined') {
-
-                    // save session, if cookie was found
-                    session = cookie[cookieName];
-
-                } else {
-
-                    // reset if not found
-                    session = null;
-
-                }
-
-            }
-
-            if (session) {
-
-                // save cookie information
-                _.extend(req[self.$.object], {
-                    cookie  : cookieName + '=' + session,
-                    session : session
-                });
-
-            } else {
-
-                // reset cookie information
-                _.extend(req[self.$.object], {
-                    cookie  : null,
-                    session : null
-                });
-
-            }
-
-            // exit
-            next();
-
-        },
-
-        /**
-         * @method _middlewareRequestObject(req, res, next)
-         * Creates/resets _ object on incoming request object.
-         *
-         * @params {required}{obj} req
-         * @params {required}{obj} res
-         * @params {required}{obj} next
-         */
-        _middlewareRequestObject : function (req, res, next) {
-
-            var self = this;
-
-            // create _ request object
-            req[self.$.object] = {
-                action  : null,
-                client  : null,
-                cookie  : null,
-                session : null,
-                time    : []
-            };
-
-            // log
-            req = util.log.time.resources(this, req, 'HTTP in');
-
-            // exit
-            next();
-
-        },
-
-        /**
-         * @method _middlewareValidSession(ctx, req, res, next)
-         * Restricts access to resource by checking for valid aka
-         * session, exits with 401 if not set. If (re)set, session
-         * was set by _middlewareCookie() middleware.
-         *
-         * TODO: Why are we using the context (scope) in that
-         * TODO: weird way (as a parameter)?
-         *
-         * @params {required}{obj} ctx
-         * @params {required}{obj} req
-         * @params {required}{obj} res
-         * @params {required}{fun} next
-         */
-        _middlewareValidSession : function (ctx, req, res, next) {
-
-            // [-] exit
-            // check for valid session
-            // exit if not found
-            if (!req[ctx.$.object].session) {
-                ctx.send(req, res, true, null, 401, '00021');
-                return next(false);
-            }
-
-            // [+] exit
-            next();
 
         },
 
@@ -589,78 +414,85 @@ define([
 
             // normalize
             status = status || 200;
-            code = code || util.codes[status] || 200;
+            code = code || status;
 
-            // log
-            req = util.log.time.resources(this, req, 'HTTP out');
+            // get messages
+            var msg = this.$.messages || {};
 
-            // reset payload
-            var payload;
-
-            if (err) {
-
-                // build payload
-                payload = {
-                    code    : code,
-                    debug   : this.$.debug,
-                    data    : data || null, // JSON.parse(JSON.stringify(data), true) || null,
-                    error   : true,
-                    status  : status,
-                    success : false
-                };
-
-                // add time breaks
-                if (this.$.debug) {
-                    _.extend(payload, {
-                        time : util.calc.timeDiff(req[this.$.object].time)
-                    });
+            // set message in case of success
+            if (status >= 200 && status < 300) {
+                if (msg.success) {
+                    if (msg.success[code]) {
+                        msg = msg.success[code];
+                    } else {
+                        msg = msg[status];
+                    }
+                } else {
+                    msg.message = 'OK';
                 }
-
-                // error
-                // always HTTP status 200
-                res.send(200, payload);
-
-                // log
-                util.log.node.req.error(req, status);
-
-            } else {
-
-                // build payload
-                payload = {
-                    code    : code,
-                    data    : data || null, // JSON.parse(JSON.stringify(data), true) || null,
-                    debug   : this.$.debug,
-                    error   : false,
-                    status  : status,
-                    success : true
-                };
-
-                // add time breaks
-                if (this.$.debug) {
-                    _.extend(payload, {
-                        time : util.calc.timeDiff(req[this.$.object].time)
-                    });
-                }
-
-                // index case
-                if (_.isArray(data)) {
-                    _.extend(payload, {
-                        count : data.length
-                        // TODO:
-                        // page
-                        // offset
-                        // limit
-                    });
-                }
-
-                // success
-                // always HTTP status 200
-                res.send(200, payload);
-
-                // log
-                util.log.node.req.success(req, status);
-
             }
+
+            // set message in case of warnings
+            if (status >= 300 && status < 400) {
+                if (msg.warnings) {
+                    if (msg.warnings[code]) {
+                        msg = msg.warnings[code];
+                    } else {
+                        msg = msg[status];
+                    }
+                } else {
+                    msg.message = 'WARNING';
+                }
+            }
+
+            // set message case of errors
+            if (status >= 400) {
+                if (msg.errors) {
+                    if (msg.errors[code]) {
+                        msg = msg.errors[code];
+                    } else {
+                        msg = msg.errors[status];
+                    }
+                } else {
+                    msg.message = 'FAILED';
+                    msg.description = 'No description yet.'
+                }
+            }
+
+            // description fallback
+            if (typeof msg.description === 'undefined') {
+                msg.description = '';
+            }
+
+            // set payload
+            var payload = {
+                code        : code,
+                data        : data || null,
+                debug       : this.$.debug,
+                description : msg.description,
+                error       : !!err,
+                message     : msg.message,
+                status      : status,
+                success     : !err
+            };
+
+            // index case
+            if (_.isArray(payload.data)) {
+                _.extend(payload, {
+                    count : data.length
+                });
+            }
+
+            // update, delete case
+            if (status === 204 && (data && typeof data._count !== 'undefined')) {
+                _.extend(payload, {
+                    count : data._count,
+                    data  : null
+                });
+            }
+
+            // always HTTP status 200
+            res.send(200, payload);
 
         },
 
@@ -702,7 +534,11 @@ define([
 
                 // REQUEST
 
-                var headers = self.$.headers;
+                // fetch list of headers
+                var headers = self.$.headers.join(',');
+
+                // fetch list of methods
+                var methods = self.$.methods.join(',');
 
                 // force client to only accept json
                 req.header('Accept', 'application/json');
@@ -718,8 +554,8 @@ define([
                 }
 
                 // allow x-domain access
-                res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, ' + headers.key + ', ' + headers.session);
-                res.header('Access-Control-Allow-Methods', 'HEAD, GET, POST, PUT, DELETE, OPTIONS');
+                res.header('Access-Control-Allow-Headers', headers);
+                res.header('Access-Control-Allow-Methods', methods);
                 res.header('Access-Control-Allow-Origin', '*');
 
                 // set x-domain headers
@@ -729,7 +565,7 @@ define([
 
                         // preflight, sets allowed http methods for
                         // follow-up request
-                        res.header('Allow', 'HEAD', 'GET, POST, PUT, DELETE');
+                        res.header('Allow', methods);
 
                         break;
 
@@ -795,27 +631,6 @@ define([
             if (this.$.log) {
                 app.use(restify.requestLogger());
             }
-
-            // SERVER: MIDDLEWARE: CUSTOM
-            // Custom middleware handling specific requirements for incoming
-            // requests.
-
-            // resets request object on request
-            app.use(function (req, res, next) {
-                self._middlewareRequestObject.call(self, req, res, next);
-            });
-
-            // checks whether or not cookie is set
-            // saves session/cookie on request object if
-            // available, otherwise resets session/cookie
-            app.use(function (req, res, next) {
-                self._middlewareCookie.call(self, req, res, next);
-            });
-
-            // fetches client list from db, saves in cache
-            app.use(function (req, res, next) {
-                self._middlewareClients.call(self, req, res, next);
-            });
 
             // SERVER: EVENTS
             // Handle all kinds of errors, including uncaught exceptions.

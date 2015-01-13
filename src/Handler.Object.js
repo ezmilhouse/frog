@@ -24,7 +24,7 @@ define([
 
             // reset class object
             this.$ = {
-                body        : null,
+                data        : null,
                 errors      : null,
                 errors_all  : false,
                 rules       : {},
@@ -54,9 +54,9 @@ define([
 
             // build results object
             return {
-                body   : this.$.body,
-                errors : this.$.errors,
-                valid  : this.$.valid
+                validated : this.$.data,
+                errors    : this.$.errors,
+                valid     : this.$.valid
             };
 
         },
@@ -75,7 +75,7 @@ define([
             obj = obj || {};
 
             // set incoming data object
-            this.set('body', obj);
+            this.set('data', obj);
 
             // make chainable
             return this;
@@ -173,14 +173,14 @@ define([
          *
          * @sample
          * // validate all keys in object against ruleset
-         * // specific to the body key
-         * handler.validate(function(err, body, status, code) {
+         * // specific to the data key
+         * handler.validate(function(err, data, status, code) {
          *      // handle validation results
          * });
          *
          * // validate single key in object against ruleset
-         * // specific to the body key
-         * handler.validate(function(err, body, status, code) {
+         * // specific to the data key
+         * handler.validate(function(err, data, status, code) {
          *      // handle validation results
          * });
          *
@@ -243,9 +243,8 @@ define([
                     if (index === -1) {
                         errors[key].push({
                             field : key,
-                            name  : ruleMethodName,
-                            rule  : rule,
-                            value : self.$.body[key]
+                            rule  : ruleMethodName,
+                            value : self.$.data[key] || null
                         });
                     }
 
@@ -302,7 +301,7 @@ define([
 
                 // convert into array
                 var arr = [];
-                for (var i in this.$.body) {
+                for (var i in this.$.rules) {
                     arr.push(i);
                 }
 
@@ -326,7 +325,7 @@ define([
 
                             // [-] exit
                             if (!results.valid) {
-                                return fn(true, results, 409, 'ERROR_VALIDATION');
+                                return fn(true, results, 409, 'CONFLICT');
                             }
 
                             // invoke callback
@@ -343,7 +342,7 @@ define([
             }
 
             // get field data
-            var value = this.$.body[key];
+            var value = this.$.data[key];
 
             // get field rules
             var rules = this.$.rules[key] || ['isNoop'];
@@ -430,7 +429,7 @@ define([
 
                             // [-] exit
                             if (!results.valid) {
-                                return fn(true, results, 409, 'ERROR_VALIDATION');
+                                return fn(true, results, 409, 'CONFLICT');
                             }
 
                             // [+] exit

@@ -363,6 +363,14 @@ define([
             // sets routing trailing slash rule
             app.set('strict routing', false);
 
+            // enables less compiling on the fly
+            // should only be used in development
+            // environment
+            app.use('/less-css', less(this.$.dir + this.$.public + '/less', {
+                compress : true,
+                debug    : true
+            }));
+
             // set expires headers
             app.use('*', function(req, res, next) {
                 res.set('Cache-Control', 'public, max-age=345600'); // 4 days
@@ -382,17 +390,9 @@ define([
             // handle favicon
             app.use(favicon(this.$.dir + this.$.favicon));
 
+
             // handle static files
             app.use(express.static(this.$.dir + this.$.public));
-
-            // enables less compiling on the fly
-            // should only be used in development
-            // environment
-            if (this.$.env === 'development') {
-                app.use('/less-css', less(this.$.dir + this.$.public + '/less', {
-                    compress : true
-                }));
-            }
 
             // force trailing slash
             app.use(slashes());

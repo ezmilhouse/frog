@@ -161,12 +161,15 @@ define([
             // reset flag
             var valid = false;
 
-            // remove first key
+            // remove first key, strip down array
+            // [isEnum, ['a', 'b', 'c']]
+            // [['a', 'b', 'c']]
+            // ['a', 'b', 'c']
             arr.splice(0, 1);
 
             // [+] valid
             // in array
-            if (arr.indexOf(val) > -1) {
+            if (arr[0].indexOf(val) > -1) {
                 valid = true;
             }
 
@@ -366,6 +369,33 @@ define([
         },
 
         /**
+         * @method isObjectId(val, arr, fn)
+         * Checks if incoming string can be parsed as valid
+         * mongo object id.
+         * @params {required}{val} val
+         * @params {required}{arr} arr
+         * @params {required}{fun} fn
+         */
+        isObjectId : function(val, arr, fn) {
+
+            // reset flag
+            var valid = false;
+
+            // skip
+            // exit on undefined
+            if (typeof val === 'undefined' || val === 'undefined') {
+                return fn(!valid);
+            }
+
+            // check string pattern
+            valid = val.match(/^[0-9a-fA-F]{24}$/);
+
+            // reverse results, to meet
+            // fn(err) convention
+            return fn(!valid);
+        },
+
+        /**
          * @method isRange(val, arr, fn)
          * Checks if number is between min and max.
          * @params {required}{val} val
@@ -471,6 +501,12 @@ define([
 
             // reset flag
             var valid = false;
+
+            // skip
+            // exit on undefined
+            if (typeof val === 'undefined' || val === 'undefined') {
+                return fn(!valid);
+            }
 
             // check string length
             if (val) {

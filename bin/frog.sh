@@ -127,11 +127,11 @@ case "$1" in
 
     ;;
 
-    # create)
+    # http)
     #
     # frog create path/to/app
     # frog create path/to/app -r path/to/repo
-    create)
+    http)
 
         # required: path
         if [ ! "$2" ] ; then

@@ -66,6 +66,23 @@ define({
     key : null,
 
     /**
+     * @key {optional}{obj} messages
+     * Contains object holding success and error messages.
+     *
+     * @key {optional}{obj} errors
+     *      Holds error messages.
+     * @key {optional}{str} success
+     *      Holds success messages.
+     * @key {optional}{str} warnings
+     *      Holds warnings.
+     */
+    messages : {
+        errors   : null,
+        success  : null,
+        warnings : null
+    },
+
+    /**
      * @obj mongo
      * TODO: should be able to carry all available mongo options, plz
      * TODO: doublecheck
@@ -99,7 +116,7 @@ define({
      * @key {optional}{str} user
      *      Set username to be used to authorize connection.
      */
-    mongo   : {
+    mongo : {
         db       : 'default',
         host     : '127.0.0.1',
         password : null,
@@ -141,7 +158,7 @@ define({
      * Relative path from your application's root to the place
      * you hold your server-side code.
      */
-    server  : '/server',
+    server : '/server',
 
     /**
      * @key {required}{str} shell
@@ -150,6 +167,6 @@ define({
      * certain application functions ex: start, stop, restart,
      * most of the tim ein deployment settings).
      */
-    shell   : '/frog.shell'
+    shell : '/frog.shell'
 
 });

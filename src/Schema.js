@@ -124,6 +124,9 @@ define([
                                 // remove __v key
                                 delete ret.__v;
 
+                                // customized version key name
+                                delete ret._version;
+
                             }
 
                         },

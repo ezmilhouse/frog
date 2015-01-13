@@ -22,23 +22,25 @@ define([
         _ctor : function (options) {
 
             this.$ = {
-                app       : singleton.app,
-                cb        : null,
-                defaults  : {
+                app        : singleton.app,
+                cb         : null,
+                defaults   : {
                     limit  : 100,
                     offset : 0,
                     page   : 1,
                     sort   : {}
                 },
-                fn        : null,
-                id        : null,
-                method    : null,
-                Model     : null,
-                namespace : null,
-                payload   : [],
-                route     : null,
-                schema    : null,
-                server    : singleton.server
+                fn         : null,
+                id         : 'id',
+                method     : null,
+                middleware : [],
+                Model      : null,
+                namespace  : null,
+                payload    : [],
+                route      : null,
+                safe       : true, // if set to false {} queries on _del, _set are possible
+                schema     : null,
+                server     : singleton.server
             };
 
             if (options) {
@@ -58,6 +60,25 @@ define([
         },
 
         // PRIVATE
+
+        /**
+         * @method _getListener(namespace)
+         * Return true or false, based on finding namespace
+         * in _events list.
+         * @params {required}{str} namespace
+         * @return {bol}
+         */
+        _getListener : function (namespace) {
+
+            var self = this;
+
+            // get restify app object
+            var app = this.$.app;
+
+            // retunr boolean (true if found)
+            return typeof app._events[namespace] !== 'undefined';
+
+        },
 
         /**
          * @method _setMethod()
@@ -237,6 +258,12 @@ define([
             // reset
             var obj;
 
+            // id key
+            var id = this.$.id;
+
+            // reset namespace
+            var ns;
+
             // set event listener based on set function fn is string,
             // meaning a pre-set crud function or a custom function
             switch (self.$.fn) {
@@ -244,55 +271,145 @@ define([
                 // INDEX
 
                 case 'index' :
-                    app.on('service:' + this.$.namespace + ':index',
-                        function (req, res) {
-                            req = normalize(req, res);
-                            self._get(req.params, req.body, req.query, req.cb);
-                        });
+
+                    // set namespace
+                    ns = 'service:' + this.$.namespace + ':index';
+
+                    // skip
+                    // if already set, no stacking
+                    // of event listeners
+                    if (this._getListener(ns)) {
+                        return this;
+                    }
+
+                    // set listener
+                    app.on(ns, function (req, res) {
+                        req = normalize(req, res);
+                        self._get(req.params, req.body, req.query, req.cb);
+                    });
+
                     break;
 
                 // CRUD
 
                 case 'create' :
-                    app.on('service:' + this.$.namespace + ':create',
-                        function (req, res) {
-                            req = normalize(req, res);
-                            self._new(req.params, req.body, req.query, req.cb);
-                        });
+
+                    // set namespace
+                    ns = 'service:' + this.$.namespace + ':create';
+
+                    // skip
+                    // if already set, no stacking
+                    // of event listeners
+                    if (this._getListener(ns)) {
+                        return this;
+                    }
+
+                    // set listener
+                    app.on(ns, function (req, res) {
+                        req = normalize(req, res);
+                        self._new(req.params, req.body, req.query, req.cb);
+                    });
+
                     break;
 
                 case 'retrieve' :
-                    app.on('service:' + this.$.namespace + ':retrieve',
-                        function (req, res) {
-                            req = normalize(req, res);
-                            self._getById(req.params, req.body, req.query, req.cb);
-                        });
+
+                    // set namespace
+                    ns = 'service:' + this.$.namespace + ':retrieve';
+
+                    // skip
+                    // if already set, no stacking
+                    // of event listeners
+                    if (this._getListener(ns)) {
+                        return this;
+                    }
+
+                    // set listener
+                    app.on(ns, function (req, res) {
+                        req = normalize(req, res);
+                        self._getById(req.params, req.body, req.query, req.cb);
+                    });
+
                     break;
 
                 case 'update' :
-                    app.on('service:' + this.$.namespace + ':update',
-                        function (req, res) {
-                            req = normalize(req, res);
-                            self._setById(req.params, req.body, req.query, req.cb);
-                        });
+
+                    // set namespace
+                    ns = 'service:' + this.$.namespace + ':update';
+
+                    // skip
+                    // if already set, no stacking
+                    // of event listeners
+                    if (this._getListener(ns)) {
+                        return this;
+                    }
+
+                    // set listener
+                    app.on(ns, function (req, res) {
+
+                        req = normalize(req, res);
+
+                        // no id, invoke on multiple documents
+                        if (typeof req.params[id] === 'undefined') {
+                            return self._set(req.params, req.body, req.query, req.cb);
+                        }
+
+                        // id set, invoke on single document
+                        self._setById(req.params, req.body, req.query, req.cb);
+
+                    });
+
                     break;
 
                 case 'delete' :
-                    app.on('service:' + this.$.namespace + ':delete',
-                        function (req, res) {
-                            req = normalize(req, res);
-                            self._delById(req.params, req.body, req.query, req.cb);
-                        });
+
+                    // set namespace
+                    ns = 'service:' + this.$.namespace + ':delete';
+
+                    // skip
+                    // if already set, no stacking
+                    // of event listeners
+                    if (this._getListener(ns)) {
+                        return this;
+                    }
+
+                    // set listener
+                    app.on(ns, function (req, res) {
+
+                        req = normalize(req, res);
+
+                        // no id, invoke on multiple documents
+                        if (typeof req.params[id] === 'undefined') {
+                            return self._del(req.params, req.body, req.query, req.cb);
+                        }
+
+                        // id set, invoke on single document only
+                        self._delById(req.params, req.body, req.query, req.cb);
+
+                    });
+
                     break;
 
                 // CUSTOM
 
                 default :
-                    app.on('service:' + this.$.namespace,
-                        function (req, res) {
-                            req = normalize(req, res);
-                            self.$.fn(req.params, req.body, req.query, req.cb);
-                        });
+
+                    // set namespace
+                    ns = 'service:' + this.$.namespace;
+
+                    // skip
+                    // if already set, no stacking
+                    // of event listeners
+                    if (this._getListener(ns)) {
+                        return this;
+                    }
+
+                    // set listener
+                    app.on(ns, function (req, res) {
+                        req = normalize(req, res);
+                        self.$.fn(req.params, req.body, req.query, req.cb);
+                    });
+
                     break;
 
             }
@@ -315,7 +432,7 @@ define([
 
             // if not set fall back to url
             if (!ns) {
-                ns = this.$.route;
+                ns = this.$.method + ':' + this.$.route;
             }
 
             // save
@@ -432,21 +549,21 @@ define([
         // PRIVATE: QUERIES
 
         /**
-         * @method _new(params, body, query[,cb])
+         * @method _new(params, body, query[,fn])
          * Creates new document based on body.
          * @params {required}{obj} params
          * @params {required}{obj} body
          * @params {required}{obj} query
-         * @params {optional}{fun} cb
+         * @params {optional}{fun} fn
          */
-        _new : function (params, body, query, cb) {
+        _new : function (params, body, query, fn) {
 
             // normalize
-            cb = cb || util.noop;
+            fn = fn || util.noop;
 
             // validate
             if (_.isEmpty(body)) {
-                return cb(true, null, 400, 'ERROR_MONGO_BODY_IS_EMPTY');
+                return fn(true, null, 400, 400104);
             }
 
             // extend body object
@@ -463,32 +580,42 @@ define([
 
                 // skip!
                 if (err) {
-                    return cb(true, err, 400, 'ERROR_MONGO_DOCUMENT_NOT_CREATED');
+                    return fn(true, err, 400, 400100);
                 }
 
                 // normalize
                 doc = doc.toObject();
 
+                // normalize _id
+                if (doc._id && typeof doc._id === 'object') {
+                    doc._id = doc._id.toString();
+                }
+
+                // normalize id
+                if (doc.id && typeof doc.id === 'object') {
+                    doc.id = doc.id.toString();
+                }
+
                 // exit
-                return cb(null, doc, 201);
+                return fn(null, doc, 201);
 
             });
 
         },
 
         /**
-         * @method _get(params, body, query[,cb])
+         * @method _get(params, body, query[,fn])
          * Returns multiple documents, found by query object, results
          * based on options object.
          * @params {required}{obj} params
          * @params {required}{obj} body
          * @params {required}{obj} query
-         * @params {optional}{fun} cb
+         * @params {optional}{fun} fn
          */
-        _get : function (params, body, query, cb) {
+        _get : function (params, body, query, fn) {
 
             // normalize
-            cb = cb || util.noop;
+            fn = fn || util.noop;
 
             // get defaults
             var defaults = this.$.defaults;
@@ -545,13 +672,13 @@ define([
 
                     // skip!
                     if (err) {
-                        return cb(true, err, 400, 'ERROR_MONGO_DOCUMENT_FIND_FAILED');
+                        return fn(true, err, 400, 400101);
                     }
 
                     // skip!
                     // normalize body to null
                     if (!docs || docs.length === 0) {
-                        return cb(null, null, 200);
+                        return fn(null, null, 404, 404100);
                     }
 
                     // normalize
@@ -560,31 +687,31 @@ define([
                     });
 
                     // exit
-                    return cb(null, docs, 200);
+                    return fn(null, docs, 200);
 
                 });
 
         },
 
         /**
-         * @method _getById(params, body, query[,cb])
+         * @method _getById(params, body, query[,fn])
          * Returns single document, found by id.
          * @params {required}{obj} params
          * @params {required}{obj} body
          * @params {required}{obj} query
-         * @params {optional}{fun} cb
+         * @params {optional}{fun} fn
          */
-        _getById : function (params, body, query, cb) {
+        _getById : function (params, body, query, fn) {
 
             // normalize
-            cb = cb || util.noop;
+            fn = fn || util.noop;
 
             // set id
             var id = params[this.$.id];
 
             // validate
             if (!id) {
-                return cb(true, null, 400, 'ERROR_MONGO_ID_IS_MISSING');
+                return fn(true, null, 400, 400102);
             }
 
             // find document
@@ -597,48 +724,46 @@ define([
 
                     // skip!
                     if (err) {
-                        return cb(true, err, 400, 'ERROR_MONGO_DOCUMENT_FIND_ONE_FAILED');
+                        return fn(true, err, 400, 400103);
                     }
 
                     // skip!
                     // normalize body to null
                     if (!doc) {
-                        return cb(null, null, 200);
+                        return fn(null, null, 404, 404101);
                     }
 
                     // normalize
                     doc = doc.toObject();
 
                     // exit
-                    return cb(null, doc, 200);
+                    return fn(null, doc, 200);
 
                 });
 
         },
 
         /**
-         * @method _set(params, body, query[,cb])
+         * @method _set(params, body, query[,fn])
          * Updates multiple documents based on body, found by query.
          * @params {required}{obj} params
          * @params {required}{obj} body
          * @params {required}{obj} query
-         * @params {optional}{fun} cb
+         * @params {optional}{fun} fn
          */
-        _set : function (params, body, query, cb) {
+        _set : function (params, body, query, fn) {
 
             // normalize
-            cb = cb || util.noop;
-
-            // validate
-            if (_.isEmpty(body)) {
-                return cb(true, null, 400, 'ERROR_MONGO_BODY_IS_EMPTY');
-            }
+            fn = fn || util.noop;
 
             // validate
             // avoid massive updates, caused by empty queries
-            // enforce reasonable queries
+            // enforce reasonable queries (if safe is set to
+            // true)
             if (_.isEmpty(query)) {
-                return cb(true, null, 400, 'ERROR_MONGO_QUERY_IS_EMPTY');
+                if (this.$.safe === true) {
+                    return fn(true, null, 400, 400106);
+                }
             }
 
             // extend body object
@@ -648,18 +773,26 @@ define([
 
             // update documents
             this.$.Model
-                .update(query, body)
+                .update(query, body, {
+                    multi : true
+                })
                 .select(this.$.payload)
                 .exec(function (err, num) {
 
                     // skip!
                     if (err) {
-                        return cb(true, err, 400, 'ERROR_MONGO_DOCUMENT_UPDATE_FAILED');
+                        return fn(true, err, 400, 400107);
+                    }
+
+                    // skip!
+                    // no document affected
+                    if (!num) {
+                        return fn(true, err, 404, 404102);
                     }
 
                     // exit
-                    return cb(null, {
-                        count : num
+                    return fn(null, {
+                        _count : num
                     }, 204);
 
                 });
@@ -667,29 +800,24 @@ define([
         },
 
         /**
-         * @method _setById(params, body, query[,cb])
+         * @method _setById(params, body, query[,fn])
          * Updates single document, found by id.
          * @params {required}{obj} params
          * @params {required}{obj} body
          * @params {required}{obj} query
-         * @params {optional}{fun} cb
+         * @params {optional}{fun} fn
          */
-        _setById : function (params, body, query, cb) {
+        _setById : function (params, body, query, fn) {
 
             // normalize
-            cb = cb || util.noop;
+            fn = fn || util.noop;
 
             // set id
             var id = params[this.$.id];
 
             // validate
             if (!id) {
-                return cb(true, null, 400, 'ERROR_MONGO_ID_IS_MISSING');
-            }
-
-            // validate
-            if (_.isEmpty(body)) {
-                return cb(true, null, 400, 'ERROR_MONGO_BODY_IS_EMPTY');
+                return fn(true, null, 400, 400108);
             }
 
             // extend body object
@@ -707,18 +835,25 @@ define([
 
                     // skip!
                     if (err) {
-                        return cb(true, err, 400, 'ERROR_MONGO_DOCUMENT_UPDATE_ONE_FAILED');
+                        return fn(true, err, 400, 400110);
                     }
 
                     // skip!
                     // normalize body to null
                     if (!num) {
-                        return cb(true, err, 400, 'ERROR_MONGO_DOCUMENT_UPDATE_ONE_FAILED_NO_MATCHES');
+                        return fn(true, err, 404, 404103);
+                    }
+
+                    // normalize
+                    // mongo will return object, if only one
+                    // document was affected
+                    if (_.isObject(num)) {
+                        num = 1;
                     }
 
                     // exit
-                    return cb(null, {
-                        count : num
+                    return fn(null, {
+                        _count : num
                     }, 204);
 
                 });
@@ -726,23 +861,26 @@ define([
         },
 
         /**
-         * @method _del(params, body, query[,cb])
+         * @method _del(params, body, query[,fn])
          * Deletes multiple documents, found by query.
          * @params {required}{obj} params
          * @params {required}{obj} body
          * @params {required}{obj} query
-         * @params {optional}{fun} cb
+         * @params {optional}{fun} fn
          */
-        _del : function (params, body, query, cb) {
+        _del : function (params, body, query, fn) {
 
             // normalize
-            cb = cb || util.noop;
+            fn = fn || util.noop;
 
             // validate
-            // avoid massive updates, caused by empty queries
-            // enforce reasonable queries
+            // avoid massive deletes, caused by empty queries
+            // enforce reasonable queries (if safe is set to
+            // true)
             if (_.isEmpty(query)) {
-                return cb(true, null, 400, 'ERROR_MONGO_QUERY_IS_EMPTY');
+                if (this.$.safe === true) {
+                    return fn(true, null, 400, 400111);
+                }
             }
 
             // get mongo model
@@ -756,12 +894,25 @@ define([
 
                     // skip!
                     if (err) {
-                        return cb(true, err, 400, 'ERROR_MONGO_DOCUMENT_UPDATE_FAILED');
+                        return fn(true, err, 400, 400112);
+                    }
+
+                    // skip
+                    // no documents affected
+                    if (!num) {
+                        return fn(true, err, 404, 404104);
+                    }
+
+                    // normalize
+                    // mongo will return object, if only one
+                    // document was affected
+                    if (_.isObject(num)) {
+                        num = 1;
                     }
 
                     // exit
-                    return cb(null, {
-                        count : num
+                    return fn(null, {
+                        _count : num
                     }, 204);
 
                 });
@@ -769,24 +920,24 @@ define([
         },
 
         /**
-         * @method _delById(params, body, query[,cb])
+         * @method _delById(params, body, query[,fn])
          * Deletes single document, found by id.
          * @params {required}{obj} params
          * @params {required}{obj} body
          * @params {required}{obj} query
-         * @params {optional}{fun} cb
+         * @params {optional}{fun} fn
          */
-        _delById : function (params, body, query, cb) {
+        _delById : function (params, body, query, fn) {
 
             // normalize
-            cb = cb || util.noop;
+            fn = fn || util.noop;
 
             // set id
             var id = params[this.$.id];
 
             // validate
             if (!id) {
-                return cb(true, null, 400, 'ERROR_MONGO_ID_IS_MISSING');
+                return fn(true, null, 400, 'ERROR_MONGO_ID_IS_MISSING');
             }
 
             this.$.Model
@@ -798,18 +949,25 @@ define([
 
                     // skip!
                     if (err) {
-                        return cb(true, err, 400, 'ERROR_MONGO_DOCUMENT_UPDATE_ONE_FAILED');
+                        return fn(true, err, 400, 400113);
                     }
 
                     // skip!
                     // normalize body to null
                     if (!num) {
-                        return cb(true, err, 400, 'ERROR_MONGO_DOCUMENT_UPDATE_ONE_FAILED_NO_MATCHES');
+                        return fn(true, err, 404, 404105);
+                    }
+
+                    // normalize
+                    // mongo will return object, if only one
+                    // document was affected
+                    if (_.isObject(num)) {
+                        num = 1;
                     }
 
                     // exit
-                    return cb(null, {
-                        count : num
+                    return fn(null, {
+                        _count : num
                     }, 204);
 
                 });
