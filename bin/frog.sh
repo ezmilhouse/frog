@@ -311,6 +311,7 @@ case "$1" in
 
         # required: path
         if [ ! "$1" ] ; then
+            # TODO: has to show usage in this case
             echo "[o_O] missing path to application"
             exit 1
         fi
@@ -378,7 +379,7 @@ case "$1" in
         fi
 
         # change working directory
-        pushd ${FROG_DIR}
+        pushd ${FROG_DIR} > /dev/null
 
         if [ "${FROG_DEBUG}" != true ]; then
 
@@ -394,7 +395,7 @@ case "$1" in
         fi
 
         # change working directory (back to script context)
-        popd
+        popd > /dev/null
 
     ;;
 

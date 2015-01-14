@@ -3,6 +3,7 @@
   "dependencies"    : {
 	"amdefine"        : "*",
 	"compression"     : "*",
+	"connect-redis"	  : "*",
 	"connect-slashes" : "*",
 	"cookie-parser"   : "*",
 	"ejs"             : "*",
@@ -12,7 +13,7 @@
 	"express-session" : "*",
 	"express"         : "*",
 	"moment"          : "*",
-	"mongoose"        : "*",
+	"mongoose"        : "3.8.21",
 	"nodemailer"      : "*",
 	"numeral"         : "*",
 	"restify"         : "*",

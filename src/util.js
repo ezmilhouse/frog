@@ -514,6 +514,14 @@ define([
         },
 
         /**
+         * @method isObjectId(str)
+         * Checks if incoming string matches mongo object id (formally).
+         */
+        isObjectId : function(str) {
+            return str.match(/^[0-9a-fA-F]{24}$/);
+        },
+
+        /**
          * @object log
          * Various loggers.
          */
@@ -634,6 +642,14 @@ define([
                         str += moment().format('D MMM HH:mm:ss') + ' - ' + '[node] worker with PID ' + worker.id + ' died, rip, his mother loved him';
                         console.log(str);
                     }
+                }
+            },
+            redis : {
+                down  : function () {
+                    var str = '';
+                    str += '\n';
+                    str += moment().format('D MMM HH:mm:ss') + ' - ' + '[redis] lost session, no connection, service down';
+                    console.log(str);
                 }
             },
             time  : {

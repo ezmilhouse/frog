@@ -8,6 +8,7 @@ define([
     './Base',
     'cluster',
     'compression',
+    'connect-redis',
     'connect-slashes',
     'cookie-parser',
     'ejs-locals',
@@ -20,7 +21,7 @@ define([
     'os',
     './singleton',
     './util'
-], function (_, app, Base, cluster, compression, slashes, cookieParser, engine, express, less, session, favicon, Flow, moment, os, singleton, util) {
+], function (_, app, Base, cluster, compression, RedisStore, slashes, cookieParser, engine, express, less, session, favicon, Flow, moment, os, singleton, util) {
 
     return Base.extend({
 
@@ -46,6 +47,7 @@ define([
                 name        : null,
                 port        : null,
                 public      : '/public',
+                redis       : null,
                 server      : null,
                 sessions    : null,
                 shell       : '/frog.shell',
@@ -68,6 +70,7 @@ define([
             this._setCluster();
             this._setText();
             this._getCPUs();
+            this._setRedis();
 
             // make chainable
             return this;
@@ -144,7 +147,7 @@ define([
          * @params {required}{obj} local
          * @return {*}
          */
-        _setOptions : function(local) {
+        _setOptions : function (local) {
 
             // skip
             // if local is not set (by incoming shell option)
@@ -182,6 +185,32 @@ define([
         },
 
         /**
+         * @method _setRedis()
+         * Sets redis store instance to be used as
+         * session storage.
+         * @returns {*}
+         */
+        _setRedis : function () {
+
+            // create redis store constructor
+            RedisStore = RedisStore(session);
+
+            // create redis store instance
+            this.$.redis = new RedisStore({
+                host: this.$.config.redis.host,
+                port: this.$.config.redis.port
+            });
+
+            // add redis instance to session
+            // as storage instance
+            this.$.sessions.store = this.$.redis;
+
+            // make chainable
+            return this;
+
+        },
+
+        /**
          * @method _setShell()
          * Sets incoming shell options.
          * @return {*}
@@ -200,7 +229,7 @@ define([
          * @method _setText()
          * Sets text, save it to singleton.
          */
-        _setText : function() {
+        _setText : function () {
 
             // save to singleton
             singleton.text = require(this.$.dir + this.$.text);
@@ -210,13 +239,12 @@ define([
 
         },
 
-
         /**
          * @method _setPackage()
          * Sets version and application name.
          * @return {*}
          */
-        _setPackage : function() {
+        _setPackage : function () {
 
             // open package.json
             var package = require(this.$.dir + '/package.json');
@@ -363,6 +391,8 @@ define([
             // sets routing trailing slash rule
             app.set('strict routing', false);
 
+            app.set('trust proxy', this.$.config.trustedProxy);
+
             // enables less compiling on the fly
             // should only be used in development
             // environment
@@ -372,7 +402,7 @@ define([
             }));
 
             // set expires headers
-            app.use('*', function(req, res, next) {
+            app.use('*', function (req, res, next) {
                 res.set('Cache-Control', 'public, max-age=345600'); // 4 days
                 res.set('Expires', new Date(Date.now() + 345600000).toUTCString());
                 next();
@@ -384,18 +414,30 @@ define([
             // handle sessions
             app.use(session(this.$.sessions));
 
+            // handle session errors
+            app.use(function (req, res, next) {
+
+                // check if session has been lost
+                if (!req.session) {
+                    return util.log.redis.down();
+                }
+
+                // otherwise continue
+                next();
+
+            });
+
             // add gzip compression
             app.use(compression());
 
             // handle favicon
             app.use(favicon(this.$.dir + this.$.favicon));
 
-
             // handle static files
             app.use(express.static(this.$.dir + this.$.public));
 
             // force trailing slash
-            app.use(slashes());
+            // app.use(slashes());
 
             // save express app
             singleton.app = this.$.app = app;
