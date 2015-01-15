@@ -31,12 +31,12 @@ define([
                     fieldSuccess      : 'field-success',
                     fieldSuccessFlag  : 'field-success-flag',
                     form              : 'form',
-                    formBusy          : 'form-busy',
-                    formCancel        : 'form-cancel',
-                    formError         : 'form-error',
-                    formErrorMessage  : 'form-error-message',
-                    formNative        : 'form-native',
-                    formSubmit        : 'form-submit'
+                    formBusy          : 'busy',
+                    formCancel        : 'cancel',
+                    formError         : 'error',
+                    formErrorMessage  : 'error-message',
+                    formNative        : 'native',
+                    formSubmit        : 'submit'
                 },
                 data             : {},
                 el               : null,
@@ -308,6 +308,8 @@ define([
 
             }
 
+            log(arr);
+
             // check whether or not to show all, or only
             // the last error messages
             if (this.$.errors_all) {
@@ -317,8 +319,8 @@ define([
 
             } else {
 
-                // last error message
-                return arr[arr.length - 1];
+                // first error message
+                return arr[0];
 
             }
 
@@ -507,10 +509,14 @@ define([
             // get prefix
             var prefix = this.$.prefix;
 
+            // normalize
+            this.$.text.formError = typeof this.$.text.formError === 'undefined' ? '' : this.$.text.formError;
+            this.$.text.defaultError = typeof this.$.text.defaultError === 'undefined' ? '' : this.$.text.defaultError;
+
             // add markup for errors in form and field
             _.extend(this.$.markup, {
                 error_field : '<div class="' + cl.fieldErrorMessage + '"></div><div class="' + cl.fieldErrorFlag + '">' + this.$.text.defaultError + '</div><div class="' + cl.fieldSuccessFlag + '">' + this.$.text.defaultSuccess + '</div>',
-                error_form  : '<div class="' + cl.formErrorMessage + '">' + this.$.text.formError + '</div>'
+                error_form  : '<div class="' + cl.formErrorMessage + '">' + this.$.text.formError || '' + '</div>'
             });
 
             // make chainable
@@ -1357,6 +1363,8 @@ define([
 
                             // update state classes
                             self._setStateClasses(field, results);
+
+                            log(results);
 
                             // exit
                             fn(null, results);
