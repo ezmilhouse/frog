@@ -1,0 +1,25 @@
+GOOGLE ANALYTICS
+===
+
+ga(‘send’, ‘event’, GOAL, FLOW_NAME, FLOW_STEP, FLOW_STEP_VALUE)
+
+### Example signup
+
+```js
+ga(‘send’, ‘event’, ‘signup’, ‘email’, ‘loaded’, 1);
+ga(‘send’, ‘event’, ‘signup’, ‘email’, ‘focus’, 1);
+ga(‘send’, ‘event’, ‘signup’, ‘email’, ‘submit’, 1);
+ga(‘send’, ‘event’, ‘signup’, ‘email’, ‘success’, 1);
+ga(‘send’, ‘event’, ‘signup’, ‘email’, ‘error’, 1);
+ga(‘send’, ‘event’, ‘signup’, ‘email’, ‘error_validation’, 1);
+```
+
+In GA goals specifications:
+
+GOAL 		-> Category
+FLOW_NAME	-> Action
+FLOW_STEP	-> Label
+FLOW_STEP_VALUE	-> Value
+
+
+

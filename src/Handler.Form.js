@@ -468,6 +468,30 @@ define([
 
             });
 
+            // submit form, on enter
+            $(document).on('keypress', function (evt) {
+
+                // check if incoming key is enter (= keycode 13)
+                if (evt.charCode == 13) {
+
+                    // extract active element
+                    var el = $($(document.activeElement)[0]);
+
+                    // check if active element is part of form
+                    // if so, force submission on enter click
+                    if (el.parent(self.$.selector)) {
+
+                        // avoid conflicting events
+                        evt.preventDefault();
+
+                        // submit form
+                        self._submit();
+
+                    }
+
+                }
+            });
+
             // validate, submit, on click
             $(document).on('submit', ns, function (evt) {
 
@@ -1364,6 +1388,7 @@ define([
                             // update state classes
                             self._setStateClasses(field, results);
 
+                            // debug
                             log(results);
 
                             // exit
