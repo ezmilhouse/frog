@@ -177,7 +177,6 @@ define([
                     self.$.fields[name] = {
                         el    : el,
                         name  : name,
-                        valid : null,
                         tag   : el.prop('tagName').toLowerCase(),
                         type  : type,
                         value : null
@@ -307,8 +306,6 @@ define([
                 arr.push(errorText);
 
             }
-
-            log(arr);
 
             // check whether or not to show all, or only
             // the last error messages
@@ -630,6 +627,109 @@ define([
                 $(ns).removeClass(cl.formError);
 
             }
+
+        },
+
+        /**
+         * @method cb(err[,fn])
+         * Validation callback that collects error messages,
+         * normalizes synchr., asynchr. validation methods.
+         * @params {required}{bol} err
+         * @params {optional}{fun} fn
+         */
+        _collect : function (err, field, ruleMethodName, key, fn) {
+
+            // normalize
+            fn = fn || util.noop;
+
+            // preserve scope
+            var self = this;
+
+            // get field errors
+            var errors = self.$.errors || {};
+
+            // create key from field name if it
+            // does not exist yet
+            if (typeof errors[field] === 'undefined') {
+                errors[field] = [];
+            }
+
+            // if test fails, means: returns false save result on
+            // errors object, if not saved yet
+            if (err) {
+
+                // push error, if not set yet
+                if (errors[field].indexOf(ruleMethodName) === -1) {
+
+                    // deprecated
+                    // pushing leads to changes in result
+                    // order, not always but sometimes
+                    // errors[field].push(ruleMethodName);
+
+                    // use ruleset key to force correct
+                    // order
+                    errors[field][key] = ruleMethodName;
+
+                }
+
+            } else {
+
+                // remove error key if valid
+                // delete errors[field];
+                if (typeof errors[field] !== 'undefined') {
+
+                    // find rule entry
+                    var index = errors[field].indexOf(ruleMethodName);
+
+                    // remove error (if found earlier)
+                    if (index > -1) {
+
+                        // deprecated
+                        // removing leads to changes in result
+                        // order, not always but sometimes
+                        // errors[field].splice(index, 1);
+
+                        // reset ruleset key
+                        errors[field][index] = null;
+
+                    }
+
+                }
+
+            }
+
+            // clean up field errors
+            var arr = [];
+            for (var i = 0; i < errors[field].length; i++) {
+
+                // not null, not undefined
+                if (errors[field][i]) {
+                    arr.push(errors[field][i]);
+                }
+
+            }
+
+            // save clean error array
+            errors[field] = arr;
+
+            // remove field (if no errors anymore)
+            if (errors[field].length === 0) {
+                delete errors[field];
+            }
+
+            // reset errors, if no more entries
+            if (_.isEmpty(errors)) {
+                errors = null;
+            }
+
+            // save
+            self.$.errors = errors;
+
+            // set form state
+            self.$.valid = !(typeof self.$.errors !== 'undefined' && !_.isEmpty(self.$.errors));
+
+            // invoke callback
+            fn();
 
         },
 
@@ -1191,68 +1291,6 @@ define([
             // reset results
             var results;
 
-            /**
-             * @method cb([err])
-             * Validation calback function to normalize synchronous and
-             * asynchronous validations
-             */
-            var cb = function (err, fn) {
-
-                // get field errors
-                var errors = self.$.errors || {};
-
-                // if test fails, means: returns false save result on
-                // errors object, if not saved yet
-                if (err) {
-
-                    // create key from field name if it
-                    // does not exist yet
-                    if (typeof errors[field] === 'undefined') {
-                        errors[field] = [];
-                    }
-
-                    // push error, if not set yet
-                    if (errors[field].indexOf(ruleMethodName) === -1) {
-                        errors[field].push(ruleMethodName);
-                    }
-
-                } else {
-
-                    // remove error key if valid
-                    // delete errors[field];
-                    if (errors !== null && typeof errors[field] !== 'undefined') {
-
-                        // find rule entry
-                        var index = errors[field].indexOf(ruleMethodName);
-
-                        // remove error
-                        errors[field].splice(index, 1);
-
-                        // remove field (if no errors anymore)
-                        if (errors[field].length === 0) {
-                            delete errors[field];
-                        }
-
-                    }
-
-                }
-
-                // reset errors, if no more entries
-                if (_.isEmpty(errors)) {
-                    errors = null;
-                }
-
-                // save
-                self.$.errors = errors;
-
-                // set form state
-                self.$.valid = !(typeof self.$.errors !== 'undefined' && !_.isEmpty(self.$.errors));
-
-                // invoke callback
-                fn();
-
-            };
-
             // release busy
             self._busy(false);
 
@@ -1378,18 +1416,23 @@ define([
                     c += 1;
 
                     // invoke general validation callback
-                    cb(err, function () {
+                    self._collect(err, field, ruleMethodName, i, function () {
 
                         if (c >= m) {
 
+                            // add data
+                            _.extend(self.$.fields[field], {
+                                value : fieldValue
+                            });
+
                             // create results object
-                            results = self._getResults();
+                            results = self._getResults(err, field, fieldValue);
 
                             // update state classes
                             self._setStateClasses(field, results);
 
                             // debug
-                            log(results);
+                            // console.log(results);
 
                             // exit
                             fn(null, results);
