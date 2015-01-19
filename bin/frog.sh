@@ -67,7 +67,7 @@ case "$1" in
         mkdir -p ${FROG_COMP_DIR}
 
         # copy component
-        cp -rf ./tmp/components/$3/* ${FROG_COMP_DIR}
+        cp -rfv ./tmp/components/$3 ${FROG_COMP_DIR}
 
         # change working directory (back to script context)
         popd
@@ -127,10 +127,73 @@ case "$1" in
 
     ;;
 
+    # rest)
+    #
+    # frog rest path/to/app
+    # frog rest path/to/app -r path/to/repo
+    rest)
+
+        # required: path
+        if [ ! "$2" ] ; then
+            echo "[o_O] missing path to application"
+            exit 1
+        fi
+
+        # set options index
+        OPTIND=3
+
+        # parse options
+        while getopts ":r:" o; do
+
+            case $o in
+
+                # -r [str] path to frog repository
+                r)
+                    FROG_REPO=$OPTARG
+                ;;
+
+                :)
+                    echo "[o_O] option -$OPTARG requires argument"
+                    exit 1
+                ;;
+
+                ?)
+                    echo "[o_O] unknown option -$OPTARG"
+                    exit 1
+                ;;
+
+            esac
+
+        done
+
+        # reset options index
+        OPTIND=1
+
+        # create working directory
+        mkdir -p "$2"
+
+        # change working directory
+        pushd "$2"
+
+        # copy files
+        cp -rfv ${FROG_REPO}/boilerplates/rest/* .
+        cp -rfv ${FROG_REPO}/boilerplates/rest/.gitignore .
+
+        # fetch dependencies
+        npm install
+
+        # link frog into (server) node_modules folder
+        ln -s ${FROG_REPO} ./node_modules/frog
+
+        # change working directory (back to script context)
+        popd
+
+    ;;
+
     # http)
     #
-    # frog create path/to/app
-    # frog create path/to/app -r path/to/repo
+    # frog http path/to/app
+    # frog http path/to/app -r path/to/repo
     http)
 
         # required: path
@@ -176,12 +239,13 @@ case "$1" in
         pushd "$2"
 
         # create root level folders
-        mkdir ./public
-        mkdir ./public/support
-        mkdir ./server
+        # mkdir ./public
+        # mkdir ./public/support
+        # mkdir ./server
 
-        # copy ./public/* files
-        cp -rf ${FROG_REPO}/boilerplates/http/* .
+        # copy files
+        cp -rfv ${FROG_REPO}/boilerplates/http/* .
+        cp -rfv ${FROG_REPO}/boilerplates/http/.gitignore .
 
         # fetch dependencies
         npm install

@@ -1,9 +1,11 @@
 {
   "name"            : "frog-rest",
   "dependencies"    : {
-	"amdefine" : "*",
-	"request"  : "*",
-	"secrets"  : "*"
+	"amdefine"   : "*",
+	"request"    : "*",
+	"secrets"    : "*",
+    "underscore" : "*",
+    "yargs"      : "*"
   },
   "devDependencies" : {
 	"nodemon" : "*"

@@ -1,4 +1,5 @@
 var define = require('amdefine')(module);
+var messages = require('./server/js/misc/misc.messages');
 
 define({
 
@@ -34,26 +35,6 @@ define({
     endpoint : '/api',
 
     /**
-     * @obj headers
-     * List of allowed headers requests to the API can come with.
-     *
-     * @key {required}{str} key
-     *      Requests have to identify themselves as belonging to
-     *      a registered client key. The `frog-key` header allows
-     *      you to set the name of the header key to look for.
-     *
-     * @key {optional}{str} session
-     *      If you plan to allow requests against resources that
-     *      require a valid session (access token), set the name
-     *      of the header key to expect here.
-     *
-     */
-    headers : {
-        key     : 'Client-Key',
-        session : 'Access-Token'
-    },
-
-    /**
      * @key {optional}{str} key
      *      TODO: might be worth deprecating
      *      In your development environment you might want to
@@ -76,11 +57,7 @@ define({
      * @key {optional}{str} warnings
      *      Holds warnings.
      */
-    messages : {
-        errors   : null,
-        success  : null,
-        warnings : null
-    },
+    messages : messages,
 
     /**
      * @obj mongo
@@ -151,7 +128,7 @@ define({
      * cli. If send a port via shell script, the port in
      * configuration files will be overwritten.
      */
-    port : 2100,
+    port : 4001,
 
     /**
      * @key {required}{str} server
@@ -167,6 +144,39 @@ define({
      * certain application functions ex: start, stop, restart,
      * most of the tim ein deployment settings).
      */
-    shell : '/frog.shell'
+    shell : '/frog.shell',
+
+    /**
+     * @key xdomain
+     * Allows cross-domain access to api resources if set to `true`,
+     * otherwise cross-domain is off.
+     */
+    xdomain : true,
+
+    /**
+     * @key xdomainAllowedHeaders
+     * If cross-domain access is granted specify allowed request
+     * headers here.
+     */
+    xdomainAllowedHeaders : [
+        'Accept',
+        'Content-Type',
+        'Origin',
+        'X-Requested-With'
+    ],
+
+    /**
+     * @key xdomainAllowedMethods
+     * If cross-domain access is granted specify allowed request
+     * methods here.
+     */
+    xdomainAllowedMethods : [
+        'HEAD',
+        'GET',
+        'POST',
+        'PUT',
+        'DELETE',
+        'OPTIONS'
+    ]
 
 });

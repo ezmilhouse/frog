@@ -1,16 +1,19 @@
-if (typeof define === 'undefined') {
-    var _ = require('underscore');
-    var define = require('amdefine')(module);
-    define('frog/config', require('frog').singleton.config);
-}
+var define = require('amdefine')(module);
+define('frog/api', require('frog').singleton.api);
+define('frog/config', require('frog').singleton.config);
 
 define([
+
     'frog',
-    'frog/config'
-], function (frog, config) {
+    'frog/api',
+    'frog/config',
 
-    frog.require([
-        'js/resources/resource.test'
-    ]);
+    // RESOURCES
 
-});
+    './resources/resource.users',
+
+    // SERVICES
+
+    './services/service.status'
+
+], function (frog, api, config) {});

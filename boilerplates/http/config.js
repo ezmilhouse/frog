@@ -48,7 +48,7 @@ define({
             'Content-Type' : 'application/json'
         },
         host     : 'api.domain.com',
-        port     : null,
+        port     : 4001,
         protocol : 'https'
     },
 
@@ -113,7 +113,7 @@ define({
      * in production environments you might want to set the
      * upstream of your NGINX (or APACHE) to this port.
      */
-    port : 2000,
+    port : 4000,
 
     /**
      * @key {required}{str} public
@@ -121,6 +121,21 @@ define({
      * you hold your client-side code.
      */
     public : '/public',
+
+    /**
+     * @obj redis
+     * Let's you control the Redis instance that will be created
+     * to handle app sessions
+     *
+     * @key {optional}{str} host
+     *      Host address Redis instance runs on.
+     * @key {optional}{int} port
+     *      Port the Redis instance runs on.
+     */
+    redis : {
+        host : '127.0.0.1',
+        port : 6379
+    },
 
     /**
      * @key {required}{str} root
@@ -198,6 +213,13 @@ define({
      * don't put anything secret in there, just dumb text.
      */
     text : '/server/js/misc/misc.text',
+
+    /**
+     * @key {required}{bol} trustedProxy
+     * If set to true, express use IP of incoming x-fowarded-for
+     * header, first one from the left one.
+     */
+    trustedProxy  : true,
 
     /**
      * @key {required}{str} views

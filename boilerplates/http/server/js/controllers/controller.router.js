@@ -10,8 +10,8 @@ define([
     'frog',
     'frog/api',
     'frog/config',
-    '../misc/misc.i18n'
-], function (frog, api, config, i18n) {
+    '../middleware/middleware.globals'
+], function (frog, api, config, globals) {
 
     // express application
     var app = frog.singleton.app;
@@ -19,64 +19,130 @@ define([
     // express routes prefix
     var pre = '/:region/:language';
 
-    // ROUTE: API
+    // HELPERS
 
-    app.route('/api/version')
-        .get(function(req, res, next) {
+    /**
+     * @method render(req, res, page[,layout])
+     * TODO: move render method to frog, Server.HTTP
+     * TODO: add cache-control setting to config.js
+     * Renders incoming page into incoming (or default)
+     * layout.
+     * @params {required}{obj} req
+     * @params {required}{obj} res
+     * @params {required}{str} page
+     * @params {optional}{str} layout
+     */
+    var render = function (req, res, page, layout) {
 
-            // set content type
-            res.set('Content-Type', 'application/json');
+        // normalize
+        layout = layout || 'layout';
 
-            // get app version
-            res.send({
-                version : app.get('version')
+        // add page to render
+        _.extend(req._globals, {
+            page : page
+        });
+
+        // set cache-control header
+        // IMPORTANT:
+        // If the the `Cache-Control` header is not set to `max-age=0`,
+        // express falls back to 3 days caching time. this will lead
+        // to routes not being executed, because the user basically
+        // surfs the browser cache.
+        //
+        // Setting the `Cache-Control` header with the max-age directive
+        // OVERRIDES the `Expires` header
+        res.header('Cache-Control', 'max-age=0');
+
+        // render page
+        res.render(layout + '.html', req._globals);
+
+    };
+
+    /**
+     * @object sessions
+     * General session handler.
+     */
+    var session = {
+
+        /**
+         * @method init()
+         * Initiates data object on req.session object,
+         * store application data on data key (by convention)
+         */
+        init : function (req) {
+
+            if (typeof req.session.data == 'undefined') {
+                req.session.data = {};
+            }
+
+        },
+
+        /**
+         * @method kill(req[,fn])
+         * Kills existing session (in store), cookie as well.
+         * @params {required}{obj} req
+         * @params {optional}{fun} fn
+         * @return {*}
+         */
+        kill : function (req, fn) {
+
+            // normalize
+            fn = fn || frog.util.noop;
+
+            // skip
+            if (typeof req.session === 'undefined') {
+                return fn(null);
+            }
+
+            // destroy session in store
+            req.session.destroy(function(err) {
+
+                // exit
+                fn(err);
+
             });
 
-        });
+        },
+
+        /**
+         * @method test(req)
+         * Session based view counter for testing purposes only.
+         * @params {required}{obj} req
+         */
+        test : function(req) {
+
+            // initiate views counter
+            if (typeof req.session.data.views === 'undefined') {
+                req.session.data.views = 0;
+            }
+
+            // iterate views counter
+            req.session.data.views += 1;
+
+            // debug
+            // console.log(req.url);
+            // console.log(req.session.data.views);
+
+        }
+
+    };
 
     // ROUTES: ALL
 
-    app.route(pre + '/*')
+    app.route('*')
         .all(function (req, res, next) {
 
-            // change region, language if necessary
-            if (i18n.get('region') !== req.params.region || i18n.get('language') !== req.params.language) {
-                i18n.change({
-                    language : req.params.language,
-                    region   : req.params.region
-                });
-            }
-
-            // reset _globals (object to that is global in all
-            // templates rendered)
-            req._globals = {
-                comp   : '../../../public/components',
-                config : config,
-                date   : frog.date,
-                frog   : frog,
-                group  : null,
-                html   : '../../../../../server/html',
-                i18n   : i18n,
-                here   : {
-                    params : req.params,
-                    query  : req.query,
-                    url    : req.url
-                },
-                meta   : {
-                    env      : app.get('env'),
-                    language : i18n.get('language'),
-                    region   : i18n.get('region')
-                },
-                moment : moment,
-                params : req.params || null,
-                query  : req.query || null,
-                user   : null,
-                util   : frog.util
-            };
+            session.init(req);
+            session.test(req);
 
             next();
 
         });
+
+    // ROUTES: ALL: REGION, LANGUAGE
+
+    app.route(pre + '*')
+        .all(globals);
 
     // ROUTES
 

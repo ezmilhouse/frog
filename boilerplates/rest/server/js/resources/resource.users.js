@@ -8,17 +8,16 @@ define('frog/config', require('frog').singleton.config);
 define([
     'frog',
     'frog/api',
-    'frog/config'
-], function (frog, api, config) {
+    'frog/config',
+    '../schemas/schema.user'
+], function (frog, api, config, schema) {
 
-    var resource = new frog.Resource({
-        context    : '/api',
-        id         : 'id0',
-        route      : '/status',
-        schema     : 'js/schemas/schema.status',
-        server     : frog.singleton.server
+    return new frog.Resource({
+        id        : 'id',
+        namespace : 'users',
+        route     : '/api/users',
+        safe      : false,
+        schema    : schema
     });
-
-    return resource;
 
 });

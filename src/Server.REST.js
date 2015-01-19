@@ -25,59 +25,59 @@ define([
         _ctor : function (options, local) {
 
             this.$ = {
-                app         : null,
-                application : null,
-                clients     : [],
-                cluster     : true,
-                config      : options || null,
-                cpus        : 1,
-                debug       : false,
-                dir         : null,
-                env         : 'development',
-                gzip        : true,
-                headers     : [
-                    'Accept',
-                    'Content-Type',
-                    'Origin',
-                    'X-Requested-With'
-                ],
-                jsonp       : true,
-                local       : true,
-                log         : true,
-                methods     : [
-                    'HEAD',
-                    'GET',
-                    'POST',
-                    'PUT',
-                    'DELETE',
-                    'OPTIONS'
-                ],
-                messages    : {
+                app                   : null,
+                application           : null,
+                clients               : [],
+                cluster               : true,
+                config                : options || null,
+                cpus                  : 1,
+                debug                 : false,
+                dir                   : null,
+                env                   : 'development',
+                gzip                  : true,
+                jsonp                 : true,
+                local                 : true,
+                log                   : true,
+                messages              : {
                     errors   : null,
                     success  : null,
                     warnings : null
                 },
-                mongo       : {
+                mongo                 : {
                     db       : 'frog',
                     password : '',
                     poolSize : 5,
                     url      : null,
                     user     : ''
                 },
-                name        : 'frog',
-                object      : '_frog',
-                paths       : {
+                name                  : 'frog',
+                object                : '_frog',
+                paths                 : {
                     resources : 'js/resources',
                     schemas   : 'js/schemas'
                 },
-                pkg         : null,
-                port        : null,
-                resources   : {},
-                server      : null,
-                services    : 'js/services',
-                shell       : '/frog.shell',
-                version     : '0.1.0',
-                xdomain     : true
+                pkg                   : null,
+                port                  : null,
+                resources             : {},
+                server                : null,
+                services              : 'js/services',
+                shell                 : '/frog.shell',
+                version               : '0.1.0',
+                xdomain               : true,
+                xdomainAllowedHeaders : [
+                    'Accept',
+                    'Content-Type',
+                    'Origin',
+                    'X-Requested-With'
+                ],
+                xdomainAllowedMethods : [
+                    'HEAD',
+                    'GET',
+                    'POST',
+                    'PUT',
+                    'DELETE',
+                    'OPTIONS'
+                ]
             };
 
             if (options) {
@@ -209,6 +209,9 @@ define([
             // part of the application to
             // be used
             singleton.config = this.$;
+
+            //console.log('===');
+            //console.log(singleton.config);
 
             // make chainable
             return this;
@@ -535,10 +538,10 @@ define([
                 // REQUEST
 
                 // fetch list of headers
-                var headers = self.$.headers.join(',');
+                var headers = self.$.xdomainAllowedHeaders.join(',');
 
                 // fetch list of methods
-                var methods = self.$.methods.join(',');
+                var methods = self.$.xdomainAllowedMethods.join(',');
 
                 // force client to only accept json
                 req.header('Accept', 'application/json');
