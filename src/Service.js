@@ -212,6 +212,13 @@ define([
                     ? req.params
                     : {};
 
+                // add method, url
+                _.extend(req.params, {
+                    _headers : req.headers,
+                    _method  : req.method.toUpperCase(),
+                    _url     : req.url
+                });
+
                 // normalize
                 req.query = (typeof req.query !== 'undefined')
                     ? req.query
