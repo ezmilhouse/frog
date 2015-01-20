@@ -418,6 +418,7 @@ define([
             // normalize
             status = status || 200;
             code = code || status;
+            err = status >= 400;
 
             // get messages
             var msg = this.$.messages || {};
