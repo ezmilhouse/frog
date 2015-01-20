@@ -212,11 +212,11 @@ define([
                     ? req.params
                     : {};
 
-                // add method, url
+                // add headers, method, url
                 _.extend(req.params, {
-                    _headers : req.headers,
-                    _method  : req.method.toUpperCase(),
-                    _url     : req.url
+                    headers : req.headers,
+                    method  : req.method.toUpperCase(),
+                    url     : req.url
                 });
 
                 // normalize
@@ -234,12 +234,12 @@ define([
                 } else {
 
                     // set callback to common send function
-                    cb = function (err, body, status, code) {
+                    cb = function (err, body, status, code, debug) {
 
                         // response object is available,
                         // sending back results is possible
                         if (res) {
-                            return self.$.server.send(req, res, err, body, status, code);
+                            return self.$.server.send(req, res, err, body, status, code, debug);
                         }
 
                         // placeholder if response object

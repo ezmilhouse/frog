@@ -12,7 +12,9 @@ define([
     '../schemas/schema.user'
 ], function (frog, api, config, schema) {
 
-    return new frog.Resource({
+    // RESOURCE: INSTANCE
+
+    new frog.Resource({
         id        : 'id',
         namespace : 'users',
         route     : '/api/users',

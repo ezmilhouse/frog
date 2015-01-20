@@ -11,6 +11,8 @@ define([
 
     var app = frog.singleton.app;
 
+    // SERVICE
+
     /**
      * @method fn(params, body, query, fn)
      * Service that returns API status.
@@ -48,7 +50,9 @@ define([
         }, 200);
     };
 
-    return new frog.Service({
+    // SERVICE: INSTANCE
+
+    new frog.Service({
         fn        : fn,
         method    : 'GET',
         namespace : 'status',

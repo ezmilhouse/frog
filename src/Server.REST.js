@@ -210,9 +210,6 @@ define([
             // be used
             singleton.config = this.$;
 
-            //console.log('===');
-            //console.log(singleton.config);
-
             // make chainable
             return this;
 
@@ -413,12 +410,32 @@ define([
          * @params {optional}{int} status
          * @params {optional}{str} code
          */
-        send : function (req, res, err, data, status, code) {
+        send : function (req, res, err, data, status, code, debug) {
 
             // normalize
             status = status || 200;
-            code = code || status;
             err = status >= 400;
+
+            // normalize
+            switch(arguments.length) {
+                case 6 :
+                    if (_.isNumber(code)) {
+                        code = code || status;
+                        debug = false;
+                    } else {
+                        debug = code || false;
+                        code = status;
+                    }
+                    break;
+                case 7 :
+                    code = code || status;
+                    debug = debug || this.$.debug || false;
+                    break;
+                default : // 5
+                    code = status;
+                    debug = false;
+                    break;
+            }
 
             // get messages
             var msg = this.$.messages || {};
@@ -472,7 +489,7 @@ define([
             var payload = {
                 code        : code,
                 data        : data || null,
-                debug       : this.$.debug,
+                debug       : debug,
                 description : msg.description,
                 error       : !!err,
                 message     : msg.message,
