@@ -144,39 +144,6 @@ define({
      * certain application functions ex: start, stop, restart,
      * most of the tim ein deployment settings).
      */
-    shell : '/frog.shell',
-
-    /**
-     * @key xdomain
-     * Allows cross-domain access to api resources if set to `true`,
-     * otherwise cross-domain is off.
-     */
-    xdomain : true,
-
-    /**
-     * @key xdomainAllowedHeaders
-     * If cross-domain access is granted specify allowed request
-     * headers here.
-     */
-    xdomainAllowedHeaders : [
-        'Accept',
-        'Content-Type',
-        'Origin',
-        'X-Requested-With'
-    ],
-
-    /**
-     * @key xdomainAllowedMethods
-     * If cross-domain access is granted specify allowed request
-     * methods here.
-     */
-    xdomainAllowedMethods : [
-        'HEAD',
-        'GET',
-        'POST',
-        'PUT',
-        'DELETE',
-        'OPTIONS'
-    ]
+    shell : '/frog.shell'
 
 });

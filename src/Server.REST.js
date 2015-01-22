@@ -549,57 +549,6 @@ define([
                 version : this.$.version
             });
 
-            // SERVER: PREWARE
-            // Allows you to add in handlers that run before routing occurs.
-            app.pre(function (req, res, next) {
-
-                // REQUEST
-
-                // fetch list of headers
-                var headers = self.$.xdomainAllowedHeaders.join(',');
-
-                // fetch list of methods
-                var methods = self.$.xdomainAllowedMethods.join(',');
-
-                // force client to only accept json
-                req.header('Accept', 'application/json');
-
-                // RESPONSE
-
-                // force application to respond with JSON (utf8)
-                res.header('Content-Type', 'application/json; charset=utf-8');
-
-                //
-                if (!self.$.xdomain) {
-                    return next();
-                }
-
-                // allow x-domain access
-                res.header('Access-Control-Allow-Headers', headers);
-                res.header('Access-Control-Allow-Methods', methods);
-                res.header('Access-Control-Allow-Origin', '*');
-
-                // set x-domain headers
-                switch (req.method) {
-
-                    case 'OPTIONS' :
-
-                        // preflight, sets allowed http methods for
-                        // follow-up request
-                        res.header('Allow', methods);
-
-                        break;
-
-                    default :
-                        break;
-
-                }
-
-                // exit
-                next();
-
-            });
-
             // SERVER: MIDDLEWARE
             // Allows you to add in handlers that run no matter what the
             // route.
