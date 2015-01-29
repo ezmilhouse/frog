@@ -5,8 +5,8 @@ if (typeof define !== 'function') {
 
 define([
     './Base',
-    './util'
-], function (Base, util) {
+    './singleton'
+], function (Base, singleton) {
 
     return Base.extend({
 
@@ -20,7 +20,8 @@ define([
         _ctor : function (options) {
 
             this.$ = {
-                fn : null
+                fn     : [],
+                server :  singleton.server
             };
 
             if (options) {

@@ -1,8 +1,6 @@
-if (typeof define === 'undefined') {
-    var _ = require('underscore');
-    var define = require('amdefine')(module);
-    define('frog/config', require('frog').singleton.config);
-}
+var _ = require('underscore');
+var define = require('amdefine')(module);
+define('frog/config', require('frog').singleton.config);
 
 define([
     'frog',

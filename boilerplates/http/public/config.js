@@ -183,7 +183,7 @@ define({
             ejs               : 'support/ejs/ejs-0.8.5.min',
             json              : 'support/require/require-json-0.3.2.min',
             hashchange        : 'support/jquery/jquery-hashchange-1.3.0.min',
-            modernizr         : 'support/modernizr/modernizr-2.7.1.min',
+            modernizr         : 'support/modernizr/modernizr-2.8.3.custom.min',
             moment            : 'support/moment/moment-2.6.0.min',
             numeral           : 'support/numeral/numeral-1.4.5.min',
             ready             : 'support/require/require-domready-2.0.1.min',

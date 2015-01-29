@@ -28,7 +28,9 @@ define([
                     limit  : 100,
                     offset : 0,
                     page   : 1,
-                    sort   : {}
+                    sort   : {
+                        _created : 1 // DESC (-1 = ASC)
+                    }
                 },
                 fn         : null,
                 id         : 'id',
@@ -131,6 +133,42 @@ define([
         },
 
         /**
+         * @method _setMiddleware()
+         * Returns array of middleware functions.
+         * @return {arr}
+         */
+        _setMiddleware : function() {
+
+            // extract middleware
+            var middleware = this.$.middleware;
+
+            // reset
+            var arr = [];
+
+            // loop through all middleware keys, add functions
+            // to array, middleware might be instance of Middleware
+            // class or simple function
+            for (var i = 0; i < middleware.length; i++) {
+
+                // extract function/instance
+                var fn = middleware[i];
+
+                // check if function or instance
+                // add fn or extract fn first
+                if (typeof fn === 'function') {
+                    arr.push(fn);
+                } else {
+                    arr.push(fn.get('fn'));
+                }
+
+            }
+
+            // exit
+            return arr;
+
+        },
+
+        /**
          * @method _setModel()
          * Extracts mongo Model from schema, save Model.
          * @return {*}
@@ -212,12 +250,20 @@ define([
                     ? req.params
                     : {};
 
-                // add headers, method, url
-                _.extend(req.params, {
-                    headers : req.headers,
-                    method  : req.method.toUpperCase(),
-                    url     : req.url
-                });
+                // make headers available on params object
+                if (typeof req.headers !== 'undefined') {
+                    req.params.headers = req.headers;
+                }
+
+                // make method available on params object
+                if (typeof req.method !== 'undefined') {
+                    req.params.method = req.method.toUpperCase();
+                }
+
+                // make url available on params object
+                if (typeof req.url !== 'undefined') {
+                    req.params.url = req.url;
+                }
 
                 // normalize
                 req.query = (typeof req.query !== 'undefined')
@@ -531,11 +577,14 @@ define([
                 method = 'del'
             }
 
+            // find middleware
+            var middleware = this._setMiddleware();
+
             // set route
             app[method]({
                 name : method.toUpperCase() + ': ' + this.$.route,
                 path : this.$.route
-            }, normalize, function (req, res, next) {
+            }, normalize, middleware, function (req, res, next) {
 
                 // add crud verb in case of pre-set
                 // crud functions, otherwise leave
@@ -694,7 +743,11 @@ define([
                     });
 
                     // exit
-                    return fn(null, docs, 200);
+                    return fn(null, docs, 200, 200, {
+                        limit  : limit,
+                        offset : offset,
+                        sort   : sort
+                    });
 
                 });
 

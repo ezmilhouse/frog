@@ -31,7 +31,7 @@ define([
                 cluster               : true,
                 config                : options || null,
                 cpus                  : 1,
-                debug                 : false,
+                debug                 : null,
                 dir                   : null,
                 env                   : 'development',
                 gzip                  : true,
@@ -421,20 +421,26 @@ define([
                 case 6 :
                     if (_.isNumber(code)) {
                         code = code || status;
-                        debug = false;
+                        debug = null;
                     } else {
-                        debug = code || false;
+                        debug = code || null;
                         code = status;
                     }
                     break;
                 case 7 :
                     code = code || status;
-                    debug = debug || this.$.debug || false;
+                    debug = debug || this.$.debug || null;
                     break;
                 default : // 5
                     code = status;
-                    debug = false;
+                    debug = null;
                     break;
+            }
+
+            // doublecheck if empty object, set to
+            // null as well
+            if (debug && _.isEmpty(debug)) {
+                debug = null;
             }
 
             // get messages
@@ -499,9 +505,34 @@ define([
 
             // index case
             if (_.isArray(payload.data)) {
+
+                // add query parameters
                 _.extend(payload, {
-                    count : data.length
+                    count  : data.length
                 });
+
+            }
+
+            // special debug for index cases
+            if (_.isArray(payload.data) && debug && typeof debug.limit !== 'undefined') {
+
+                // add debug keys
+                _.extend(payload, {
+                    limit  : debug.limit,
+                    offset : debug.offset,
+                    sort   : debug.sort
+                });
+
+                // remove from debug object
+                delete debug.limit;
+                delete debug.offset;
+                delete debug.sort;
+
+                // remove if empty
+                if (debug && _.isEmpty(debug)) {
+                    payload.debug = null;
+                }
+
             }
 
             // update, delete case
