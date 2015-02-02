@@ -6,6 +6,7 @@ define([
     'underscore',
     './app',
     './Base',
+    'body-parser',
     'cluster',
     'compression',
     'connect-redis',
@@ -15,13 +16,15 @@ define([
     'express',
     'express-less',
     'express-session',
+    'method-override',
+    'multer',
     'serve-favicon',
     './Flow',
     'moment',
     'os',
     './singleton',
     './util'
-], function (_, app, Base, cluster, compression, RedisStore, slashes, cookieParser, engine, express, less, session, favicon, Flow, moment, os, singleton, util) {
+], function (_, app, Base, bodyParser, cluster, compression, RedisStore, slashes, cookieParser, engine, express, less, session, methodOverride, multer, favicon, Flow, moment, os, singleton, util) {
 
     return Base.extend({
 
@@ -392,6 +395,15 @@ define([
             app.set('strict routing', false);
 
             app.set('trust proxy', this.$.config.trustedProxy);
+
+            // for parsing application/json
+            app.use(bodyParser.json());
+
+            // for parsing application/x-www-form-urlencoded
+            app.use(bodyParser.urlencoded({ extended: true }));
+
+            // for parsing multipart/form-data
+            app.use(multer());
 
             // enables less compiling on the fly
             // should only be used in development

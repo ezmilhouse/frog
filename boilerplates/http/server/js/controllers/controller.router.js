@@ -1,10 +1,8 @@
-if (typeof define === 'undefined') {
-    var _ = require('underscore');
-    var define = require('amdefine')(module);
-    define('frog/api', require('frog').singleton.api);
-    define('frog/config', require('frog').singleton.config);
-    var moment = require('moment');
-}
+var _ = require('underscore');
+var define = require('amdefine')(module);
+define('frog/api', require('frog').singleton.api);
+define('frog/config', require('frog').singleton.config);
+var moment = require('moment');
 
 define([
     'frog',
@@ -155,7 +153,7 @@ define([
 
     app.route('/')
         .get(function (req, res, next) {
-            res.redirect('/' + config.i18n.region + '/' + config.i18n.language);
+            res.redirect('/' + config.i18n.country.toLowerCase() + '/' + config.i18n.language);
         });
 
     // ROUTES: ERRORS

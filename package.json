@@ -2,6 +2,7 @@
   "name"            : "frog",
   "dependencies"    : {
 	"amdefine"        : "*",
+	"body-parser"     : "*",
 	"compression"     : "*",
 	"connect-redis"	  : "*",
 	"connect-slashes" : "*",
@@ -12,8 +13,10 @@
 	"express-less"    : "*",
 	"express-session" : "*",
 	"express"         : "*",
+	"method-override" : "*",
 	"moment"          : "*",
 	"mongoose"        : "3.8.21",
+	"multer"		  : "*",
 	"nodemailer"      : "*",
 	"numeral"         : "*",
 	"request"  		  : "*",

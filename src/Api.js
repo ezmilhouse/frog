@@ -153,6 +153,9 @@ define([
             // overwrite url
             arguments[0] = this._setUrl(arguments[0]);
 
+            console.log(arguments);
+            console.log(this.$.headers);
+
             // set xhr
             var req = xhr.post.apply(xhr, arguments);
 

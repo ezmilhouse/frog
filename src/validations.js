@@ -227,6 +227,28 @@ define([
         },
 
         /**
+         * @method isExactLength(val, arr, fn)
+         * Checks if value length is exactly (===) incoming.
+         * @params {required}{val} val
+         * @params {required}{arr} arr
+         * @params {required}{fun} fn
+         */
+        isExactLength : function (val, arr, fn) {
+
+            // reset flag
+            var valid = false;
+
+            // check val length
+            valid = val.length === arr[1];
+
+            // reverse results
+            // fn(err) convention
+            return fn(!valid);
+
+        },
+
+
+        /**
          * @method isInList(val, arr, fn)
          * Checks if incoming value is also in list
          * of select options.
@@ -285,8 +307,8 @@ define([
         },
 
         /**
-         * @method isMax(val, arr, fn)
-         * Checks if valing length is <= max.
+         * @method isMaxLength(val, arr, fn)
+         * Checks if value length is <= max.
          * @params {required}{val} val
          * @params {required}{arr} arr
          * @params {required}{fun} fn
@@ -331,8 +353,8 @@ define([
         },
 
         /**
-         * @method isMin(val, arr, fn)
-         * Checks if valing length is >= min.
+         * @method isMinLength(val, arr, fn)
+         * Checks if value length is >= min.
          * @params {required}{val} val
          * @params {required}{arr} arr
          * @params {required}{fun} fn

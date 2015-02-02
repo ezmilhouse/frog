@@ -199,6 +199,31 @@ define([
         },
 
 
+        /**
+         * @object localStorage
+         * Wrapper to set/get js objects in local storage.
+         * Local storage implementation natively supports
+         * only key/value pairs with values being strings.
+         */
+        localStorage : {
+
+            /**
+             * @method setObject(key, value)
+             * Sets item value to object, stringifies first.
+             */
+            setObject : function(key, value) {
+                localStorage.setItem(key, JSON.stringify(value));
+            },
+            /**
+             * @method getObject(key)
+             * Gets item value, parses first.
+             */
+            getObject : function(key) {
+                var value = localStorage.getItem(key);
+                return value && JSON.parse(value);
+            }
+        },
+
         // EVERYTHING BELOW THIS LINE SHOULD BE CONSIDERED
         // DEPRECATED, UP FOR RE-EVALUATION
 
@@ -517,7 +542,7 @@ define([
          * @method isObjectId(str)
          * Checks if incoming string matches mongo object id (formally).
          */
-        isObjectId : function(str) {
+        isObjectId : function (str) {
             return str.match(/^[0-9a-fA-F]{24}$/);
         },
 
@@ -645,7 +670,7 @@ define([
                 }
             },
             redis : {
-                down  : function () {
+                down : function () {
                     var str = '';
                     str += '\n';
                     str += moment().format('D MMM HH:mm:ss') + ' - ' + '[redis] lost session, no connection, service down';

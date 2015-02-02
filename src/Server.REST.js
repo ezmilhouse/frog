@@ -399,18 +399,18 @@ define([
         // PUBLIC
 
         /**
-         * @method send(req, res, err, data[,status][,code])
+         * @method send(req, res, err, body[,status][,code])
          * Builds response payload, sends response object in success
          * and error cases back to client.
 
          * @params {required}{obj} req
          * @params {required}{obj} res
          * @params {required}{bol} err
-         * @params {required}{obj|arr|str} data
+         * @params {required}{obj|arr|str} body
          * @params {optional}{int} status
          * @params {optional}{str} code
          */
-        send : function (req, res, err, data, status, code, debug) {
+        send : function (req, res, err, body, status, code, debug) {
 
             // normalize
             status = status || 200;
@@ -494,7 +494,7 @@ define([
             // set payload
             var payload = {
                 code        : code,
-                data        : data || null,
+                data        : body || null,
                 debug       : debug,
                 description : msg.description,
                 error       : !!err,
@@ -508,7 +508,7 @@ define([
 
                 // add query parameters
                 _.extend(payload, {
-                    count  : data.length
+                    count  : body.length
                 });
 
             }
@@ -536,9 +536,9 @@ define([
             }
 
             // update, delete case
-            if (status === 204 && (data && typeof data._count !== 'undefined')) {
+            if (status === 204 && (body && typeof body._count !== 'undefined')) {
                 _.extend(payload, {
-                    count : data._count,
+                    count : body._count,
                     data  : null
                 });
             }
