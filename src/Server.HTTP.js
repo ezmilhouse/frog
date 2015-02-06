@@ -56,7 +56,7 @@ define([
                 shell       : '/frog.shell',
                 text        : {},
                 version     : null,
-                views       : '/server/html'
+                views       : '/public/html'
             };
 
             if (options) {
@@ -415,6 +415,7 @@ define([
 
             // set expires headers
             app.use('*', function (req, res, next) {
+                // TODO: is this really necessary
                 res.set('Cache-Control', 'public, max-age=345600'); // 4 days
                 res.set('Expires', new Date(Date.now() + 345600000).toUTCString());
                 next();

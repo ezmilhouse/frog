@@ -198,7 +198,6 @@ define([
 
         },
 
-
         /**
          * @object localStorage
          * Wrapper to set/get js objects in local storage.
@@ -712,7 +711,6 @@ define([
                 }
 
             }
-
         },
 
         /**

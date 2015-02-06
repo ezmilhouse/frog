@@ -12,7 +12,6 @@ switch (typeof define !== 'function') {
             date        : require('./src/date'),
             Email       : require('./src/Email'),
             Events      : require('./src/Events'),
-            events      : require('./src/events'),
             Facebook    : require('./src/Facebook'),
             Flow        : require('./src/Flow'),
             Handler     : {
