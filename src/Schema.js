@@ -23,13 +23,14 @@ define([
             this.$ = {
                 collection : null,
                 document   : {
-                    _created : { type : String, index : true },
-                    _updated : { type : String, index : true }
+                    created : { type : String, index : true },
+                    updated : { type : String, index : true }
                 },
                 mongo      : {
                     Model  : null,
                     schema : null
                 },
+                no_mongo   : false,
                 options    : {
 
                     // mongoose assigns each of your schemas an _id field by
@@ -177,6 +178,12 @@ define([
          */
         _setMongoCollection : function () {
 
+            // skip
+            // if nomongo is set
+            if (this.$.no_mongo) {
+                return this;
+            }
+
             // add collection name
             _.extend(this.$.options, {
                 collection : this.$.collection
@@ -195,27 +202,16 @@ define([
          */
         _setMongoSchema : function () {
 
-            /*
-            // duplicate the _id field, map to id
-            mongoose.Schema.virtual('id').get(function(){
-                return this._id.toHexString();
-            });
-
-            // ensure virtual fields are serialised
-            mongoose.Schema.set('toJSON', {
-                virtuals: true
-            });
-
-            // ensure virtual fields are serialised
-            mongoose.Schema.set('toObject', {
-                virtuals: true
-            });
-            */
+            // skip
+            // if nomongo is set
+            if (this.$.no_mongo) {
+                return this;
+            }
 
             // add keys to document
             _.extend(this.$.document, {
-                _created : { type : String, index : true },
-                _updated : { type : String, index : true }
+                created : { type : String, index : true },
+                updated : { type : String, index : true }
             });
 
             // create mongo schema
@@ -234,6 +230,12 @@ define([
          */
         _setMongoModel : function () {
 
+            // skip
+            // if nomongo is set
+            if (this.$.no_mongo) {
+                return this;
+            }
+
             // create mongo Model
             this.$.mongo.Model = mongoose.model(this.$.collection, this.$.mongo.schema);
 
@@ -249,6 +251,12 @@ define([
          * @return {*}
          */
         _setMongoUniques : function () {
+
+            // skip
+            // if nomongo is set
+            if (this.$.no_mongo) {
+                return this;
+            }
 
             // get uniques
             var arr = this.$.uniques;

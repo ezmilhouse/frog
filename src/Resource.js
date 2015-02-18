@@ -22,6 +22,7 @@ define([
 
             this.$ = {
                 id        : null,
+                context   : null,
                 methods   : [
                     'index',
                     'create',
@@ -58,6 +59,7 @@ define([
 
             // index
             new Service({
+                context   : this.$.context,
                 fn        : 'index',
                 method    : 'GET',
                 namespace : this.$.namespace,
@@ -81,6 +83,7 @@ define([
 
             // create
             new Service({
+                context   : this.$.context,
                 fn        : 'create',
                 method    : 'POST',
                 namespace : this.$.namespace,
@@ -104,6 +107,7 @@ define([
 
             // retrieve
             new Service({
+                context   : this.$.context,
                 fn        : 'retrieve',
                 id        : this.$.id,
                 method    : 'GET',
@@ -128,6 +132,7 @@ define([
 
             // update
             new Service({
+                context   : this.$.context,
                 fn        : 'update',
                 id        : this.$.id,
                 method    : 'PUT',
@@ -147,6 +152,7 @@ define([
 
             // update (multiple documents affected)
             new Service({
+                context   : this.$.context,
                 fn        : 'update',
                 id        : this.$.id,
                 method    : 'PUT',
@@ -171,6 +177,7 @@ define([
 
             // delete
             new Service({
+                context   : this.$.context,
                 fn        : 'delete',
                 id        : this.$.id,
                 method    : 'DELETE',
@@ -190,6 +197,7 @@ define([
 
             // delete (multiple documents affected)
             new Service({
+                context   : this.$.context,
                 fn        : 'delete',
                 id        : this.$.id,
                 method    : 'DELETE',

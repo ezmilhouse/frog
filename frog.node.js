@@ -6,6 +6,7 @@ switch (typeof define !== 'function') {
 
             Api         : require('./src/Api'),
             app         : require('./src/app'),
+            appwire     : require('./src/appwire'),
             Base        : require('./src/Base'),
             Collection  : require('./src/Collection'),
             Component   : require('./src/Component'),

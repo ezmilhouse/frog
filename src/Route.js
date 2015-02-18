@@ -154,14 +154,11 @@ define([
 
             // try to match
             var match = this.$.regexp.exec(uri);
-            // console.log(match);
 
             // skip
             if (!match) {
                 return false;
             }
-
-            // console.log(match);
 
             // format result
             var key;

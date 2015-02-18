@@ -24,21 +24,23 @@ define([
             this.$ = {
                 app        : singleton.app,
                 cb         : null,
+                context    : null,
                 defaults   : {
                     limit  : 100,
                     offset : 0,
                     page   : 1,
                     sort   : {
-                        _created : 1 // DESC (-1 = ASC)
+                        created : 1 // DESC (-1 = ASC)
                     }
                 },
                 fn         : null,
-                id         : 'id',
+                id         : '_id',
                 method     : null,
                 middleware : [],
                 Model      : null,
                 namespace  : null,
                 payload    : [],
+                prefix     : '',
                 route      : null,
                 safe       : true, // if set to false {} queries on _del, _set are possible
                 schema     : null,
@@ -137,7 +139,7 @@ define([
          * Returns array of middleware functions.
          * @return {arr}
          */
-        _setMiddleware : function() {
+        _setMiddleware : function () {
 
             // extract middleware
             var middleware = this.$.middleware;
@@ -326,7 +328,7 @@ define([
                 case 'index' :
 
                     // set namespace
-                    ns = 'service:' + this.$.namespace + ':index';
+                    ns = this.$.namespace + ':index';
 
                     // skip
                     // if already set, no stacking
@@ -338,7 +340,7 @@ define([
                     // set listener
                     app.on(ns, function (req, res) {
                         req = normalize(req, res);
-                        self._get(req.params, req.body, req.query, req.cb);
+                        self._get(req, req.cb);
                     });
 
                     break;
@@ -348,7 +350,7 @@ define([
                 case 'create' :
 
                     // set namespace
-                    ns = 'service:' + this.$.namespace + ':create';
+                    ns = this.$.namespace + ':create';
 
                     // skip
                     // if already set, no stacking
@@ -360,7 +362,7 @@ define([
                     // set listener
                     app.on(ns, function (req, res) {
                         req = normalize(req, res);
-                        self._new(req.params, req.body, req.query, req.cb);
+                        self._new(req, req.cb);
                     });
 
                     break;
@@ -368,7 +370,7 @@ define([
                 case 'retrieve' :
 
                     // set namespace
-                    ns = 'service:' + this.$.namespace + ':retrieve';
+                    ns = this.$.namespace + ':retrieve';
 
                     // skip
                     // if already set, no stacking
@@ -380,7 +382,7 @@ define([
                     // set listener
                     app.on(ns, function (req, res) {
                         req = normalize(req, res);
-                        self._getById(req.params, req.body, req.query, req.cb);
+                        self._getById(req, req.cb);
                     });
 
                     break;
@@ -388,7 +390,7 @@ define([
                 case 'update' :
 
                     // set namespace
-                    ns = 'service:' + this.$.namespace + ':update';
+                    ns = this.$.namespace + ':update';
 
                     // skip
                     // if already set, no stacking
@@ -404,11 +406,11 @@ define([
 
                         // no id, invoke on multiple documents
                         if (typeof req.params[id] === 'undefined') {
-                            return self._set(req.params, req.body, req.query, req.cb);
+                            return self._set(req, req.cb);
                         }
 
                         // id set, invoke on single document
-                        self._setById(req.params, req.body, req.query, req.cb);
+                        self._setById(req, req.cb);
 
                     });
 
@@ -417,7 +419,7 @@ define([
                 case 'delete' :
 
                     // set namespace
-                    ns = 'service:' + this.$.namespace + ':delete';
+                    ns = this.$.namespace + ':delete';
 
                     // skip
                     // if already set, no stacking
@@ -433,11 +435,11 @@ define([
 
                         // no id, invoke on multiple documents
                         if (typeof req.params[id] === 'undefined') {
-                            return self._del(req.params, req.body, req.query, req.cb);
+                            return self._del(req, req.cb);
                         }
 
                         // id set, invoke on single document only
-                        self._delById(req.params, req.body, req.query, req.cb);
+                        self._delById(req, req.cb);
 
                     });
 
@@ -448,7 +450,7 @@ define([
                 default :
 
                     // set namespace
-                    ns = 'service:' + this.$.namespace;
+                    ns = this.$.namespace;
 
                     // skip
                     // if already set, no stacking
@@ -460,7 +462,7 @@ define([
                     // set listener
                     app.on(ns, function (req, res) {
                         req = normalize(req, res);
-                        self.$.fn(req.params, req.body, req.query, req.cb);
+                        self.$.fn(req, req.cb);
                     });
 
                     break;
@@ -485,7 +487,7 @@ define([
 
             // if not set fall back to url
             if (!ns) {
-                ns = this.$.method + ':' + this.$.route;
+                ns = this.$.prefix + ':' + this.$.method + ':' + this.$.route;
             }
 
             // save
@@ -577,22 +579,25 @@ define([
                 method = 'del'
             }
 
+            // normalize context
+            var context = this.$.context || '';
+
             // find middleware
             var middleware = this._setMiddleware();
 
             // set route
             app[method]({
                 name : method.toUpperCase() + ': ' + this.$.route,
-                path : this.$.route
+                path : context + this.$.route
             }, normalize, middleware, function (req, res, next) {
 
                 // add crud verb in case of pre-set
                 // crud functions, otherwise leave
                 // it with namespace alone
                 if (_.isString(self.$.fn)) {
-                    app.emit('service:' + self.$.namespace + ':' + self.$.fn, req, res);
+                    app.emit(self.$.namespace + ':' + self.$.fn, req, res);
                 } else {
-                    app.emit('service:' + self.$.namespace, req, res);
+                    app.emit(self.$.namespace, req, res);
                 }
 
             });
@@ -605,27 +610,33 @@ define([
         // PRIVATE: QUERIES
 
         /**
-         * @method _new(params, body, query[,fn])
+         * @method _new(req[,fn])
          * Creates new document based on body.
-         * @params {required}{obj} params
-         * @params {required}{obj} body
-         * @params {required}{obj} query
+         * @params {required}{obj} req
+         *    @key {required}{obj} req.body
+         *    @key {required}{obj} req.params
+         *    @key {required}{obj} req.query
          * @params {optional}{fun} fn
          */
-        _new : function (params, body, query, fn) {
+        _new : function (req, fn) {
 
             // normalize
             fn = fn || util.noop;
 
+            // extract
+            var body = req.body;
+            var params = req.params;
+            var query = req.query;
+
             // validate
-            if (_.isEmpty(body)) {
-                return fn(true, null, 400, 400104);
+            if (!_.isObject(body)) {
+                return fn(true, null, 409, 409002);
             }
 
             // extend body object
             _.extend(body, {
-                _created : date.getUTCLocal(),
-                _updated : date.getUTCLocal()
+                created : date.getUTCLocal(),
+                updated : date.getUTCLocal()
             });
 
             // get mongo model
@@ -636,7 +647,7 @@ define([
 
                 // skip!
                 if (err) {
-                    return fn(true, err, 400, 400100);
+                    return fn(true, err, 400, 400004);
                 }
 
                 // normalize
@@ -653,25 +664,33 @@ define([
                 }
 
                 // exit
-                return fn(null, doc, 201);
+                return fn(null, {
+                    id : doc.id
+                }, 201);
 
             });
 
         },
 
         /**
-         * @method _get(params, body, query[,fn])
+         * @method _get(req[,fn])
          * Returns multiple documents, found by query object, results
          * based on options object.
-         * @params {required}{obj} params
-         * @params {required}{obj} body
-         * @params {required}{obj} query
+         * @params {required}{obj} req
+         *    @key {required}{obj} req.body
+         *    @key {required}{obj} req.params
+         *    @key {required}{obj} req.query
          * @params {optional}{fun} fn
          */
-        _get : function (params, body, query, fn) {
+        _get : function (req, fn) {
 
             // normalize
             fn = fn || util.noop;
+
+            // extract
+            var body = req.body;
+            var params = req.params;
+            var query = req.query;
 
             // get defaults
             var defaults = this.$.defaults;
@@ -726,71 +745,78 @@ define([
                 .select(this.$.payload)
                 .exec(function (err, docs) {
 
+                    console.log(query);
+                    console.log(arguments);
+
                     // skip!
                     if (err) {
-                        return fn(true, err, 400, 400101);
+                        return fn(true, err, 400, 400005);
                     }
 
                     // skip!
                     // normalize body to null
                     if (!docs || docs.length === 0) {
-                        return fn(null, null, 404, 404100);
+                        return fn(null, null, 404, 404001);
                     }
 
                     // normalize
                     _.map(docs, function (doc) {
-                        return doc.toObject();
+                        doc = doc.toObject();
                     });
 
                     // exit
-                    return fn(null, docs, 200, 200, {
-                        limit  : limit,
-                        offset : offset,
-                        sort   : sort
-                    });
+                    return fn(null, docs, 200);
 
                 });
 
         },
 
         /**
-         * @method _getById(params, body, query[,fn])
+         * @method _getById(req[,fn])
          * Returns single document, found by id.
-         * @params {required}{obj} params
-         * @params {required}{obj} body
-         * @params {required}{obj} query
+         * @params {required}{obj} req
+         *    @key {required}{obj} req.body
+         *    @key {required}{obj} req.params
+         *    @key {required}{obj} req.query
          * @params {optional}{fun} fn
          */
-        _getById : function (params, body, query, fn) {
+        _getById : function (req, fn) {
 
             // normalize
             fn = fn || util.noop;
+
+            // extract
+            var body = req.body;
+            var params = req.params;
+            var query = req.query;
 
             // set id
             var id = params[this.$.id];
 
             // validate
-            if (!id) {
-                return fn(true, null, 400, 400102);
+            if (!util.isObjectId(id)) {
+                return fn(true, null, 409, 409001);
             }
+
+            // create query
+            var query = {};
+            query[this.$.id] = id;
 
             // find document
             this.$.Model
-                .findOne({
-                    _id : id
-                })
+                .findOne(query)
                 .select(this.$.payload)
                 .exec(function (err, doc) {
 
                     // skip!
                     if (err) {
-                        return fn(true, err, 400, 400103);
+                        return fn(true, err, 400, 400005);
                     }
 
                     // skip!
                     // normalize body to null
                     if (!doc) {
-                        return fn(null, null, 404, 404101);
+                        return fn(null, null, 404, 404001);
                     }
 
                     // normalize
@@ -804,17 +830,28 @@ define([
         },
 
         /**
-         * @method _set(params, body, query[,fn])
+         * @method _set(req[,fn])
          * Updates multiple documents based on body, found by query.
-         * @params {required}{obj} params
-         * @params {required}{obj} body
-         * @params {required}{obj} query
+         * @params {required}{obj} req
+         *    @key {required}{obj} req.body
+         *    @key {required}{obj} req.params
+         *    @key {required}{obj} req.query
          * @params {optional}{fun} fn
          */
-        _set : function (params, body, query, fn) {
+        _set : function (req, fn) {
 
             // normalize
             fn = fn || util.noop;
+
+            // extract
+            var body = req.body;
+            var params = req.params;
+            var query = req.query;
+
+            // validate
+            if (!_.isObject(query)) {
+                return fn(true, null, 409, 409002);
+            }
 
             // validate
             // avoid massive updates, caused by empty queries
@@ -822,13 +859,13 @@ define([
             // true)
             if (_.isEmpty(query)) {
                 if (this.$.safe === true) {
-                    return fn(true, null, 400, 400106);
+                    return fn(true, null, 400, 400006);
                 }
             }
 
             // extend body object
             _.extend(body, {
-                _updated : date.getUTCLocal()
+                updated : date.getUTCLocal()
             });
 
             // update documents
@@ -841,18 +878,18 @@ define([
 
                     // skip!
                     if (err) {
-                        return fn(true, err, 400, 400107);
+                        return fn(true, err, 400, 400007);
                     }
 
                     // skip!
                     // no document affected
                     if (!num) {
-                        return fn(true, err, 404, 404102);
+                        return fn(true, err, 404, 404002);
                     }
 
                     // exit
                     return fn(null, {
-                        _count : num
+                        affected : num
                     }, 204);
 
                 });
@@ -860,48 +897,56 @@ define([
         },
 
         /**
-         * @method _setById(params, body, query[,fn])
+         * @method _setById(req[,fn])
          * Updates single document, found by id.
-         * @params {required}{obj} params
-         * @params {required}{obj} body
-         * @params {required}{obj} query
+         * @params {required}{obj} req
+         *    @key {required}{obj} req.body
+         *    @key {required}{obj} req.params
+         *    @key {required}{obj} req.query
          * @params {optional}{fun} fn
          */
-        _setById : function (params, body, query, fn) {
+        _setById : function (req, fn) {
 
             // normalize
             fn = fn || util.noop;
+
+            // extract
+            var body = req.body;
+            var params = req.params;
+            var query = req.query;
 
             // set id
             var id = params[this.$.id];
 
             // validate
-            if (!id) {
-                return fn(true, null, 400, 400108);
+            if (!util.isObjectId(id)) {
+                return fn(true, null, 409, 409001);
             }
 
             // extend body object
             _.extend(body, {
-                _updated : date.getUTCLocal()
+                updated : date.getUTCLocal()
             });
+
+            // create query
+            var query = {};
+            query[this.$.id] = id;
 
             // update document
             this.$.Model
-                .findOneAndUpdate({
-                    _id : id
-                }, body)
+                .findOneAndUpdate(query, body)
                 .select(this.$.payload)
                 .exec(function (err, num) {
 
                     // skip!
                     if (err) {
-                        return fn(true, err, 400, 400110);
+                        return fn(true, err, 400, 400007);
                     }
 
                     // skip!
                     // normalize body to null
                     if (!num) {
-                        return fn(true, err, 404, 404103);
+                        return fn(true, err, 404, 404002);
                     }
 
                     // normalize
@@ -913,7 +958,7 @@ define([
 
                     // exit
                     return fn(null, {
-                        _count : num
+                        affected : num
                     }, 204);
 
                 });
@@ -921,17 +966,28 @@ define([
         },
 
         /**
-         * @method _del(params, body, query[,fn])
+         * @method _del(req[,fn])
          * Deletes multiple documents, found by query.
-         * @params {required}{obj} params
-         * @params {required}{obj} body
-         * @params {required}{obj} query
+         * @params {required}{obj} req
+         *    @key {required}{obj} req.body
+         *    @key {required}{obj} req.params
+         *    @key {required}{obj} req.query
          * @params {optional}{fun} fn
          */
-        _del : function (params, body, query, fn) {
+        _del : function (req, fn) {
 
             // normalize
             fn = fn || util.noop;
+
+            // extract
+            var body = req.body;
+            var params = req.params;
+            var query = req.query;
+
+            // validate
+            if (!_.isObject(query)) {
+                return fn(true, null, 409, 409002);
+            }
 
             // validate
             // avoid massive deletes, caused by empty queries
@@ -939,7 +995,7 @@ define([
             // true)
             if (_.isEmpty(query)) {
                 if (this.$.safe === true) {
-                    return fn(true, null, 400, 400111);
+                    return fn(true, null, 400, 400006);
                 }
             }
 
@@ -954,13 +1010,13 @@ define([
 
                     // skip!
                     if (err) {
-                        return fn(true, err, 400, 400112);
+                        return fn(true, err, 400, 400008);
                     }
 
                     // skip
                     // no documents affected
                     if (!num) {
-                        return fn(true, err, 404, 404104);
+                        return fn(true, err, 404, 404002);
                     }
 
                     // normalize
@@ -972,7 +1028,7 @@ define([
 
                     // exit
                     return fn(null, {
-                        _count : num
+                        affected : num
                     }, 204);
 
                 });
@@ -980,42 +1036,51 @@ define([
         },
 
         /**
-         * @method _delById(params, body, query[,fn])
+         * @method _delById(req[,fn])
          * Deletes single document, found by id.
-         * @params {required}{obj} params
-         * @params {required}{obj} body
-         * @params {required}{obj} query
+         * @params {required}{obj} req
+         *    @key {required}{obj} req.body
+         *    @key {required}{obj} req.params
+         *    @key {required}{obj} req.query
          * @params {optional}{fun} fn
          */
-        _delById : function (params, body, query, fn) {
+        _delById : function (req, fn) {
 
             // normalize
             fn = fn || util.noop;
+
+            // extract
+            var body = req.body;
+            var params = req.params;
+            var query = req.query;
 
             // set id
             var id = params[this.$.id];
 
             // validate
-            if (!id) {
-                return fn(true, null, 400, 'ERROR_MONGO_ID_IS_MISSING');
+            if (!util.isObjectId(id)) {
+                return fn(true, null, 409, 409001);
             }
 
+            // create query
+            var query = {};
+            query[this.$.id] = id;
+
+            // remove document
             this.$.Model
-                .findOneAndRemove({
-                    _id : id
-                })
+                .findOneAndRemove(query)
                 .select(this.$.payload)
                 .exec(function (err, num) {
 
                     // skip!
                     if (err) {
-                        return fn(true, err, 400, 400113);
+                        return fn(true, err, 400, 400008);
                     }
 
                     // skip!
                     // normalize body to null
                     if (!num) {
-                        return fn(true, err, 404, 404105);
+                        return fn(true, err, 404, 404002);
                     }
 
                     // normalize
@@ -1027,7 +1092,7 @@ define([
 
                     // exit
                     return fn(null, {
-                        _count : num
+                        affected : num
                     }, 204);
 
                 });

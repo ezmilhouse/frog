@@ -53,7 +53,7 @@ define([
                 redis       : null,
                 server      : null,
                 sessions    : null,
-                shell       : '/frog.shell',
+                shell       : '/app.shell',
                 text        : {},
                 version     : null,
                 views       : '/public/html'
@@ -414,12 +414,14 @@ define([
             }));
 
             // set expires headers
+            /*
             app.use('*', function (req, res, next) {
                 // TODO: is this really necessary
                 res.set('Cache-Control', 'public, max-age=345600'); // 4 days
                 res.set('Expires', new Date(Date.now() + 345600000).toUTCString());
                 next();
             });
+            */
 
             // handle cookies
             app.use(cookieParser());

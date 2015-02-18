@@ -366,6 +366,7 @@ define([
                 // represents no arguments validation
                 // method, array comes with additional
                 // parameters
+
                 if (_.isArray(rule)) {
 
                     // extract rule method name

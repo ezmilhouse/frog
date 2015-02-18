@@ -1431,9 +1431,6 @@ define([
                             // update state classes
                             self._setStateClasses(field, results);
 
-                            // debug
-                            // console.log(results);
-
                             // exit
                             fn(null, results);
 

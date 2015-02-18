@@ -34,15 +34,11 @@ define([
                 debug                 : null,
                 dir                   : null,
                 env                   : 'development',
+                errors                : {},
                 gzip                  : true,
                 jsonp                 : true,
                 local                 : true,
                 log                   : true,
-                messages              : {
-                    errors   : null,
-                    success  : null,
-                    warnings : null
-                },
                 mongo                 : {
                     db       : 'frog',
                     password : '',
@@ -410,141 +406,40 @@ define([
          * @params {optional}{int} status
          * @params {optional}{str} code
          */
-        send : function (req, res, err, body, status, code, debug) {
+        send : function(req, res, err, body, status, code, debug) {
 
             // normalize
+            debug = typeof req.query.debug !== 'undefined' ? debug || null : false;
+            err = err || false;
             status = status || 200;
-            err = status >= 400;
 
-            // normalize
-            switch(arguments.length) {
-                case 6 :
-                    if (_.isNumber(code)) {
-                        code = code || status;
-                        debug = null;
-                    } else {
-                        debug = code || null;
-                        code = status;
-                    }
-                    break;
-                case 7 :
-                    code = code || status;
-                    debug = debug || this.$.debug || null;
-                    break;
-                default : // 5
-                    code = status;
-                    debug = null;
-                    break;
-            }
-
-            // doublecheck if empty object, set to
-            // null as well
-            if (debug && _.isEmpty(debug)) {
-                debug = null;
-            }
-
-            // get messages
-            var msg = this.$.messages || {};
-
-            // set message in case of success
-            if (status >= 200 && status < 300) {
-                if (msg.success) {
-                    if (msg.success[code]) {
-                        msg = msg.success[code];
-                    } else {
-                        msg = msg[status];
-                    }
-                } else {
-                    msg.message = 'OK';
-                }
-            }
-
-            // set message in case of warnings
-            if (status >= 300 && status < 400) {
-                if (msg.warnings) {
-                    if (msg.warnings[code]) {
-                        msg = msg.warnings[code];
-                    } else {
-                        msg = msg[status];
-                    }
-                } else {
-                    msg.message = 'WARNING';
-                }
-            }
-
-            // set message case of errors
+            // force error in case of status codes
+            // than >= 400
             if (status >= 400) {
-                if (msg.errors) {
-                    if (msg.errors[code]) {
-                        msg = msg.errors[code];
-                    } else {
-                        msg = msg.errors[status];
-                    }
-                } else {
-                    msg.message = 'FAILED';
-                    msg.description = 'No description yet.'
-                }
+                err = true;
             }
 
-            // description fallback
-            if (typeof msg.description === 'undefined') {
-                msg.description = '';
-            }
-
-            // set payload
+            // create response object
             var payload = {
-                code        : code,
-                data        : body || null,
-                debug       : debug,
-                description : msg.description,
-                error       : !!err,
-                message     : msg.message,
-                status      : status,
-                success     : !err
+                data    : body || null,
+                error   : err,
+                status  : status,
+                success : !err
             };
 
-            // index case
-            if (_.isArray(payload.data)) {
-
-                // add query parameters
+            // create error object in case of error
+            if (err) {
                 _.extend(payload, {
-                    count  : body.length
-                });
-
-            }
-
-            // special debug for index cases
-            if (_.isArray(payload.data) && debug && typeof debug.limit !== 'undefined') {
-
-                // add debug keys
-                _.extend(payload, {
-                    limit  : debug.limit,
-                    offset : debug.offset,
-                    sort   : debug.sort
-                });
-
-                // remove from debug object
-                delete debug.limit;
-                delete debug.offset;
-                delete debug.sort;
-
-                // remove if empty
-                if (debug && _.isEmpty(debug)) {
-                    payload.debug = null;
-                }
-
-            }
-
-            // update, delete case
-            if (status === 204 && (body && typeof body._count !== 'undefined')) {
-                _.extend(payload, {
-                    count : body._count,
-                    data  : null
+                    error : {
+                        code    : code,
+                        debug   : debug,
+                        message : this.$.errors[code] || 'UNKNOWN'
+                    }
                 });
             }
 
-            // always HTTP status 200
-            res.send(200, payload);
+            // exit
+            res.send(status, payload);
 
         },
 
