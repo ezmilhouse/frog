@@ -75,18 +75,17 @@ define([
                         minimize   : false,
                         transform  : function (doc, ret, options) {
 
-                            if (typeof ret._version !== 'undefined') {
+                            // copy _id value
+                            ret.id = ret._id;
 
-                                // copy _id value
-                                ret.id = ret._id;
+                            // remove _id key
+                            delete ret._id;
 
-                                // remove _id key
-                                delete ret._id;
+                            // remove __v key
+                            delete ret.__v;
 
-                                // remove __v key
-                                delete ret.__v;
-
-                            }
+                            // remove version key
+                            delete ret.version;
 
                         },
                         virtuals   : true
@@ -114,21 +113,17 @@ define([
                         // before returning
                         transform  : function (doc, ret, options) {
 
-                            if (typeof ret._version !== 'undefined') {
+                            // copy _id value
+                            ret.id = ret._id;
 
-                                // copy _id value
-                                ret.id = ret._id;
+                            // remove _id key
+                            delete ret._id;
 
-                                // remove _id key
-                                delete ret._id;
+                            // remove __v key
+                            delete ret.__v;
 
-                                // remove __v key
-                                delete ret.__v;
-
-                                // customized version key name
-                                delete ret._version;
-
-                            }
+                            // remove version key
+                            delete ret.version;
 
                         },
 
@@ -141,7 +136,7 @@ define([
                     // created by Mongoose. This keys value contains the internal
                     // revision of the document. The name of this document property
                     // is configurable.
-                    versionKey : '_version'
+                    versionKey : 'version'
 
                 },
                 uniques    : []

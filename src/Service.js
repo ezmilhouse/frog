@@ -24,6 +24,7 @@ define([
             this.$ = {
                 app        : singleton.app,
                 cb         : null,
+                config     : {},
                 context    : null,
                 defaults   : {
                     limit  : 100,
@@ -34,7 +35,7 @@ define([
                     }
                 },
                 fn         : null,
-                id         : '_id',
+                id         : 'id',
                 method     : null,
                 middleware : [],
                 Model      : null,
@@ -218,6 +219,7 @@ define([
                 switch (arguments.length) {
                     case 0 :
                         req = {
+                            app    : {},
                             body   : {},
                             params : {},
                             query  : {}
@@ -228,6 +230,7 @@ define([
                         if (_.isFunction(req)) {
                             res = req;
                             req = {
+                                app    : {},
                                 body   : {},
                                 params : {},
                                 query  : {}
@@ -251,11 +254,6 @@ define([
                 req.params = (typeof req.params !== 'undefined')
                     ? req.params
                     : {};
-
-                // make headers available on params object
-                if (typeof req.headers !== 'undefined') {
-                    req.params.headers = req.headers;
-                }
 
                 // make method available on params object
                 if (typeof req.method !== 'undefined') {
@@ -299,11 +297,12 @@ define([
                 }
 
                 return {
+                    app    : req.app,
                     body   : req.body,
                     cb     : cb,
                     params : req.params,
                     query  : req.query
-                }
+                };
 
             };
 
@@ -550,7 +549,7 @@ define([
 
             /**
              * @middleware normalize
-             * MIddleware tha t normalizes request objects.
+             * Middleware tha t normalizes request objects.
              * @params {required}{obj} req
              * @params {required}{obj} res
              * @params {required}{fun} next
@@ -558,6 +557,7 @@ define([
             var normalize = function (req, res, next) {
 
                 // normalize
+                req.app = req.app || {};
                 req.body = req.body || {};
                 req.query = req.query || {};
                 req.params = req.params || {};
@@ -589,7 +589,7 @@ define([
             app[method]({
                 name : method.toUpperCase() + ': ' + this.$.route,
                 path : context + this.$.route
-            }, normalize, middleware, function (req, res, next) {
+            }, middleware, normalize, function (req, res, next) {
 
                 // add crud verb in case of pre-set
                 // crud functions, otherwise leave
@@ -619,6 +619,9 @@ define([
          * @params {optional}{fun} fn
          */
         _new : function (req, fn) {
+
+            // preserve scope
+            var self = this;
 
             // normalize
             fn = fn || util.noop;
@@ -664,9 +667,7 @@ define([
                 }
 
                 // exit
-                return fn(null, {
-                    id : doc.id
-                }, 201);
+                return fn(null, doc, 201);
 
             });
 
@@ -745,9 +746,6 @@ define([
                 .select(this.$.payload)
                 .exec(function (err, docs) {
 
-                    console.log(query);
-                    console.log(arguments);
-
                     // skip!
                     if (err) {
                         return fn(true, err, 400, 400005);
@@ -790,7 +788,7 @@ define([
             var params = req.params;
             var query = req.query;
 
-            // set id
+            // get id
             var id = params[this.$.id];
 
             // validate
@@ -799,8 +797,9 @@ define([
             }
 
             // create query
-            var query = {};
-            query[this.$.id] = id;
+            var query = {
+                _id : id
+            };
 
             // find document
             this.$.Model
@@ -915,7 +914,7 @@ define([
             var params = req.params;
             var query = req.query;
 
-            // set id
+            // get id
             var id = params[this.$.id];
 
             // validate
@@ -929,8 +928,9 @@ define([
             });
 
             // create query
-            var query = {};
-            query[this.$.id] = id;
+            var query = {
+                _id : id
+            };
 
             // update document
             this.$.Model
@@ -1054,7 +1054,7 @@ define([
             var params = req.params;
             var query = req.query;
 
-            // set id
+            // get id
             var id = params[this.$.id];
 
             // validate
@@ -1063,8 +1063,9 @@ define([
             }
 
             // create query
-            var query = {};
-            query[this.$.id] = id;
+            var query = {
+                _id : id
+            };
 
             // remove document
             this.$.Model

@@ -542,7 +542,15 @@ define([
          * Checks if incoming string matches mongo object id (formally).
          */
         isObjectId : function (str) {
+
+            // skip
+            if (!str) {
+                return false;
+            }
+
+            // check against object id regex
             return str.match(/^[0-9a-fA-F]{24}$/);
+
         },
 
         /**

@@ -21,7 +21,7 @@ define([
         _ctor : function (options) {
 
             this.$ = {
-                id        : null,
+                id        : 'id',
                 context   : null,
                 methods   : [
                     'index',
