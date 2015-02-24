@@ -22,8 +22,8 @@ define([
         _ctor : function (options) {
 
             this.$ = {
-                action           : true,
-                css              : {
+                action              : true,
+                css                 : {
                     field             : 'field',
                     fieldError        : 'field-error',
                     fieldErrorMessage : 'field-error-message',
@@ -38,32 +38,39 @@ define([
                     formNative        : 'native',
                     formSubmit        : 'submit'
                 },
-                data             : {},
-                el               : null,
-                endpoint         : '/',
-                errors           : null,
-                errors_all       : false,
-                fields           : {},
-                globals          : {
+                data                : {},
+                el                  : null,
+                endpoint            : '/',
+                errors              : null,
+                errors_all          : false,
+                fields              : {},
+                globals             : {
                     date : date,
                     util : util
                 },
-                listeners_fields : false,
-                listeners_forms  : false,
-                markup           : {
+                listeners_fields    : false,
+                listeners_forms     : false,
+                markup              : {
                     error_field : '',
                     error_form  : ''
                 },
-                method           : 'POST',
-                namespace        : null,
-                prefix           : 'frog-',
-                rules            : {},
-                selector         : 'form',
-                state            : 'loaded', // idle, error, ok
-                text             : {},
-                valid            : true,
-                validations      : validations,
-                view             : null
+                method              : 'POST',
+                namespace           : null, // ??? deprecated
+                prefix              : '',
+                rules               : {},
+                selector            : 'form',
+                state               : 'loaded', // idle, error, ok
+                text                : {
+                    form            : '',
+                    form_error      : '',
+                    default_error   : '',
+                    default_success : ''
+                },
+                text_prefix_error   : '',
+                text_prefix_success : '',
+                valid               : true,
+                validations         : validations,
+                view                : null
             };
 
             if (options) {
@@ -275,7 +282,7 @@ define([
                 error = errors[i];
 
                 // extract error message text
-                errorText = this.$.text[error];
+                errorText = this.$.text[this.$.text_prefix_error + error];
 
                 // extract array of rules params
                 ruleParams = (_.isArray(rules[1]))
@@ -517,6 +524,7 @@ define([
 
         },
 
+
         /**
          * @method _setMarkup()
          * Sets markup for error messages on form and field level.
@@ -531,13 +539,13 @@ define([
             var prefix = this.$.prefix;
 
             // normalize
-            this.$.text.formError = typeof this.$.text.formError === 'undefined' ? '' : this.$.text.formError;
-            this.$.text.defaultError = typeof this.$.text.defaultError === 'undefined' ? '' : this.$.text.defaultError;
+            this.$.text.form_error = typeof this.$.text.form_error === 'undefined' ? '' : this.$.text.form_error;
+            this.$.text.default_error = typeof this.$.text.default_error === 'undefined' ? '' : this.$.text.default_error;
 
             // add markup for errors in form and field
             _.extend(this.$.markup, {
-                error_field : '<div class="' + cl.fieldErrorMessage + '"></div><div class="' + cl.fieldErrorFlag + '">' + this.$.text.defaultError + '</div><div class="' + cl.fieldSuccessFlag + '">' + this.$.text.defaultSuccess + '</div>',
-                error_form  : '<div class="' + cl.formErrorMessage + '">' + this.$.text.formError || '' + '</div>'
+                error_field : '<div class="' + cl.fieldErrorMessage + '"></div><div class="' + cl.fieldErrorFlag + '">' + this.$.text.default_error + '</div><div class="' + cl.fieldSuccessFlag + '">' + this.$.text.default_success + '</div>',
+                error_form  : '<div class="' + cl.formErrorMessage + '">' + this.$.text.form_error || '' + '</div>'
             });
 
             // make chainable

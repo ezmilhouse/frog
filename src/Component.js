@@ -33,7 +33,7 @@ define([
                 id       : null,
                 file     : null,
                 selector : null,
-                layout   : 'layout',
+                layout   : null,
                 view     : null
             };
 

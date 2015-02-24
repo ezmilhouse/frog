@@ -754,7 +754,7 @@ define([
                     // skip!
                     // normalize body to null
                     if (!docs || docs.length === 0) {
-                        return fn(null, null, 404, 404001);
+                        return fn(true, null, 404, 404001);
                     }
 
                     // normalize
@@ -815,7 +815,7 @@ define([
                     // skip!
                     // normalize body to null
                     if (!doc) {
-                        return fn(null, null, 404, 404001);
+                        return fn(true, null, 404, 404001);
                     }
 
                     // normalize

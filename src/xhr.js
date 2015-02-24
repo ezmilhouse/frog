@@ -25,17 +25,17 @@ define([
             // skip
             // handle xhr error
             if (response.error) {
-                return fn(true, response.error, response.status, 'XHR_ERROR', response);
+                return fn(true, null, response.status);
             }
 
             // skip
             // handle response error
             if (response.body && response.body.status >= 400) {
-                return fn(true, response.body, response.body.status, response.body.code, response);
+                return fn(true, response.body.data, response.body.status, response.body.code, response.body.debug);
             }
 
             // handle success
-            return fn(null, response.body, response.body.status, response.body.code, response);
+            return fn(null, response.body.data, response.body.status, response.body.code, response.body.debug);
 
         });
 

@@ -24,12 +24,12 @@ define([
             this.$ = {
                 context  : null,
                 endpoint : '/api',
-                headers  : {
-                    'Content-Type' : 'application/json'
-                },
+                headers  : {},
                 host     : null,
+                key      : null,
                 port     : null,
-                protocol : 'https'
+                protocol : 'https',
+                secert   : null
             };
 
             if (options) {
