@@ -22,7 +22,6 @@ define([
         _ctor : function (options) {
 
             this.$ = {
-                api      : null,
                 compiled : null,
                 data     : {
                     date : date,

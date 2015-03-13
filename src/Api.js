@@ -22,14 +22,17 @@ define([
         _ctor : function (options) {
 
             this.$ = {
-                context  : null,
-                endpoint : '/api',
-                headers  : {},
-                host     : null,
-                key      : null,
-                port     : null,
-                protocol : 'https',
-                secert   : null
+                context            : null,
+                endpoint           : '/api',
+                environment        : 'server',
+                headers            : {},
+                headers_additional : {},
+                host               : null,
+                key                : null,
+                port               : null,
+                protocol           : 'https',
+                secret             : null,
+                token              : null
             };
 
             if (options) {
@@ -106,10 +109,11 @@ define([
             // set xhr
             var req = xhr.del.apply(xhr, arguments);
 
+            // extract headers
+            var headers = this.$.headers;
+
             // set xhr headers
-            if (this.$.headers) {
-                req.set(this.$.headers);
-            }
+            req.set(headers);
 
             return req;
 
@@ -131,10 +135,11 @@ define([
             // set xhr
             var req = xhr.get.apply(xhr, arguments);
 
+            // extract headers
+            var headers = this.$.headers;
+
             // set xhr headers
-            if (this.$.headers) {
-                req.set(this.$.headers);
-            }
+            req.set(headers);
 
             return req;
 
@@ -156,10 +161,11 @@ define([
             // set xhr
             var req = xhr.post.apply(xhr, arguments);
 
+            // extract headers
+            var headers = this.$.headers;
+
             // set xhr headers
-            if (this.$.headers) {
-                req.set(this.$.headers);
-            }
+            req.set(headers);
 
             return req;
 
@@ -181,10 +187,11 @@ define([
             // set xhr
             var req = xhr.put.apply(xhr, arguments);
 
+            // extract headers
+            var headers = this.$.headers;
+
             // set xhr headers
-            if (this.$.headers) {
-                req.set(this.$.headers);
-            }
+            req.set(headers);
 
             return req;
 

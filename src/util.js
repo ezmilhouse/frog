@@ -137,6 +137,19 @@ define([
         moment : moment,
 
         /**
+         * @method redirect(url)
+         * Invokes client-side redirection using window.replace.
+         * It is better than using window.location.href =, because
+         * replace() does not put the originating page in the
+         * session history, meaning the user won't get stuck in a
+         * never-ending back-button fiasco.
+         * @params {required}{str} url
+         */
+        redirect : function(url) {
+            return window.location.replace(url);
+        },
+
+        /**
          * @method trim(val)
          * Trimms string, uses jquery if available otherwise
          * falls back to native js method.
@@ -211,15 +224,37 @@ define([
              * Sets item value to object, stringifies first.
              */
             setObject : function(key, value) {
-                localStorage.setItem(key, JSON.stringify(value));
+
+                // key/value
+                if (typeof value !== 'undefined') {
+                    return localStorage.setItem(key, JSON.stringify(value));
+                }
+
+                // object
+                for (var i in key) {
+                    localStorage.setItem(i, JSON.stringify(key[i]));
+                }
+
             },
             /**
              * @method getObject(key)
              * Gets item value, parses first.
              */
             getObject : function(key) {
-                var value = localStorage.getItem(key);
-                return value && JSON.parse(value);
+
+                // key
+                if (typeof key !== 'undefined') {
+                    return localStorage.getItem(key) && JSON.parse(localStorage.getItem(key));
+                }
+
+                // all
+                var obj = {};
+                for (var i = 0; i < localStorage.length; i++){
+                    obj[localStorage.key(i)] = localStorage.getItem(localStorage.key(i));
+                }
+
+                return obj;
+
             }
         },
 

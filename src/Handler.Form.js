@@ -24,19 +24,21 @@ define([
             this.$ = {
                 action              : true,
                 css                 : {
-                    field             : 'field',
-                    fieldError        : 'field-error',
-                    fieldErrorMessage : 'field-error-message',
-                    fieldErrorFlag    : 'field-error-flag',
-                    fieldSuccess      : 'field-success',
-                    fieldSuccessFlag  : 'field-success-flag',
-                    form              : 'form',
-                    formBusy          : 'busy',
-                    formCancel        : 'cancel',
-                    formError         : 'error',
-                    formErrorMessage  : 'error-message',
-                    formNative        : 'native',
-                    formSubmit        : 'submit'
+                    field              : 'field',
+                    fieldError         : 'field-error',
+                    fieldErrorMessage  : 'field-error-message',
+                    fieldErrorFlag     : 'field-error-flag',
+                    fieldSuccess       : 'field-success',
+                    fieldSuccessFlag   : 'field-success-flag',
+                    form               : 'form',
+                    formBusy           : 'busy',
+                    formCancel         : 'cancel',
+                    formError          : 'error',
+                    formErrorMessage   : 'error-message',
+                    formSuccess        : 'success',
+                    formSuccessMessage : 'success-message',
+                    formNative         : 'native',
+                    formSubmit         : 'submit'
                 },
                 data                : {},
                 el                  : null,
@@ -138,6 +140,9 @@ define([
 
             // add errors container to form
             this.$.el.prepend(this.$.markup.error_form);
+
+            // add success container to form
+            this.$.el.prepend(this.$.markup.success_form);
 
             // return form
             return this.$.el;
@@ -524,7 +529,6 @@ define([
 
         },
 
-
         /**
          * @method _setMarkup()
          * Sets markup for error messages on form and field level.
@@ -544,8 +548,9 @@ define([
 
             // add markup for errors in form and field
             _.extend(this.$.markup, {
-                error_field : '<div class="' + cl.fieldErrorMessage + '"></div><div class="' + cl.fieldErrorFlag + '">' + this.$.text.default_error + '</div><div class="' + cl.fieldSuccessFlag + '">' + this.$.text.default_success + '</div>',
-                error_form  : '<div class="' + cl.formErrorMessage + '">' + this.$.text.form_error || '' + '</div>'
+                error_field  : '<div class="' + cl.fieldErrorMessage + '"></div><div class="' + cl.fieldErrorFlag + '">' + this.$.text.default_error + '</div><div class="' + cl.fieldSuccessFlag + '">' + this.$.text.default_success + '</div>',
+                error_form   : '<div class="' + cl.formErrorMessage + '"></div>',
+                success_form : '<div class="' + cl.formSuccessMessage + '"></div>'
             });
 
             // make chainable
@@ -794,7 +799,9 @@ define([
                 // in handler context with results object
                 // as parameter
                 if (self.$.action && _.isFunction(self.$.action)) {
+
                     return self.$.action.call(self, null, results);
+
                 }
 
             });
@@ -1223,6 +1230,75 @@ define([
         },
 
         /**
+         * @method
+         * Sets form into error, success or neutral state.
+         * @params {optional}{str} state
+         * @return {*}
+         */
+        state : function (state, message) {
+
+            // extract form
+            var el = $(this.$.selector);
+
+            switch (state) {
+
+                // set error state
+                case 'error' :
+
+                    // set classes
+                    el.removeClass(this.$.css.formSuccess);
+                    el.addClass(this.$.css.formError);
+
+                    // reset message
+                    $('.' + this.$.css.formSuccessMessage, el).html('');
+
+                    // set message
+                    if (message) {
+                        $('.' + this.$.css.formErrorMessage, el).html(message);
+                    }
+
+                    break;
+
+                // set success state
+                case 'success' :
+
+                    // set classes
+                    el.removeClass(this.$.css.formError);
+                    el.addClass(this.$.css.formSuccess);
+
+                    console.log(this.$.css);
+
+                    // reset message
+                    $('.' + this.$.css.formErrorMessage, el).html('');
+
+                    // set message
+                    if (message) {
+                        $('.' + this.$.css.formSuccessMessage, el).html(message);
+                    }
+
+                    break;
+
+                // remove all states
+                default :
+
+                    // set classes
+                    el.removeClass(this.$.css.formError);
+                    el.removeClass(this.$.css.formSuccess);
+
+                    // reset message
+                    $('.' + this.$.css.formErrorMessage, el).html('');
+                    $('.' + this.$.css.formSuccessMessage, el).html('');
+
+                    break;
+
+            }
+
+            //make chainable
+            return this;
+
+        },
+
+        /**
          * @method success([field])
          * Sets specific field's or whole form's to `ok`, overwrites
          * existing state, does not validate, sets state wih brute
@@ -1301,6 +1377,9 @@ define([
 
             // release busy
             self._busy(false);
+
+            // release errors
+            self.$.errors = {};
 
             // skip
             // if no specific field, get all form fields,

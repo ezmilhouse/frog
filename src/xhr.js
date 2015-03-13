@@ -35,7 +35,7 @@ define([
             }
 
             // handle success
-            return fn(null, response.body.data, response.body.status, response.body.code, response.body.debug);
+            fn(null, response.body.data, response.body.status, response.body.code, response.body.debug);
 
         });
 

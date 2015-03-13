@@ -1,6 +1,6 @@
 #!/bin/sh
 
-FROG_APP="app.start.js"
+FROG_APP="frog.start.js"
 FROG_CLUSTER=false
 FROG_COMP_REPO="git@github.com:ezmilhouse/frog-components"
 FROG_DEBUG=false

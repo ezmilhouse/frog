@@ -13,6 +13,7 @@
 	"express-less"    : "*",
 	"express-session" : "*",
 	"express"         : "*",
+	"less"			  : "1.*",
 	"method-override" : "*",
 	"moment"          : "*",
 	"mongoose"        : "3.8.21",

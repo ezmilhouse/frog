@@ -24,17 +24,14 @@ define([
 
             this.$ = {
                 dir       : null,
-                i18n      : null,
-                password  : null,
                 protocol  : 'SMTP',
                 sender    : {
                     email    : null,
                     name     : null,
                     service  : 'Gmail',
-                    user     : null,
-                    password : null
+                    password : null,
+                    user     : null
                 },
-                state     : 'idle', // ok
                 template  : null,
                 templates : null
             };
@@ -84,6 +81,7 @@ define([
 
             // read templates folder, fetch markup,
             // pre-compile
+
             templates(this.$.dir, function (err, tpl) {
 
                 // [-] exit
@@ -93,9 +91,6 @@ define([
 
                 // save
                 self.$.templates = tpl;
-
-                // set ready state
-                self.$.state = 'ok';
 
                 // [+] exit
                 fn(null, null, 200);
@@ -136,7 +131,7 @@ define([
          *    @key {required}{obj} data
          *    @key {required}{str} email
          *    @key {required}{str} subject
-         *    ok @key {required}{str} template
+         *    @key {required}{str} template
          * @params {optional}{fun} fn
          */
         send : function (options, fn) {
@@ -165,11 +160,8 @@ define([
 
                     var seq = this;
 
-                    // normalize
-                    var data = self._setData(options.data);
-
                     // compile email with data object
-                    self.$.templates(options.template, data, function (err, html, text) {
+                    self.$.templates(self.$.template, options.data, function (err, html, text) {
 
                         // [-] exit
                         if (err) {
@@ -205,6 +197,9 @@ define([
                         if (err) {
                             return fn(true, null, 400, 'ERROR_EMAIL_NOT_SENT');
                         }
+
+                        // close pool
+                        self.$.transport.close();
 
                         // [+] exit
                         fn(null, body, 200);

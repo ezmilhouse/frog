@@ -439,7 +439,9 @@ define([
             }
 
             // exit
-            res.send(status, payload);
+            // force 200 status code with every request
+            // find truth in payload status key
+            res.send(200, payload);
 
         },
 

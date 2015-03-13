@@ -32,6 +32,7 @@ define([
                 el       : null,
                 id       : null,
                 file     : null,
+                route    : null,
                 selector : null,
                 layout   : null,
                 view     : null
@@ -96,6 +97,12 @@ define([
          * @return {*}
          */
         _getFile : function () {
+
+            // skip
+            // if no layout set
+            if (!this.$.layout) {
+                return this;
+            }
 
             // create file url
             var file = '';

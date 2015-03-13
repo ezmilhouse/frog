@@ -23,7 +23,6 @@ define([
                 country  : null,
                 language : null,
                 locale   : null,
-                region   : null,
                 text     : {}
             };
 
