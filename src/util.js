@@ -578,6 +578,8 @@ define([
          */
         isObjectId : function (str) {
 
+            console.log('isObjectId', typeof str);
+
             // skip
             if (!str) {
                 return false;

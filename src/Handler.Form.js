@@ -1266,8 +1266,6 @@ define([
                     el.removeClass(this.$.css.formError);
                     el.addClass(this.$.css.formSuccess);
 
-                    console.log(this.$.css);
-
                     // reset message
                     $('.' + this.$.css.formErrorMessage, el).html('');
 

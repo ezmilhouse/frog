@@ -1,6 +1,7 @@
 if (typeof define !== 'function') {
     var _ = require('underscore');
     var define = require('amdefine')(module);
+    var mongoose = require('mongoose');
 }
 
 define([
@@ -788,13 +789,8 @@ define([
             var params = req.params;
             var query = req.query;
 
-            // get id
-            var id = params[this.$.id];
-
-            // validate
-            if (!util.isObjectId(id)) {
-                return fn(true, null, 409, 409001);
-            }
+            // get id, force string
+            var id = params[this.$.id] + '';
 
             // create query
             var query = {
@@ -846,11 +842,6 @@ define([
             var body = req.body;
             var params = req.params;
             var query = req.query;
-
-            // validate
-            if (!_.isObject(query)) {
-                return fn(true, null, 409, 409002);
-            }
 
             // validate
             // avoid massive updates, caused by empty queries
@@ -914,13 +905,8 @@ define([
             var params = req.params;
             var query = req.query;
 
-            // get id
-            var id = params[this.$.id];
-
-            // validate
-            if (!util.isObjectId(id)) {
-                return fn(true, null, 409, 409001);
-            }
+            // get id, force string
+            var id = params[this.$.id] + '';
 
             // extend body object
             _.extend(body, {
@@ -1054,13 +1040,8 @@ define([
             var params = req.params;
             var query = req.query;
 
-            // get id
-            var id = params[this.$.id];
-
-            // validate
-            if (!util.isObjectId(id)) {
-                return fn(true, null, 409, 409001);
-            }
+            // get id, force string
+            var id = params[this.$.id] + '';
 
             // create query
             var query = {

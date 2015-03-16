@@ -113,8 +113,8 @@ define([
                         // before returning
                         transform  : function (doc, ret, options) {
 
-                            // copy _id value
-                            ret.id = ret._id;
+                            // copy _id value, force string
+                            ret.id = ret._id + '';
 
                             // remove _id key
                             delete ret._id;
