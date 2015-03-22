@@ -278,6 +278,8 @@ define([
             // (in correct order)
             var arr = [];
 
+            console.log(this.$.errors, field);
+
             // loop through all errors, build error
             // message string, and collection of
             // error messages (as array)
