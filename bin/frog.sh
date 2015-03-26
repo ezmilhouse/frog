@@ -449,13 +449,13 @@ case "$1" in
         if [ "${FROG_DEBUG}" != true ]; then
 
             # start frog application
-            ${FROG_DIR}/${FROG_EXECUTABLE} ${FROG_APP} -e=${FROG_ENV} -l=${FROG_LOCAL} -p=${FROG_PORT_HTTP} -u=${FROG_CLUSTER}
+            ${FROG_EXECUTABLE} ${FROG_APP} -e=${FROG_ENV} -l=${FROG_LOCAL} -p=${FROG_PORT_HTTP} -u=${FROG_CLUSTER}
 
         else
 
             # start frog application
             # in debug mode
-            ${FROG_DIR}/${FROG_EXECUTABLE} --debug ${FROG_APP} -e=${FROG_ENV} -l=${FROG_LOCAL} -p=${FROG_PORT_HTTP} -u=${FROG_CLUSTER}
+            ${FROG_EXECUTABLE} --debug ${FROG_APP} -e=${FROG_ENV} -l=${FROG_LOCAL} -p=${FROG_PORT_HTTP} -u=${FROG_CLUSTER}
 
         fi
 
