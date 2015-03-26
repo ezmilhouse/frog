@@ -444,23 +444,23 @@ case "$1" in
         fi
 
         # change working directory
-        pushd ${FROG_DIR} > /dev/null
+        # pushd ${FROG_DIR} > /dev/null
 
         if [ "${FROG_DEBUG}" != true ]; then
 
             # start frog application
-            ${FROG_EXECUTABLE} ${FROG_APP} -e=${FROG_ENV} -l=${FROG_LOCAL} -p=${FROG_PORT_HTTP} -u=${FROG_CLUSTER}
+            ${FROG_DIR}/${FROG_EXECUTABLE} ${FROG_APP} -e=${FROG_ENV} -l=${FROG_LOCAL} -p=${FROG_PORT_HTTP} -u=${FROG_CLUSTER}
 
         else
 
             # start frog application
             # in debug mode
-            ${FROG_EXECUTABLE} --debug ${FROG_APP} -e=${FROG_ENV} -l=${FROG_LOCAL} -p=${FROG_PORT_HTTP} -u=${FROG_CLUSTER}
+            ${FROG_DIR}/${FROG_EXECUTABLE} --debug ${FROG_APP} -e=${FROG_ENV} -l=${FROG_LOCAL} -p=${FROG_PORT_HTTP} -u=${FROG_CLUSTER}
 
         fi
 
         # change working directory (back to script context)
-        popd > /dev/null
+        # popd > /dev/null
 
     ;;
 
