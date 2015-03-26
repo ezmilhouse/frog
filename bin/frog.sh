@@ -443,24 +443,18 @@ case "$1" in
             exit 1
         fi
 
-        # change working directory
-        # pushd ${FROG_DIR} > /dev/null
-
         if [ "${FROG_DEBUG}" != true ]; then
 
             # start frog application
-            ${FROG_EXECUTABLE} ${FROG_APP} -e=${FROG_ENV} -l=${FROG_LOCAL} -p=${FROG_PORT_HTTP} -u=${FROG_CLUSTER}
+            ${FROG_EXECUTABLE} ${FROG_DIR}/${FROG_APP} -e=${FROG_ENV} -l=${FROG_LOCAL} -p=${FROG_PORT_HTTP} -u=${FROG_CLUSTER}
 
         else
 
             # start frog application
             # in debug mode
-            ${FROG_EXECUTABLE} --debug ${FROG_APP} -e=${FROG_ENV} -l=${FROG_LOCAL} -p=${FROG_PORT_HTTP} -u=${FROG_CLUSTER}
+            ${FROG_EXECUTABLE} --debug ${FROG_DIR}/${FROG_APP} -e=${FROG_ENV} -l=${FROG_LOCAL} -p=${FROG_PORT_HTTP} -u=${FROG_CLUSTER}
 
         fi
-
-        # change working directory (back to script context)
-        # popd > /dev/null
 
     ;;
 
