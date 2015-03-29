@@ -32,6 +32,7 @@ define([
                 el       : null,
                 id       : null,
                 file     : null,
+                options  : null,
                 route    : null,
                 selector : null,
                 layout   : null,

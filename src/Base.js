@@ -8,8 +8,9 @@ define([
     './Inherit',
     './util',
     'underscore',
+    './util',
     './xhr'
-], function (Inherit, util, _, request) {
+], function (Inherit, util, _, util, request) {
 
     return Class.extend({
 
@@ -45,7 +46,7 @@ define([
          * @params {optional}{str} key
          * @return {*}
          */
-        get : function (key) {
+        get : function (key, deep) {
 
             // normalize
             key = key || null;
@@ -77,6 +78,11 @@ define([
                         // key not found, force undefined
                         return undefined;
                     }
+                }
+
+                // return deep copy
+                if (deep) {
+                    return util.deepcopy(obj);
                 }
 
                 // return value of last in chain (does not have
