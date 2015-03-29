@@ -75,7 +75,11 @@ define([
             obj = obj || {};
 
             // set incoming data object
-            this.set('data', obj);
+            // this.set('data', obj);
+
+            for (var key in obj) {
+                this.set('data.' + key, obj[key]);
+            }
 
             // make chainable
             return this;
@@ -341,8 +345,8 @@ define([
 
             }
 
-            // get field data
-            var value = this.$.data[key];
+            // get field data, dot notation supported
+            var value = this.get('data.' + key);
 
             // get field rules
             var rules = this.$.rules[key] || ['isNoop'];

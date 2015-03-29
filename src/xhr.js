@@ -31,7 +31,7 @@ define([
             // skip
             // handle response error
             if (response.body && response.body.status >= 400) {
-                return fn(true, response.body.data, response.body.status, response.body.code, response.body.debug);
+                return fn(response.body.error || true, response.body.data, response.body.status, response.body.code, response.body.debug);
             }
 
             // handle success
