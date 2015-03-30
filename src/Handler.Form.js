@@ -56,6 +56,7 @@ define([
                     error_field : '',
                     error_form  : ''
                 },
+                messages            : false,
                 method              : 'POST',
                 namespace           : null, // ??? deprecated
                 prefix              : '',
@@ -138,11 +139,16 @@ define([
             // add el
             this.$.el = $(this.$.selector);
 
-            // add errors container to form
-            this.$.el.prepend(this.$.markup.error_form);
+            // turn messages on/off
+            if (this.$.messages) {
 
-            // add success container to form
-            this.$.el.prepend(this.$.markup.success_form);
+                // add errors container to form
+                this.$.el.prepend(this.$.markup.error_form);
+
+                // add success container to form
+                this.$.el.prepend(this.$.markup.success_form);
+
+            }
 
             // return form
             return this.$.el;
@@ -473,7 +479,7 @@ define([
                 evt.preventDefault();
 
                 // submit form
-                $(this).submit();
+                self._submit();
 
             });
 
@@ -1438,6 +1444,12 @@ define([
             var ruleMethod;
             var ruleMethodName;
             var ruleResult;
+
+            // quickfix fields that have no rules defined
+            if (fieldRules.length === 0) {
+                fieldRules.push('isOptional');
+            }
+
             for (var i = 0; i < fieldRules.length; i++) {
 
                 // extract rule
