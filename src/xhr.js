@@ -23,9 +23,14 @@ define([
         return this.run(function (response) {
 
             // skip
+            // no response at all
+            if (!response) {
+                return fn(true, null, 500);
+            }
+
+            // skip
             // handle xhr error
             if (response.error) {
-
                 return fn(true, null, response.status);
             }
 

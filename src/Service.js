@@ -32,7 +32,7 @@ define([
                     offset : 0,
                     page   : 1,
                     sort   : {
-                        created : 1 // DESC (-1 = ASC)
+                        created : -1 // DESC (1 = ASC)
                     }
                 },
                 fn         : null,
