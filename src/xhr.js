@@ -22,9 +22,13 @@ define([
 
         return this.run(function (response) {
 
+            console.log('>>> frog.xhr');
+            console.log(response);
+            console.log('<<< frog.xhr');
+
             // skip
             // no response at all
-            if (!response) {
+            if (!response || !response.status) {
                 return fn(true, null, 500);
             }
 
