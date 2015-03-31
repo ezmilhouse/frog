@@ -10,7 +10,7 @@
     "ejs"             : "*",
     "ejs-locals"      : "*",
     "email-templates" : "*",
-    "express-less"    : "*",
+    "express-less"    : "0.0.5",
     "express-session" : "*",
     "express"         : "*",
     "less"            : "1.*",
