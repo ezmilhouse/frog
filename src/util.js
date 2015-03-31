@@ -651,8 +651,6 @@ define([
                 uncaughtException : function (req, res, route, err) {
                     var str = '';
                     str += '\n';
-                    str += moment().format('D MMM HH:mm:ss') + ' - ' + '[node] ' + status;
-                    str += '\n';
                     str += moment().format('D MMM HH:mm:ss') + ' - ' + '[node] ' + req.method + ' ' + req.url;
                     str += '\n';
                     str += moment().format('D MMM HH:mm:ss') + ' - ' + '[node] REFERER ' + req.headers.referer;
