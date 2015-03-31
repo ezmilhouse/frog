@@ -21,20 +21,21 @@ define([
         _ctor : function (options) {
 
             this.$ = {
-                id        : 'id',
-                context   : null,
-                methods   : [
+                id         : 'id',
+                context    : null,
+                methods    : [
                     'index',
                     'create',
                     'retrieve',
                     'update',
                     'delete'
                 ],
-                namespace : null,
-                payload   : [],
-                route     : null,
-                safe      : true, // if set to false {} queries on _del, _set are possible
-                schema    : null
+                middleware : [],
+                namespace  : null,
+                payload    : [],
+                route      : null,
+                safe       : true, // if set to false {} queries on _del, _set are possible
+                schema     : null
             };
 
             if (options) {
@@ -59,14 +60,15 @@ define([
 
             // index
             new Service({
-                context   : this.$.context,
-                fn        : 'index',
-                method    : 'GET',
-                namespace : this.$.namespace,
-                payload   : this.$.payload,
-                route     : this.$.route,
-                safe      : this.$.safe,
-                schema    : this.$.schema
+                context    : this.$.context,
+                fn         : 'index',
+                method     : 'GET',
+                middleware : this.$.middleware,
+                namespace  : this.$.namespace,
+                payload    : this.$.payload,
+                route      : this.$.route,
+                safe       : this.$.safe,
+                schema     : this.$.schema
             });
 
             // make chainable
@@ -83,14 +85,15 @@ define([
 
             // create
             new Service({
-                context   : this.$.context,
-                fn        : 'create',
-                method    : 'POST',
-                namespace : this.$.namespace,
-                payload   : this.$.payload,
-                route     : this.$.route,
-                safe      : this.$.safe,
-                schema    : this.$.schema
+                context    : this.$.context,
+                fn         : 'create',
+                method     : 'POST',
+                middleware : this.$.middleware,
+                namespace  : this.$.namespace,
+                payload    : this.$.payload,
+                route      : this.$.route,
+                safe       : this.$.safe,
+                schema     : this.$.schema
             });
 
             // make chainable
@@ -107,15 +110,16 @@ define([
 
             // retrieve
             new Service({
-                context   : this.$.context,
-                fn        : 'retrieve',
-                id        : this.$.id,
-                method    : 'GET',
-                namespace : this.$.namespace,
-                payload   : this.$.payload,
-                route     : this.$.route + '/:' + this.$.id,
-                safe      : this.$.safe,
-                schema    : this.$.schema
+                context    : this.$.context,
+                fn         : 'retrieve',
+                id         : this.$.id,
+                method     : 'GET',
+                middleware : this.$.middleware,
+                namespace  : this.$.namespace,
+                payload    : this.$.payload,
+                route      : this.$.route + '/:' + this.$.id,
+                safe       : this.$.safe,
+                schema     : this.$.schema
             });
 
             // make chainable
@@ -132,15 +136,16 @@ define([
 
             // update
             new Service({
-                context   : this.$.context,
-                fn        : 'update',
-                id        : this.$.id,
-                method    : 'PUT',
-                namespace : this.$.namespace,
-                payload   : this.$.payload,
-                route     : this.$.route + '/:' + this.$.id,
-                safe      : this.$.safe,
-                schema    : this.$.schema
+                context    : this.$.context,
+                fn         : 'update',
+                id         : this.$.id,
+                method     : 'PUT',
+                middleware : this.$.middleware,
+                namespace  : this.$.namespace,
+                payload    : this.$.payload,
+                route      : this.$.route + '/:' + this.$.id,
+                safe       : this.$.safe,
+                schema     : this.$.schema
             });
 
             // skip
@@ -152,15 +157,16 @@ define([
 
             // update (multiple documents affected)
             new Service({
-                context   : this.$.context,
-                fn        : 'update',
-                id        : this.$.id,
-                method    : 'PUT',
-                namespace : this.$.namespace,
-                payload   : this.$.payload,
-                route     : this.$.route,
-                safe      : this.$.safe,
-                schema    : this.$.schema
+                context    : this.$.context,
+                fn         : 'update',
+                id         : this.$.id,
+                method     : 'PUT',
+                middleware : this.$.middleware,
+                namespace  : this.$.namespace,
+                payload    : this.$.payload,
+                route      : this.$.route,
+                safe       : this.$.safe,
+                schema     : this.$.schema
             });
 
             // make chainable
@@ -177,15 +183,16 @@ define([
 
             // delete
             new Service({
-                context   : this.$.context,
-                fn        : 'delete',
-                id        : this.$.id,
-                method    : 'DELETE',
-                namespace : this.$.namespace,
-                payload   : this.$.payload,
-                route     : this.$.route + '/:' + this.$.id,
-                safe      : this.$.safe,
-                schema    : this.$.schema
+                context    : this.$.context,
+                fn         : 'delete',
+                id         : this.$.id,
+                method     : 'DELETE',
+                middleware : this.$.middleware,
+                namespace  : this.$.namespace,
+                payload    : this.$.payload,
+                route      : this.$.route + '/:' + this.$.id,
+                safe       : this.$.safe,
+                schema     : this.$.schema
             });
 
             // skip
@@ -197,15 +204,16 @@ define([
 
             // delete (multiple documents affected)
             new Service({
-                context   : this.$.context,
-                fn        : 'delete',
-                id        : this.$.id,
-                method    : 'DELETE',
-                namespace : this.$.namespace,
-                payload   : this.$.payload,
-                route     : this.$.route,
-                safe      : this.$.safe,
-                schema    : this.$.schema
+                context    : this.$.context,
+                fn         : 'delete',
+                id         : this.$.id,
+                method     : 'DELETE',
+                namespace  : this.$.namespace,
+                middleware : this.$.middleware,
+                payload    : this.$.payload,
+                route      : this.$.route,
+                safe       : this.$.safe,
+                schema     : this.$.schema
             });
 
             // make chainable

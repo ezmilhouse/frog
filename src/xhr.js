@@ -25,13 +25,14 @@ define([
             // skip
             // handle xhr error
             if (response.error) {
+
                 return fn(true, null, response.status);
             }
 
             // skip
             // handle response error
             if (response.body && response.body.status >= 400) {
-                return fn(response.body.error || true, response.body.data, response.body.status, response.body.code, response.body.debug);
+                return fn(response.body.error, response.body.data, response.body.status, response.body.code, response.body.debug);
             }
 
             // handle success

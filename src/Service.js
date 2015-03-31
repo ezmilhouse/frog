@@ -217,6 +217,7 @@ define([
                 // internal requests might come with nothing
                 // but a callback function, therefore we have
                 // to normalize req, res objects here
+                /*
                 switch (arguments.length) {
                     case 0 :
                         req = {
@@ -241,7 +242,12 @@ define([
                             res = res || null;
                         }
                         break;
-                }
+                }*/
+
+                // normalize
+                req.body = req.body || {};
+                req.params = req.params || {};
+                req.query = req.query || {};
 
                 // reset callback
                 var cb = util.noop;
@@ -298,11 +304,8 @@ define([
                 }
 
                 return {
-                    app    : req.app,
-                    body   : req.body,
-                    cb     : cb,
-                    params : req.params,
-                    query  : req.query
+                    cb  : cb,
+                    req : req
                 };
 
             };
@@ -339,8 +342,8 @@ define([
 
                     // set listener
                     app.on(ns, function (req, res) {
-                        req = normalize(req, res);
-                        self._get(req, req.cb);
+                        var options = normalize(req, res);
+                        self._get(options.req, options.cb);
                     });
 
                     break;
@@ -361,8 +364,8 @@ define([
 
                     // set listener
                     app.on(ns, function (req, res) {
-                        req = normalize(req, res);
-                        self._new(req, req.cb);
+                        var options = normalize(req, res);
+                        self._new(options.req, options.cb);
                     });
 
                     break;
@@ -381,8 +384,8 @@ define([
 
                     // set listener
                     app.on(ns, function (req, res) {
-                        req = normalize(req, res);
-                        self._getById(req, req.cb);
+                        var options = normalize(req, res);
+                        self._getById(options.req, options.cb);
                     });
 
                     break;
@@ -402,15 +405,15 @@ define([
                     // set listener
                     app.on(ns, function (req, res) {
 
-                        req = normalize(req, res);
+                        var options = normalize(req, res);
 
                         // no id, invoke on multiple documents
-                        if (typeof req.params[id] === 'undefined') {
-                            return self._set(req, req.cb);
+                        if (typeof options.req.params[id] === 'undefined') {
+                            return self._set(options.req, options.cb);
                         }
 
                         // id set, invoke on single document
-                        self._setById(req, req.cb);
+                        self._setById(options.req, options.cb);
 
                     });
 
@@ -431,15 +434,15 @@ define([
                     // set listener
                     app.on(ns, function (req, res) {
 
-                        req = normalize(req, res);
+                        var options = normalize(req, res);
 
                         // no id, invoke on multiple documents
-                        if (typeof req.params[id] === 'undefined') {
-                            return self._del(req, req.cb);
+                        if (typeof options.req.params[id] === 'undefined') {
+                            return self._del(options.req, options.cb);
                         }
 
                         // id set, invoke on single document only
-                        self._delById(req, req.cb);
+                        self._delById(options.req, options.cb);
 
                     });
 
@@ -461,8 +464,8 @@ define([
 
                     // set listener
                     app.on(ns, function (req, res) {
-                        req = normalize(req, res);
-                        self.$.fn(req, req.cb);
+                        var options = normalize(req, res);
+                        self.$.fn(options.req, options.cb);
                     });
 
                     break;
@@ -558,7 +561,6 @@ define([
             var normalize = function (req, res, next) {
 
                 // normalize
-                req.app = req.app || {};
                 req.body = req.body || {};
                 req.query = req.query || {};
                 req.params = req.params || {};
