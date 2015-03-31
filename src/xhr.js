@@ -20,32 +20,28 @@ define([
         // normalize
         fn = fn || util.noop;
 
-        return this.run(function (response) {
-
-            console.log('>>> frog.xhr');
-            console.log(response);
-            console.log('<<< frog.xhr');
+        return this.run(function (err, res) {
 
             // skip
-            // no response at all
-            if (!response || !response.status) {
+            // no res at all
+            if (!res) {
                 return fn(true, null, 500);
             }
 
             // skip
             // handle xhr error
-            if (response.error) {
-                return fn(true, null, response.status);
+            if (res.error) {
+                return fn(true, null, res.status);
             }
 
             // skip
-            // handle response error
-            if (response.body && response.body.status >= 400) {
-                return fn(response.body.error, response.body.data, response.body.status, response.body.code, response.body.debug);
+            // handle res error
+            if (res.body && res.body.status >= 400) {
+                return fn(res.body.error, res.body.data, res.body.status, res.body.code, res.body.debug);
             }
 
             // handle success
-            fn(null, response.body.data, response.body.status, response.body.code, response.body.debug);
+            fn(null, res.body.data, res.body.status, res.body.code, res.body.debug);
 
         });
 
