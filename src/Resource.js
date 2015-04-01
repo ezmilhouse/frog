@@ -23,6 +23,7 @@ define([
             this.$ = {
                 id         : 'id',
                 context    : null,
+                errors     : {},
                 methods    : [
                     'index',
                     'create',
@@ -61,6 +62,7 @@ define([
             // index
             new Service({
                 context    : this.$.context,
+                errors     : this.$.errors,
                 fn         : 'index',
                 method     : 'GET',
                 middleware : this.$.middleware,
@@ -86,6 +88,7 @@ define([
             // create
             new Service({
                 context    : this.$.context,
+                errors     : this.$.errors,
                 fn         : 'create',
                 method     : 'POST',
                 middleware : this.$.middleware,
@@ -111,6 +114,7 @@ define([
             // retrieve
             new Service({
                 context    : this.$.context,
+                errors     : this.$.errors,
                 fn         : 'retrieve',
                 id         : this.$.id,
                 method     : 'GET',
@@ -137,6 +141,7 @@ define([
             // update
             new Service({
                 context    : this.$.context,
+                errors     : this.$.errors,
                 fn         : 'update',
                 id         : this.$.id,
                 method     : 'PUT',
@@ -158,6 +163,7 @@ define([
             // update (multiple documents affected)
             new Service({
                 context    : this.$.context,
+                errors     : this.$.errors,
                 fn         : 'update',
                 id         : this.$.id,
                 method     : 'PUT',
@@ -184,6 +190,7 @@ define([
             // delete
             new Service({
                 context    : this.$.context,
+                errors     : this.$.errors,
                 fn         : 'delete',
                 id         : this.$.id,
                 method     : 'DELETE',
@@ -205,6 +212,7 @@ define([
             // delete (multiple documents affected)
             new Service({
                 context    : this.$.context,
+                errors     : this.$.errors,
                 fn         : 'delete',
                 id         : this.$.id,
                 method     : 'DELETE',

@@ -406,36 +406,32 @@ define([
          * @params {optional}{int} status
          * @params {optional}{str} code
          */
-        send : function(req, res, err, body, status, code, debug) {
+        send : function (req, res, err, body, status, code, debug) {
 
             // normalize
-            debug = typeof req.query.debug !== 'undefined' ? debug || null : false;
+            debug = debug ||null;
             err = err || false;
             status = status || 200;
+            code = code || 0;
 
             // force error in case of status codes
             // than >= 400
-            if (status >= 400) {
+            if (!err && status >= 400) {
                 err = true;
             }
 
             // create response object
             var payload = {
                 data    : body || null,
-                error   : err,
+                error   : false,
                 status  : status,
                 success : !err
             };
 
-            // create error object in case of error
+            // tunnel internal error object
+            // or (if not set), set to true
             if (err) {
-                _.extend(payload, {
-                    error : {
-                        code    : code,
-                        debug   : debug,
-                        message : this.$.errors[code] || 'UNKNOWN'
-                    }
-                });
+                payload.error = _.isObject(err) ? err : true;
             }
 
             // exit

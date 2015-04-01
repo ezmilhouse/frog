@@ -22,26 +22,82 @@ define([
 
         return this.run(function (err, res) {
 
-            // skip
-            // no res at all
-            if (!res) {
-                return fn(true, null, 500);
+            // skip, 1%
+            // this is the network error, application
+            // code should always come with status code
+            // 200, therefore on application errors
+            // you won't get this
+            //
+            // most common cases:
+            // - 500, wild server exception
+            // - 502, 503, server is not available at all
+            // - 404, wrong url
+            if (err) {
+                return fn({
+                    code     : err.response.error.status,
+                    debug    : err.response.body.message,
+                    headers  : err.response.request.req._headers,
+                    host     : err.response.request.host,
+                    message  : err.response.body.code,
+                    method   : err.response.error.method,
+                    origin   : err.response.error,
+                    protocol : err.response.request.protocol.split(':')[0],
+                    status   : err.response.error.status,
+                    uri      : err.response.error.path,
+                    url      : err.response.request.url
+                }, null, err.response.error.status);
             }
 
             // skip
-            // handle xhr error
-            if (res.error) {
-                return fn(true, null, res.status);
+            // application error, always returns with
+            // status code 200 on request level, real
+            // errors on the body object
+
+            /*
+
+             {
+             data    : null,
+             error   : {
+                 code     : 404001,
+                 debug    : 'Resource could not be found, please check ...',
+                 host     : 'api.getloots.com',
+                 message  : 'RESOURCE_NOT_FOUND',
+                 method   : 'POST',
+                 protocol : 'https',
+                 stack    : [
+                    // holds error object that might have occured before
+                 ],
+                 status   : 404,
+                 uri      : '/sso/sign/in',
+                 url      : 'https://api.getloots.com/sso/sign/in'
+             },
+             status  : 404,
+             success : false
+
+             }
+
+             */
+
+            if (res.body && res.body.error) {
+
+                // parse stack
+                // if available
+                try {
+                    if (res.body.error.stack) {
+                        for (var i = 0; i < res.body.error.stack.length; i++) {
+                            res.body.error.stack[i] = JSON.parse(res.body.error.stack[i]);
+                        }
+                    }
+                } catch(e) {
+                    console.log('Not able to JSON.parse().');
+                }
+
+                return fn(res.body.error, res.body.data, res.body.status, res.body.error.code, res.body.error.debug);
+
             }
 
-            // skip
-            // handle res error
-            if (res.body && res.body.status >= 400) {
-                return fn(res.body.error, res.body.data, res.body.status, res.body.code, res.body.debug);
-            }
-
-            // handle success
-            fn(null, res.body.data, res.body.status, res.body.code, res.body.debug);
+            // exit
+            fn(null, res.body.data, res.body.status);
 
         });
 

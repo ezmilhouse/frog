@@ -35,6 +35,7 @@ define([
                         created : -1 // DESC (1 = ASC)
                     }
                 },
+                errors     : {},
                 fn         : null,
                 id         : 'id',
                 method     : null,
@@ -214,45 +215,6 @@ define([
             var normalize = function (req, res) {
 
                 // normalize
-                // internal requests might come with nothing
-                // but a callback function, therefore we have
-                // to normalize req, res objects here
-                /*
-                switch (arguments.length) {
-                    case 0 :
-                        req = {
-                            app    : {},
-                            body   : {},
-                            params : {},
-                            query  : {}
-                        };
-                        res = null;
-                        break;
-                    default :
-                        if (_.isFunction(req)) {
-                            res = req;
-                            req = {
-                                app    : {},
-                                body   : {},
-                                params : {},
-                                query  : {}
-                            };
-                        } else {
-                            req = req || {};
-                            res = res || null;
-                        }
-                        break;
-                }*/
-
-                // normalize
-                req.body = req.body || {};
-                req.params = req.params || {};
-                req.query = req.query || {};
-
-                // reset callback
-                var cb = util.noop;
-
-                // normalize
                 req.body = (typeof req.body !== 'undefined')
                     ? req.body
                     : {};
@@ -277,31 +239,13 @@ define([
                     ? req.query
                     : {};
 
-                // differentiate between incoming (native)
-                // res object, and incoming callback
-                if (_.isFunction(res)) {
+                // normalize
+                res = res || util.noop;
 
-                    // set callback
-                    cb = res;
-
-                } else {
-
-                    // set callback to common send function
-                    cb = function (err, body, status, code, debug) {
-
-                        // response object is available,
-                        // sending back results is possible
-                        if (res) {
-                            return self.$.server.send(req, res, err, body, status, code, debug);
-                        }
-
-                        // placeholder if response object
-                        // is not available
-                        util.noop();
-
-                    }
-
-                }
+                // create callback factory
+                var cb = function (err, body, status, code, debug) {
+                    self._cb(req, res, err, body, status, code, debug);
+                };
 
                 return {
                     cb  : cb,
@@ -551,25 +495,6 @@ define([
                 return this;
             }
 
-            /**
-             * @middleware normalize
-             * Middleware tha t normalizes request objects.
-             * @params {required}{obj} req
-             * @params {required}{obj} res
-             * @params {required}{fun} next
-             */
-            var normalize = function (req, res, next) {
-
-                // normalize
-                req.body = req.body || {};
-                req.query = req.query || {};
-                req.params = req.params || {};
-
-                // exit
-                next();
-
-            };
-
             // get restify app object
             var app = this.$.app;
 
@@ -592,7 +517,7 @@ define([
             app[method]({
                 name : method.toUpperCase() + ': ' + this.$.route,
                 path : context + this.$.route
-            }, middleware, normalize, function (req, res, next) {
+            }, middleware, function (req, res, next) {
 
                 // add crud verb in case of pre-set
                 // crud functions, otherwise leave
@@ -607,6 +532,106 @@ define([
 
             // make chainable
             return this;
+
+        },
+
+        /**
+         * @method _callback(req, fn, err, body, status[,code][,debug]);
+         * General callback after db operations.
+         * @params {required}{obj} req
+         * @params {required}{fun} fn
+         * @params {required}{obj|bol} err
+         * @params {required}{obj} body
+         * @params {required}{int} status
+         * @params {optional}{int} code
+         * @params {required}{obj} debug
+         */
+        _cb : function (req, res, err, body, status, code, debug) {
+
+            var self = this;
+
+            // normalize
+            debug = debug || null;
+            err = err || false;
+            status = status || 200;
+            code = code || 0;
+
+            // force error in case of status codes
+            // than >= 400
+            if (!err && status >= 400) {
+                err = true;
+            }
+
+            // skip
+            if (err) {
+
+                // save stack
+                var stack = err.stack || [];
+                var str = JSON.stringify(err);
+
+                if (_.isObject(err)) {
+                    if (stack.length > 0) {
+                        stack.unshift(str);
+                    } else {
+                        stack.push(str)
+                    }
+                }
+
+                // create error payload
+                var payload = {
+                    code    : code,
+                    debug   : debug,
+                    origin  : {
+                        collection : self.$.schema === null ? null : self.$.schema.get('collection'),
+                        context    : self.$.context,
+                        fn         : _.isFunction(self.$.fn) ? 'custom' : self.$.fn,
+                        method     : self.$.method,
+                        namespace  : self.$.namespace,
+                        resource   : self.$.schema !== null,
+                        route      : self.$.route,
+                        strict     : self.$.schema === null ? null : self.$.schema.get('options.strict')
+                    },
+                    message : self.$.errors[code] || 'UNKNOWN',
+                    stack   : stack,
+                    status  : status
+                };
+
+                // response
+                if (_.isFunction(res)) {
+
+                    // response
+                    // error (internal request)
+                    return res(payload, null, status, code, debug);
+
+                }
+
+                // differences to express
+                var protocol = req.isSecure() ? 'https' : 'http';
+                var uri = req.url.replace('//', '/');
+
+                // extend payload with http info
+                _.extend(payload, {
+                    headers  : req.headers,
+                    host     : req.headers.host,
+                    method   : req.method,
+                    protocol : protocol,
+                    uri      : uri,
+                    url      : protocol + '://' + req.headers.host + uri
+                });
+
+                // response
+                // error (external (http) request)
+                return this.$.server.send(req, res, payload, null, status, code, debug);
+
+            }
+
+            // success (internal)
+            if (_.isFunction(res)) {
+                return res(null, body, status);
+            }
+
+            // succes (response)
+            this.$.server.send(req, res, null, body, status);
 
         },
 
@@ -653,7 +678,7 @@ define([
 
                 // skip!
                 if (err) {
-                    return fn(true, err, 400, 400004);
+                    return fn(err, null, 400, 400004);
                 }
 
                 // normalize
@@ -751,7 +776,7 @@ define([
 
                     // skip!
                     if (err) {
-                        return fn(true, err, 400, 400005);
+                        return fn(err, null, 400, 400005);
                     }
 
                     // skip!
@@ -807,7 +832,7 @@ define([
 
                     // skip!
                     if (err) {
-                        return fn(true, err, 400, 400005);
+                        return fn(err, null, 400, 400005);
                     }
 
                     // skip!
@@ -870,7 +895,7 @@ define([
 
                     // skip!
                     if (err) {
-                        return fn(true, err, 400, 400007);
+                        return fn(err, true, 400, 400007);
                     }
 
                     // skip!
@@ -928,7 +953,7 @@ define([
 
                     // skip!
                     if (err) {
-                        return fn(true, err, 400, 400007);
+                        return fn(err, null, 400, 400007);
                     }
 
                     // skip!
@@ -998,7 +1023,7 @@ define([
 
                     // skip!
                     if (err) {
-                        return fn(true, err, 400, 400008);
+                        return fn(err, null, 400, 400008);
                     }
 
                     // skip
@@ -1058,7 +1083,7 @@ define([
 
                     // skip!
                     if (err) {
-                        return fn(true, err, 400, 400008);
+                        return fn(err, null, 400, 400008);
                     }
 
                     // skip!
