@@ -15,7 +15,7 @@ define([
      * @params {optional}{fun} fn
      * @return {*}
      */
-    request.end = function(fn) {
+    request.end = function (fn) {
 
         // normalize
         fn = fn || util.noop;
@@ -34,17 +34,56 @@ define([
             // - 404, wrong url
             if (err) {
                 return fn({
-                    code     : err.response.error.status,
-                    debug    : err.response.body.message,
-                    headers  : err.response.request.req._headers,
-                    host     : err.response.request.host,
-                    message  : err.response.body.code,
-                    method   : err.response.error.method,
-                    origin   : err.response.error,
-                    protocol : err.response.request.protocol.split(':')[0],
-                    status   : err.response.error.status,
-                    uri      : err.response.error.path,
-                    url      : err.response.request.url
+                    code    : err.response.error.status,
+                    debug   : err.response.error.text,
+                    origin  : {
+
+                        /*
+                         req.body ?
+                         req.params ?
+                         req.query ?
+                         */
+
+                        headers   : {
+                            req : err.response.request.req._headers,
+                            res : err.response.request.res.headers
+                        },
+                        host      : err.response.request.host,
+                        messenger : 'frog.xhr',
+                        method    : err.response.error.method,
+                        protocol  : err.response.request.protocol.split(':')[0],
+                        status    : err.response.error.status,
+                        type      : 'xhr',
+                        uri       : err.response.error.path,
+                        url       : err.response.request.url
+                    },
+                    message : (function (status) {
+
+                        // default http status
+                        switch (status) {
+                            case 500 :
+                                return 'INTERNAL_SERVER_ERROR';
+                                break;
+                            case 501 :
+                                return 'NOT_IMPLEMENTED';
+                                break;
+                            case 502 :
+                                return 'BAD_GATEWAY';
+                                break;
+                            case 503 :
+                                return 'SERVICE_UNAVAILABLE';
+                                break;
+                            case 504 :
+                                return 'GATEWAY_TIMEOUT';
+                                break;
+                            default :
+                                return 'UNKNOWN';
+                                break;
+                        }
+
+                    })(err.response.error.status),
+                    stack   : [], // always the first
+                    status  : err.response.error.status
                 }, null, err.response.error.status);
             }
 
@@ -58,18 +97,18 @@ define([
              {
              data    : null,
              error   : {
-                 code     : 404001,
-                 debug    : 'Resource could not be found, please check ...',
-                 host     : 'api.getloots.com',
-                 message  : 'RESOURCE_NOT_FOUND',
-                 method   : 'POST',
-                 protocol : 'https',
-                 stack    : [
-                    // holds error object that might have occured before
-                 ],
-                 status   : 404,
-                 uri      : '/sso/sign/in',
-                 url      : 'https://api.getloots.com/sso/sign/in'
+             code     : 404001,
+             debug    : 'Resource could not be found, please check ...',
+             host     : 'api.getloots.com',
+             message  : 'RESOURCE_NOT_FOUND',
+             method   : 'POST',
+             protocol : 'https',
+             stack    : [
+             // holds error object that might have occured before
+             ],
+             status   : 404,
+             uri      : '/sso/sign/in',
+             url      : 'https://api.getloots.com/sso/sign/in'
              },
              status  : 404,
              success : false
@@ -88,7 +127,7 @@ define([
                             res.body.error.stack[i] = JSON.parse(res.body.error.stack[i]);
                         }
                     }
-                } catch(e) {
+                } catch (e) {
                     console.log('Not able to JSON.parse().');
                 }
 
@@ -111,13 +150,13 @@ define([
      * @params {optional}{fun} fn
      * @return {*}
      */
-    request.get = function(url, data, fn){
+    request.get = function (url, data, fn) {
 
         var req = request('GET', url);
 
         // overwrite end method on instance
         req.run = req.end;
-        req.end = function() {
+        req.end = function () {
             request.end.apply(req, arguments);
         };
 
@@ -147,13 +186,13 @@ define([
      * @params {optional}{fun} fn
      * @return {*}
      */
-    request.head = function(url, data, fn){
+    request.head = function (url, data, fn) {
 
         var req = request('HEAD', url);
 
         // overwrite end method on instance
         req.run = req.end;
-        req.end = function() {
+        req.end = function () {
             request.end.apply(req, arguments);
         };
 
@@ -182,13 +221,13 @@ define([
      * @params {optional}{fun} fn
      * @return {*}
      */
-    request.del = function(url, fn){
+    request.del = function (url, fn) {
 
         var req = request('DELETE', url);
 
         // overwrite end method on instance
         req.run = req.end;
-        req.end = function() {
+        req.end = function () {
             request.end.apply(req, arguments);
         };
 
@@ -208,13 +247,13 @@ define([
      * @params {optional}{fun} fn
      * @return {*}
      */
-    request.patch = function(url, data, fn){
+    request.patch = function (url, data, fn) {
 
         var req = request('PATCH', url);
 
         // overwrite end method on instance
         req.run = req.end;
-        req.end = function() {
+        req.end = function () {
             request.end.apply(req, arguments);
         };
 
@@ -244,13 +283,13 @@ define([
      * @params {optional}{fun} fn
      * @return {*}
      */
-    request.post = function(url, data, fn){
+    request.post = function (url, data, fn) {
 
         var req = request('POST', url);
 
         // overwrite end method on instance
         req.run = req.end;
-        req.end = function() {
+        req.end = function () {
             request.end.apply(req, arguments);
         };
 
@@ -280,13 +319,13 @@ define([
      * @params {optional}{fun} fn
      * @return {*}
      */
-    request.put = function(url, data, fn){
+    request.put = function (url, data, fn) {
 
         var req = request('PUT', url);
 
         // overwrite end method on instance
         req.run = req.end;
-        req.end = function() {
+        req.end = function () {
             request.end.apply(req, arguments);
         };
 

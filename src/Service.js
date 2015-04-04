@@ -567,8 +567,11 @@ define([
 
                 // save stack
                 var stack = err.stack || [];
+
+                // avoid circulars
                 var str = JSON.stringify(err);
 
+                // add
                 if (_.isObject(err)) {
                     if (stack.length > 0) {
                         stack.unshift(str);
@@ -585,11 +588,13 @@ define([
                         collection : self.$.schema === null ? null : self.$.schema.get('collection'),
                         context    : self.$.context,
                         fn         : _.isFunction(self.$.fn) ? 'custom' : self.$.fn,
+                        messenger  : 'node.mongoose',
                         method     : self.$.method,
                         namespace  : self.$.namespace,
                         resource   : self.$.schema !== null,
                         route      : self.$.route,
-                        strict     : self.$.schema === null ? null : self.$.schema.get('options.strict')
+                        strict     : self.$.schema === null ? null : self.$.schema.get('options.strict'),
+                        type       : 'database'
                     },
                     message : self.$.errors[code] || 'UNKNOWN',
                     stack   : stack,
@@ -610,11 +615,17 @@ define([
                 var uri = req.url.replace('//', '/');
 
                 // extend payload with http info
-                _.extend(payload, {
-                    headers  : req.headers,
+                _.extend(payload.origin, {
+                    body     : req.body || null,
+                    headers  : {
+                        req : req.headers
+                    },
                     host     : req.headers.host,
                     method   : req.method,
+                    params   : req.params || null,
                     protocol : protocol,
+                    query    : req.query || null,
+                    route    : req.route,
                     uri      : uri,
                     url      : protocol + '://' + req.headers.host + uri
                 });
