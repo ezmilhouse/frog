@@ -27,6 +27,7 @@ define([
                     date : date,
                     util : util
                 },
+                i18n     : null,
                 markup   : null,
                 mode     : 'html',
                 file     : null,
@@ -123,7 +124,10 @@ define([
         _render : function () {
 
             // render template from compiled
-            this.$.rendered = this.$.compiled(this.$.data);
+            this.$.rendered = this.$.compiled({
+                data : this.$.data,
+                i18n : this.$.i18n
+            });
 
             // using standard jquery injection methods
             switch (this.$.mode) {
@@ -172,6 +176,14 @@ define([
             this.set('data', data);
 
             // exit
+            return this;
+
+        },
+
+        i18n : function(obj) {
+
+            this.$.i18n = obj;
+
             return this;
 
         },
