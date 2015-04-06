@@ -24,6 +24,14 @@ define([
                 id         : 'id',
                 context    : null,
                 errors     : {},
+                defaults   : {
+                    limit  : 100,
+                    offset : 0,
+                    page   : 1,
+                    sort   : {
+                        created : -1 // DESC (1 = ASC)
+                    }
+                },
                 methods    : [
                     'index',
                     'create',
@@ -62,6 +70,7 @@ define([
             // index
             new Service({
                 context    : this.$.context,
+                defaults   : this.$.defaults,
                 errors     : this.$.errors,
                 fn         : 'index',
                 method     : 'GET',
@@ -88,6 +97,7 @@ define([
             // create
             new Service({
                 context    : this.$.context,
+                defaults   : this.$.defaults,
                 errors     : this.$.errors,
                 fn         : 'create',
                 method     : 'POST',
@@ -114,6 +124,7 @@ define([
             // retrieve
             new Service({
                 context    : this.$.context,
+                defaults   : this.$.defaults,
                 errors     : this.$.errors,
                 fn         : 'retrieve',
                 id         : this.$.id,
@@ -141,6 +152,7 @@ define([
             // update
             new Service({
                 context    : this.$.context,
+                defaults   : this.$.defaults,
                 errors     : this.$.errors,
                 fn         : 'update',
                 id         : this.$.id,
@@ -163,6 +175,7 @@ define([
             // update (multiple documents affected)
             new Service({
                 context    : this.$.context,
+                defaults   : this.$.defaults,
                 errors     : this.$.errors,
                 fn         : 'update',
                 id         : this.$.id,
@@ -190,6 +203,7 @@ define([
             // delete
             new Service({
                 context    : this.$.context,
+                defaults   : this.$.defaults,
                 errors     : this.$.errors,
                 fn         : 'delete',
                 id         : this.$.id,
@@ -212,6 +226,7 @@ define([
             // delete (multiple documents affected)
             new Service({
                 context    : this.$.context,
+                defaults   : this.$.defaults,
                 errors     : this.$.errors,
                 fn         : 'delete',
                 id         : this.$.id,
