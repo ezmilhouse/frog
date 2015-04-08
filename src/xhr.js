@@ -22,6 +22,9 @@ define([
 
         return this.run(function (err, res) {
 
+            // save for cathc case
+            var args = arguments;
+
             // skip, 1%
             // this is the network error, application
             // code should always come with status code
@@ -33,90 +36,75 @@ define([
             // - 502, 503, server is not available at all
             // - 404, wrong url
             if (err) {
-                return fn({
-                    code    : err.response.error.status,
-                    debug   : err.response.error.text,
-                    origin  : {
 
-                        /*
-                         req.body ?
-                         req.params ?
-                         req.query ?
-                         */
+                try {
 
-                        headers   : {
-                            req : err.response.request.req._headers,
-                            res : err.response.request.res.headers
+                    return fn({
+                        code    : err.response.error.status,
+                        debug   : err.response.error.text,
+                        origin  : {
+
+                            /*
+                             req.body ?
+                             req.params ?
+                             req.query ?
+                             */
+
+                            headers   : {
+                                req : err.response.request.req._headers,
+                                res : err.response.request.res.headers
+                            },
+                            host      : err.response.request.host,
+                            messenger : 'frog.xhr',
+                            method    : err.response.error.method,
+                            protocol  : err.response.request.protocol.split(':')[0],
+                            status    : err.response.error.status,
+                            type      : 'xhr',
+                            uri       : err.response.error.path,
+                            url       : err.response.request.url
                         },
-                        host      : err.response.request.host,
-                        messenger : 'frog.xhr',
-                        method    : err.response.error.method,
-                        protocol  : err.response.request.protocol.split(':')[0],
-                        status    : err.response.error.status,
-                        type      : 'xhr',
-                        uri       : err.response.error.path,
-                        url       : err.response.request.url
-                    },
-                    message : (function (status) {
+                        message : (function (status) {
 
-                        // default http status
-                        switch (status) {
-                            case 500 :
-                                return 'INTERNAL_SERVER_ERROR';
-                                break;
-                            case 501 :
-                                return 'NOT_IMPLEMENTED';
-                                break;
-                            case 502 :
-                                return 'BAD_GATEWAY';
-                                break;
-                            case 503 :
-                                return 'SERVICE_UNAVAILABLE';
-                                break;
-                            case 504 :
-                                return 'GATEWAY_TIMEOUT';
-                                break;
-                            default :
-                                return 'UNKNOWN';
-                                break;
-                        }
+                            // default http status
+                            switch (status) {
+                                case 500 :
+                                    return 'INTERNAL_SERVER_ERROR';
+                                    break;
+                                case 501 :
+                                    return 'NOT_IMPLEMENTED';
+                                    break;
+                                case 502 :
+                                    return 'BAD_GATEWAY';
+                                    break;
+                                case 503 :
+                                    return 'SERVICE_UNAVAILABLE';
+                                    break;
+                                case 504 :
+                                    return 'GATEWAY_TIMEOUT';
+                                    break;
+                                default :
+                                    return 'UNKNOWN';
+                                    break;
+                            }
 
-                    })(err.response.error.status),
-                    stack   : [], // always the first
-                    status  : err.response.error.status
-                }, null, err.response.error.status);
+                        })(err.response.error.status),
+                        stack   : [], // always the first
+                        status  : err.response.error.status
+                    }, null, err.response.error.status);
+
+                } catch(err) {
+
+                    console.log('XHR request failed on network level.', err);
+                    console.log(args);
+
+                }
+
             }
 
             // skip
             // application error, always returns with
             // status code 200 on request level, real
             // errors on the body object
-
-            /*
-
-             {
-             data    : null,
-             error   : {
-             code     : 404001,
-             debug    : 'Resource could not be found, please check ...',
-             host     : 'api.getloots.com',
-             message  : 'RESOURCE_NOT_FOUND',
-             method   : 'POST',
-             protocol : 'https',
-             stack    : [
-             // holds error object that might have occured before
-             ],
-             status   : 404,
-             uri      : '/sso/sign/in',
-             url      : 'https://api.getloots.com/sso/sign/in'
-             },
-             status  : 404,
-             success : false
-
-             }
-
-             */
-
             if (res.body && res.body.error) {
 
                 // parse stack

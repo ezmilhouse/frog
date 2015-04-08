@@ -25,6 +25,7 @@ define([
                 action              : true,
                 css                 : {
                     field              : 'field',
+                    fieldHidden        : 'field-hidden',
                     fieldError         : 'field-error',
                     fieldErrorMessage  : 'field-error-message',
                     fieldErrorFlag     : 'field-error-flag',
@@ -201,9 +202,10 @@ define([
                     };
 
                     // no error fields for checkboxes and radio buttons
-                    if (type !== 'checkbox' && type !== 'radio') {
+                    if (type !== 'checkbox' && type !== 'hidden' && type !== 'radio') {
 
                         // inject error containers per field
+                        // if field is not hidden
                         el.closest(ns + '.' + cl.field).append(self.$.markup.error_field);
 
                     }
@@ -549,8 +551,18 @@ define([
             var prefix = this.$.prefix;
 
             // normalize
-            this.$.text.form_error = typeof this.$.text.form_error === 'undefined' ? '' : this.$.text.form_error;
-            this.$.text.default_error = typeof this.$.text.default_error === 'undefined' ? '' : this.$.text.default_error;
+            this.$.text.form_error = typeof this.$.text.form_error === 'undefined'
+                ? ''
+                : this.$.text.form_error;
+
+            this.$.text.default_error = typeof this.$.text.default_error === 'undefined'
+                ? ''
+                : this.$.text.default_error;
+
+
+            this.$.text.default_success = typeof this.$.text.default_success === 'undefined'
+                ? ''
+                : this.$.text.default_success;
 
             // add markup for errors in form and field
             _.extend(this.$.markup, {
@@ -761,6 +773,8 @@ define([
          */
         _submit : function () {
 
+            console.log('_submit');
+
             // preserve scope
             var self = this;
 
@@ -961,6 +975,7 @@ define([
 
             // extract data form form
             var dataForm = this.$.el.serializeArray();
+            console.log(dataForm);
 
             // loop through array of name/value pairs
             // normalize them on object key/value
