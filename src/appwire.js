@@ -17,11 +17,24 @@ define(function () {
 
             // ./
             if (path.substr(0, 2) === './') {
-                return require(dir + '/' + path.split('/')[1] + '.js');
+
+                var arr = path.split('/');
+                var str = '';
+
+                for (var i = 1; i < arr.length; i++) {
+                    if (i === 1) {
+                        str += dir;
+                    }
+                    str += '/' + arr[i];
+                }
+
+                str += '.js';
+
+                return require(str);
             }
 
             // server/js
-            return require(dir + config.server  + '/js/' + path);
+            return require(dir + config.server + '/js/' + path);
 
         };
 

@@ -35,6 +35,8 @@ define([
                 token              : null
             };
 
+            console.log(options);
+
             if (options) {
                 _.extend(this.$, options);
             }
