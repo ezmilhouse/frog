@@ -93,10 +93,7 @@ define([
                     }, null, err.response.error.status);
 
                 } catch(err) {
-
                     console.log('XHR request failed on network level.', err);
-                    console.log(args);
-
                 }
 
             }

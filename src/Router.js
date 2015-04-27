@@ -167,7 +167,10 @@ define([
             ], function () {
 
                 // dispatch on hashchange event
-                $(window).hashchange(dispatch);
+                // avoid multiple calls
+                if ($(window).hashchange) {
+                    $(window).hashchange(dispatch);
+                }
 
                 // initial dispatch
                 dispatch();

@@ -773,8 +773,6 @@ define([
          */
         _submit : function () {
 
-            console.log('_submit');
-
             // preserve scope
             var self = this;
 
@@ -975,7 +973,6 @@ define([
 
             // extract data form form
             var dataForm = this.$.el.serializeArray();
-            console.log(dataForm);
 
             // loop through array of name/value pairs
             // normalize them on object key/value
